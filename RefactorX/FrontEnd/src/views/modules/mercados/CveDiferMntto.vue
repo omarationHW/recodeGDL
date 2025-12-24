@@ -9,12 +9,19 @@
         <p>Inicio > Catálogos > Claves de Diferencias por Cobrar</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="abrirModalNuevo">
           <font-awesome-icon icon="plus" /> Nuevo
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -127,7 +134,10 @@
           <font-awesome-icon icon="balance-scale" />
           {{ isEdit ? 'Editar Clave de Diferencia' : 'Nueva Clave de Diferencia' }}
         </h5>
-      </template>
+      
+  <DocumentationModal :show="showAyuda" :component-name="'CveDiferMntto'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CveDiferMntto'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CveDiferMntto'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CveDiferMntto'" @close="showDocumentacion = false" />
+</template>
 
       <div class="row">
         <div class="col-md-3 mb-3">
@@ -227,11 +237,46 @@
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import Modal from '@/components/common/Modal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import Swal from 'sweetalert2'
+
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 const { showToast } = useToast()
@@ -284,16 +329,21 @@ const mostrarAyuda = () => {
 const cargarItems = async () => {
   showLoading('Cargando claves de diferencias', 'Por favor espere...')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_cve_diferencia_list', Base: 'mercados', Parametros: [] }
-    })
-    if (res.data.eResponse.success) {
-      items.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_cve_diferencias',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      items.value = res.data.result || []
       if (items.value.length > 0) {
         showToast(`Se cargaron ${items.value.length} claves`, 'success')
       }
     } else {
-      showToast(res.data.eResponse.message || 'Error al cargar claves', 'error')
+      showToast(res.message || 'Error al cargar claves', 'error')
     }
   } catch (err) {
     showToast('Error de conexión', 'error')
@@ -306,11 +356,16 @@ const cargarItems = async () => {
 const cargarCuentas = async () => {
   showLoading('Cargando catálogo de cuentas', 'Por favor espere...')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_cuentas_ingreso', Base: 'mercados', Parametros: [] }
-    })
-    if (res.data.eResponse.success) {
-      cuentas.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_cuentas_ingreso',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      cuentas.value = res.data.result || []
     } else {
       showToast('Error al cargar catálogo de cuentas', 'error')
     }
@@ -351,21 +406,22 @@ const guardar = async () => {
   showLoading(isEdit.value ? 'Actualizando clave' : 'Guardando clave', 'Por favor espere...')
   try {
     const operacion = isEdit.value ? 'sp_update_cve_diferencia' : 'sp_insert_cve_diferencia'
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: operacion,
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_clave_diferencia', Valor: parseInt(form.value.clave_diferencia) },
-          { Nombre: 'p_descripcion', Valor: form.value.descripcion.toUpperCase() },
-          { Nombre: 'p_cuenta_ingreso', Valor: parseInt(form.value.cuenta_ingreso) },
-          { Nombre: 'p_id_usuario', Valor: parseInt(form.value.id_usuario) }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+      operacion,
+      'mercados',
+      [
+        { nombre: 'p_clave_diferencia', valor: parseInt(form.value.clave_diferencia), tipo: 'integer' },
+        { nombre: 'p_descripcion', valor: form.value.descripcion.toUpperCase(), tipo: 'string' },
+        { nombre: 'p_cuenta_ingreso', valor: parseInt(form.value.cuenta_ingreso), tipo: 'integer' },
+        { nombre: 'p_id_usuario', valor: parseInt(form.value.id_usuario), tipo: 'integer' }
+      ],
+      '',
+      null,
+      'publico'
+    )
 
-    if (res.data.eResponse.success) {
-      const result = res.data.eResponse.data.result
+    if (res.success) {
+      const result = res.data.result
       if (result && result.length > 0 && result[0][operacion.replace('sp_', '').replace('_cve_diferencia', '')]) {
         showToast(isEdit.value ? 'Clave actualizada' : 'Clave creada', 'success')
         cerrarModal()
@@ -374,7 +430,7 @@ const guardar = async () => {
         showToast('La clave ya existe o no se pudo guardar', 'error')
       }
     } else {
-      showToast(res.data.eResponse.message || 'Error al guardar', 'error')
+      showToast(res.message || 'Error al guardar', 'error')
     }
   } catch (err) {
     showToast('Error de conexión', 'error')
@@ -399,18 +455,19 @@ const eliminar = async () => {
 
   showLoading('Eliminando clave', 'Por favor espere...')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_delete_cve_diferencia',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_clave_diferencia', Valor: parseInt(itemAEliminar.value.clave_diferencia) }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+          'sp_delete_cve_diferencia',
+          'mercados',
+          [
+          { nombre: 'p_clave_diferencia', valor: parseInt(itemAEliminar.value.clave_diferencia) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      const result = res.data.eResponse.data.result
+    if (res.success) {
+      const result = res.data.result
       if (result && result.length > 0 && result[0].delete) {
         showToast('Clave eliminada', 'success')
         cancelarEliminar()
@@ -419,7 +476,7 @@ const eliminar = async () => {
         showToast('No se pudo eliminar', 'error')
       }
     } else {
-      showToast(res.data.eResponse.message || 'Error al eliminar', 'error')
+      showToast(res.message || 'Error al eliminar', 'error')
     }
   } catch (err) {
     showToast('Error de conexión', 'error')

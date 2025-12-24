@@ -10,14 +10,20 @@
         <p>Inicio > Mercados > Estadística Pagos/Adeudos</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || result.length === 0">
           <font-awesome-icon icon="file-excel" />
           Excel
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -39,7 +45,7 @@
               <select class="municipal-form-control" v-model.number="selectedRec" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -138,7 +144,7 @@
                     <p>No se encontraron datos</p>
                   </td>
                 </tr>
-                <tr v-else v-for="row in result" :key="row.num_mercado_nvo" class="row-hover">
+                <tr v-else v-for="row in paginatedResult" :key="row.num_mercado_nvo" class="row-hover">
                   <td class="text-center"><strong>{{ row.num_mercado_nvo }}</strong></td>
                   <td>{{ row.descripcion }}</td>
                   <td class="text-end">{{ row.localpag }}</td>
@@ -166,6 +172,80 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Controles de paginación -->
+          <div v-if="result.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, result.length) }}
+                de {{ result.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -179,12 +259,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'EstadPagosyAdeudos'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - EstadPagosyAdeudos'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'EstadPagosyAdeudos'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - EstadPagosyAdeudos'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -204,6 +293,10 @@ const form = ref({
 
 // Datos
 const result = ref([])
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 // Toast
 const toast = ref({
@@ -232,16 +325,43 @@ const totales = computed(() => {
   })
 })
 
+const paginatedResult = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return result.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(result.value.length / itemsPerPage.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
 // Métodos
 const toggleFilters = () => {
   showFilters.value = !showFilters.value
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Consulte estadísticas de pagos, capturas y adeudos por mercado')
+  showToast('Ayuda: Consulte estadísticas de pagos, capturas y adeudos por mercado', 'info')
 }
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = { show: true, type, message }
   setTimeout(() => hideToast(), 5000)
 }
@@ -269,18 +389,19 @@ const formatNumber = (number) => {
 const fetchRecaudadoras = async () => {
   showLoading('Cargando Estadísticas de Pagos y Adeudos', 'Preparando oficinas recaudadoras...')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse?.success === true) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success === true) {
+      recaudadoras.value = res.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar recaudadoras')
+    showToast('Error al cargar recaudadoras', 'error')
   } finally {
     hideLoading()
   }
@@ -288,7 +409,7 @@ const fetchRecaudadoras = async () => {
 
 const consultar = async () => {
   if (!selectedRec.value || !form.value.axo || !form.value.mes || !form.value.fechaDesde || !form.value.fechaHasta) {
-    showToast('warning', 'Complete todos los campos requeridos')
+    showToast('Complete todos los campos requeridos', 'warning')
     return
   }
 
@@ -297,32 +418,33 @@ const consultar = async () => {
   searchPerformed.value = true
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_estadistica_pagos_adeudos',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: selectedRec.value },
-          { Nombre: 'p_axo', Valor: form.value.axo },
-          { Nombre: 'p_mes', Valor: form.value.mes },
-          { Nombre: 'p_fecha_desde', Valor: form.value.fechaDesde },
-          { Nombre: 'p_fecha_hasta', Valor: form.value.fechaHasta }
-        ]
-      }
-    })
-    if (res.data.eResponse?.success) {
-      result.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_estadistica_pagos_adeudos',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: selectedRec.value },
+          { nombre: 'p_axo', valor: form.value.axo },
+          { nombre: 'p_mes', valor: form.value.mes },
+          { nombre: 'p_fecha_desde', valor: form.value.fechaDesde },
+          { nombre: 'p_fecha_hasta', valor: form.value.fechaHasta }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success) {
+      result.value = res.data.result || []
       if (result.value.length > 0) {
-        showToast('success', `Se encontraron ${result.value.length} mercados`)
+        showToast(`Se encontraron ${result.value.length} mercados`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No hay datos para los filtros seleccionados')
+        showToast('No hay datos para los filtros seleccionados', 'info')
       }
     } else {
-      showToast('error', res.data.eResponse?.message || 'Error en la consulta')
+      showToast(res.message || 'Error en la consulta', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error al consultar estadísticas')
+    showToast('Error al consultar estadísticas', 'error')
   } finally {
     loading.value = false
   }
@@ -336,55 +458,30 @@ const limpiarFiltros = () => {
   form.value.fechaHasta = new Date().toISOString().split('T')[0]
   result.value = []
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (result.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
-  showToast('info', 'Funcionalidad de exportación Excel en desarrollo')
+  showToast('Funcionalidad de exportación Excel en desarrollo', 'info')
+}
+
+// Paginación - Métodos
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
 }
 
 onMounted(() => {
   fetchRecaudadoras()
 })
 </script>
-
-<style scoped>
-.empty-icon { color: #ccc; margin-bottom: 1rem; }
-.text-end { text-align: right; }
-.text-center { text-align: center; }
-.spinner-border { width: 3rem; height: 3rem; }
-.row-hover:hover { background-color: #f8f9fa; }
-.required { color: #dc3545; }
-
-.group-header-success {
-  background-color: #d4edda !important;
-  color: #155724;
-}
-
-.group-header-info {
-  background-color: #d1ecf1 !important;
-  color: #0c5460;
-}
-
-.group-header-danger {
-  background-color: #f8d7da !important;
-  color: #721c24;
-}
-
-.text-success { color: #28a745; }
-.text-info { color: #17a2b8; }
-.text-danger { color: #dc3545; }
-
-.total-row {
-  background-color: #f8f9fa;
-  font-weight: bold;
-  border-top: 2px solid #dee2e6;
-}
-
-.municipal-table td.text-end, .municipal-table th.text-end { text-align: right; }
-.municipal-table td.text-center, .municipal-table th.text-center { text-align: center; }
-</style>

@@ -10,15 +10,16 @@
         <p>Mercados - Registro de Pagos de Energía Eléctrica</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
           <font-awesome-icon icon="question-circle" />
-          Ayuda
+          <span>Ayuda</span>
         </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+        
+        </div>
     </div>
 
     <div class="module-view-content">
@@ -38,7 +39,7 @@
                 :disabled="loading || panelPagoVisible">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -68,8 +69,12 @@
 
             <div class="form-group col-md-2">
               <label class="municipal-form-label">Categoría *</label>
-              <input type="number" class="municipal-form-control" v-model.number="filters.categoria" placeholder="0"
-                :disabled="loading || panelPagoVisible" readonly />
+              <select class="municipal-form-control" v-model="filters.categoria" :disabled="loading || panelPagoVisible">
+                <option value="">Seleccione...</option>
+                <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                  {{ cat.categoria }} - {{ cat.descripcion }}
+                </option>
+              </select>
             </div>
 
             <div class="form-group col-md-2">
@@ -159,7 +164,7 @@
               <select class="municipal-form-control" v-model="pago.oficinaPago" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -213,7 +218,7 @@
           </div>
 
           <div class="d-flex justify-content-end mt-3 gap-2">
-            <button class="btn-municipal-success" @click="agregarPago"
+            <button class="btn-municipal-primary" @click="agregarPago"
               :disabled="loading || !validarPago() || pagoExistente">
               <font-awesome-icon icon="save" />
               Agregar
@@ -273,14 +278,22 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'AltaPagosEnergia'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - AltaPagosEnergia'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'AltaPagosEnergia'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - AltaPagosEnergia'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
 import { useToast } from 'vue-toastification';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const router = useRouter();
 const toast = useToast();
@@ -290,6 +303,7 @@ const globalLoading = useGlobalLoading();
 const loading = ref(false); // Solo para deshabilitar campos durante operaciones
 const recaudadoras = ref([]);
 const mercados = ref([]);
+const categorias = ref([]);
 const secciones = ref([]);
 const localEncontrado = ref(null);
 const errorBusqueda = ref('');
@@ -323,10 +337,37 @@ const pago = ref({
   folio: ''
 });
 
+// Fetch Categorías
+async function fetchCategorias() {
+  await globalLoading.withLoading(async () => {
+    loading.value = true;
+    try {
+      const response = await apiService.execute(
+          'sp_categoria_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
+
+      if (response.success) {
+        categorias.value = response.data.result || [];
+      }
+    } catch (error) {
+      toast.error('Error al cargar categorías: ' + error.message);
+      throw error;
+    } finally {
+      loading.value = false;
+    }
+  }, 'Cargando categorías');
+}
+
 // Cargar datos iniciales
 onMounted(async () => {
   await Promise.all([
     fetchRecaudadoras(),
+    fetchCategorias(),
     fetchSecciones()
   ]);
 });
@@ -336,16 +377,17 @@ async function fetchRecaudadoras() {
   await globalLoading.withLoading(async () => {
     loading.value = true;
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_recaudadoras',
-          Base: 'padron_licencias',
-          Parametros: []
-        }
-      });
+      const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success) {
-        recaudadoras.value = response.data.eResponse.data.result || [];
+      if (response.success) {
+        recaudadoras.value = response.data.result || [];
       }
     } catch (error) {
       toast.error('Error al cargar recaudadoras: ' + error.message);
@@ -367,19 +409,20 @@ async function onRecChange() {
   await globalLoading.withLoading(async () => {
     loading.value = true;
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_catalogo_mercados',
-          Base: 'padron_licencias',
-          Parametros: [
+      const response = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
             { nombre: 'p_id_rec', tipo: 'int4', valor: parseInt(filters.value.idRecaudadora) },
             { nombre: 'p_nivel_usuario', tipo: 'integer', valor: 1 }
-          ]
-        }
-      });
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success) {
-        mercados.value = response.data.eResponse.data.result || [];
+      if (response.success) {
+        mercados.value = response.data.result || [];
       }
     } catch (error) {
       toast.error('Error al cargar mercados: ' + error.message);
@@ -390,16 +433,10 @@ async function onRecChange() {
   }, 'Cargando mercados');
 }
 
-// Cambio de mercado - actualiza categoría
+// Cambio de mercado - NO actualiza categoría automáticamente, el usuario la selecciona
 function onMercadoChange() {
-  if (filters.value.numMercado) {
-    const mercado = mercados.value.find(m => m.num_mercado_nvo === parseInt(filters.value.numMercado));
-    if (mercado) {
-      filters.value.categoria = mercado.categoria;
-    }
-  } else {
-    filters.value.categoria = null;
-  }
+  // Ya no establecemos categoría automáticamente
+  // El usuario debe seleccionarla manualmente desde el select
 }
 
 // Fetch Secciones
@@ -407,16 +444,17 @@ async function fetchSecciones() {
   await globalLoading.withLoading(async () => {
     loading.value = true;
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_secciones',
-          Base: 'padron_licencias',
-          Parametros: []
-        }
-      });
+      const response = await apiService.execute(
+          'sp_get_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success) {
-        secciones.value = response.data.eResponse.data.result || [];
+      if (response.success) {
+        secciones.value = response.data.result || [];
       }
     } catch (error) {
       toast.error('Error al cargar secciones: ' + error.message);
@@ -460,11 +498,10 @@ async function buscarLocal() {
 
     try {
       // Buscar local y verificar si paga energía
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_alta_pagos_energia_buscar_local',
-          Base: 'padron_licencias',
-          Parametros: [
+      const response = await apiService.execute(
+          'sp_alta_pagos_energia_buscar_local',
+          'mercados',
+          [
             { nombre: 'p_oficina', tipo: 'int4', valor: parseInt(filters.value.idRecaudadora) },
             { nombre: 'p_num_mercado', tipo: 'int4', valor: parseInt(filters.value.numMercado) },
             { nombre: 'p_categoria', tipo: 'int4', valor: parseInt(filters.value.categoria) },
@@ -472,12 +509,14 @@ async function buscarLocal() {
             { nombre: 'p_local', tipo: 'int4', valor: parseInt(filters.value.local) },
             { nombre: 'p_letra_local', tipo: 'text', valor: filters.value.letraLocal || '' },
             { nombre: 'p_bloque', tipo: 'text', valor: filters.value.bloque || '' }
-          ]
-        }
-      });
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success) {
-        const result = response.data.eResponse.data.result;
+      if (response.success) {
+        const result = response.data.result;
         if (result && result.length > 0) {
           const local = result[0];
 
@@ -520,20 +559,21 @@ async function verificarPagoExistente() {
   if (!localEncontrado.value?.id_energia) return;
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_alta_pagos_energia_consultar_pago',
-        Base: 'padron_licencias',
-        Parametros: [
+    const response = await apiService.execute(
+          'sp_alta_pagos_energia_consultar_pago',
+          'mercados',
+          [
           { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
           { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
           { nombre: 'p_periodo', tipo: 'int4', valor: pago.value.periodo }
-        ]
-      }
-    });
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      const result = response.data.eResponse.data.result;
+    if (response.success) {
+      const result = response.data.result;
       if (result && result.length > 0) {
         // Cargar datos del pago existente
         const pagoData = result[0];
@@ -569,18 +609,19 @@ async function buscarImporteEnAdeudos() {
   if (!localEncontrado.value?.id_energia) return;
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_alta_pagos_energia_listar_adeudos',
-        Base: 'padron_licencias',
-        Parametros: [
+    const response = await apiService.execute(
+          'sp_alta_pagos_energia_listar_adeudos',
+          'mercados',
+          [
           { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia }
-        ]
-      }
-    });
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      const result = response.data.eResponse.data.result || [];
+    if (response.success) {
+      const result = response.data.result || [];
       const adeudo = result.find(a => a.axo === pago.value.axo && a.periodo === pago.value.periodo);
       if (adeudo) {
         pago.value.importePago = adeudo.importe;
@@ -600,18 +641,19 @@ async function cargarAdeudos() {
   if (!localEncontrado.value?.id_energia) return;
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_alta_pagos_energia_listar_adeudos',
-        Base: 'padron_licencias',
-        Parametros: [
+    const response = await apiService.execute(
+          'sp_alta_pagos_energia_listar_adeudos',
+          'mercados',
+          [
           { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia }
-        ]
-      }
-    });
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      adeudos.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      adeudos.value = response.data.result || [];
       mostrarAdeudos.value = true;
     }
   } catch (error) {
@@ -643,11 +685,10 @@ async function agregarPago() {
   await globalLoading.withLoading(async () => {
     loading.value = true;
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_alta_pagos_energia_agregar',
-          Base: 'padron_licencias',
-          Parametros: [
+      const response = await apiService.execute(
+          'sp_alta_pagos_energia_agregar',
+          'mercados',
+          [
             { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
             { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
             { nombre: 'p_periodo', tipo: 'int4', valor: pago.value.periodo },
@@ -660,12 +701,14 @@ async function agregarPago() {
             { nombre: 'p_cantidad', tipo: 'numeric', valor: pago.value.cantidad || 0 },
             { nombre: 'p_folio', tipo: 'text', valor: pago.value.folio },
             { nombre: 'p_id_usuario', tipo: 'int4', valor: 1 } // TODO: Obtener de sesión
-          ]
-        }
-      });
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success) {
-        const result = response.data.eResponse.data.result;
+      if (response.success) {
+        const result = response.data.result;
         if (result && result[0]?.success) {
           toast.success(result[0].message || 'Pago agregado correctamente');
           cancelarPago();
@@ -692,11 +735,10 @@ async function modificarPago() {
   await globalLoading.withLoading(async () => {
     loading.value = true;
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_alta_pagos_energia_modificar',
-          Base: 'padron_licencias',
-          Parametros: [
+      const response = await apiService.execute(
+          'sp_alta_pagos_energia_modificar',
+          'mercados',
+          [
             { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
             { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
             { nombre: 'p_periodo', tipo: 'int4', valor: pago.value.periodo },
@@ -709,12 +751,14 @@ async function modificarPago() {
             { nombre: 'p_cantidad', tipo: 'numeric', valor: pago.value.cantidad || 0 },
             { nombre: 'p_folio', tipo: 'text', valor: pago.value.folio },
             { nombre: 'p_id_usuario', tipo: 'int4', valor: 1 } // TODO: Obtener de sesión
-          ]
-        }
-      });
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success) {
-        const result = response.data.eResponse.data.result;
+      if (response.success) {
+        const result = response.data.result;
         if (result && result[0]?.success) {
           toast.success(result[0].message || 'Pago modificado correctamente');
           cancelarPago();
@@ -738,21 +782,22 @@ async function borrarPago() {
   await globalLoading.withLoading(async () => {
     loading.value = true;
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_alta_pagos_energia_borrar',
-          Base: 'padron_licencias',
-          Parametros: [
+      const response = await apiService.execute(
+          'sp_alta_pagos_energia_borrar',
+          'mercados',
+          [
             { nombre: 'p_id_energia', tipo: 'int4', valor: localEncontrado.value.id_energia },
             { nombre: 'p_axo', tipo: 'int4', valor: pago.value.axo },
             { nombre: 'p_periodo', tipo: 'int4', valor: pago.value.periodo },
             { nombre: 'p_id_usuario', tipo: 'int4', valor: 1 } // TODO: Obtener de sesión
-          ]
-        }
-      });
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success) {
-        const result = response.data.eResponse.data.result;
+      if (response.success) {
+        const result = response.data.result;
         if (result && result[0]?.success) {
           toast.success(result[0].message || 'Pago eliminado correctamente');
           cancelarPago();
@@ -816,13 +861,7 @@ function formatFecha(fecha) {
 // Mostrar ayuda
 function mostrarAyuda() {
   toast.info('Ayuda: Seleccione la recaudadora, mercado, ingrese los datos del local y presione Buscar. Complete los datos del pago y presione Agregar o Modificar según corresponda.');
-}
-
-// Cerrar
-function cerrar() {
-  router.push('/');
-}
-</script>
+}</script>
 
 <!-- Sin estilos scoped - Se usan clases municipales globales -->
 <!-- Clases utilizadas: module-view, municipal-card, municipal-form-control, btn-municipal-*, gap-2 -->

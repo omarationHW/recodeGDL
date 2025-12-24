@@ -9,14 +9,20 @@
         <p>Mercados - Detalle de Pagos Capturados de Energía</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="fetchData" :disabled="loading">
           <font-awesome-icon icon="sync" />
           Actualizar
         </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
+        
       </div>
     </div>
 
@@ -77,14 +83,22 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'ConsCapturaEnergia'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - ConsCapturaEnergia'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'ConsCapturaEnergia'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - ConsCapturaEnergia'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter, useRoute } from 'vue-router';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -100,29 +114,26 @@ const formatCurrency = (value) => {
 
 const showToast = (type, message) => {
   Swal.fire({ toast: true, position: 'top-end', icon: type, title: message, showConfirmButton: false, timer: 3000 });
-};
-
-const cerrar = () => router.push('/mercados');
-
-async function fetchData() {
+};async function fetchData() {
   showLoading('Cargando Captura de Energía', 'Consultando información...');
   loading.value = true;
   try {
     const idEnergia = route.query.id_energia || null;
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_captura_energia_list',
-        Base: 'mercados',
-        Parametros: idEnergia ? [{ Nombre: 'p_id_energia', Valor: parseInt(idEnergia), tipo: 'integer' }] : []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_cons_captura_energia_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      rows.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      rows.value = response.data.result || [];
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al cargar datos');
+    showToast('Error al cargar datos', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -143,21 +154,44 @@ async function borrarPago(row) {
   if (!result.isConfirmed) return;
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_captura_energia_delete',
-        Base: 'mercados',
-        Parametros: [{ Nombre: 'p_id_pago_energia', Valor: row.id_pago_energia, tipo: 'integer' }]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_cons_captura_energia_delete',
+          'mercados',
+          [{ nombre: 'p_id_pago_energia', valor: row.id_pago_energia, tipo: 'integer' }],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      showToast('success', 'Pago eliminado');
+    if (response.success) {
+      showToast('Pago eliminado', 'success');
       fetchData();
     }
   } catch (error) {
-    showToast('error', 'Error al eliminar');
+    showToast('Error al eliminar', 'error');
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Consulta de Captura de EnergÃ­a',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite consultar los registros de captura de energÃ­a elÃ©ctrica.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Use los filtros para buscar capturas especÃ­ficas
+          <li>Puede ver el detalle de cada captura haciendo clic en la fila
+          <li>Exporte los resultados si es necesario</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => fetchData());

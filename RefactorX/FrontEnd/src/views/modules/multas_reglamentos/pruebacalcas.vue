@@ -8,6 +8,16 @@
         <h1>Prueba Cálculos</h1>
         <p>Cálculo de multas, recargos y descuentos</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -151,22 +161,44 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'pruebacalcas'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Prueba Cálculos'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'pruebacalcas'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Prueba Cálculos'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_PRUEBACALCAS'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const params = ref({
   p_importe_base: 1000,
@@ -209,10 +241,11 @@ async function calcular() {
   resultado.value = null
 
   try {
+    showLoading('Consultando...', 'Por favor espere')
     console.log('🔍 Ejecutando SP:', OP)
     console.log('🔍 Parámetros:', params.value)
 
-    const data = await execute(OP, BASE_DB, params.value)
+    const data = await execute(OP, BASE_DB, params.value, '', null, SCHEMA)
 
     console.log('✅ Resultado:', data)
 
@@ -231,6 +264,8 @@ async function calcular() {
   } catch (e) {
     error.value = e.message || 'Error al ejecutar el cálculo'
     console.error('❌ Error:', e)
+  } finally {
+    hideLoading()
   }
 }
 
@@ -256,158 +291,3 @@ function formatCurrency(value) {
 cargarEjemplo(1)
 </script>
 
-<style scoped>
-.municipal-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-}
-
-.municipal-card-header {
-  padding: 15px 20px;
-  border-bottom: 1px solid #e0e0e0;
-  background: linear-gradient(135deg, #ea8215 0%, #d67512 100%);
-  color: white;
-  font-weight: bold;
-  border-radius: 8px 8px 0 0;
-}
-
-.municipal-card-header h5 {
-  margin: 0;
-  color: white;
-}
-
-.municipal-card-body {
-  padding: 20px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.municipal-form-label {
-  font-weight: 600;
-  margin-bottom: 5px;
-  color: #333;
-}
-
-.municipal-form-control {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.btn-municipal-secondary {
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  background: #5a6268;
-  transform: translateY(-1px);
-}
-
-.btn-municipal-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.ejemplos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-}
-
-.ejemplo-btn {
-  padding: 15px;
-  border: 2px solid #ea8215;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.ejemplo-btn:hover {
-  background: #fff5ed;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(234, 130, 21, 0.2);
-}
-
-.ejemplo-btn strong {
-  color: #ea8215;
-  font-size: 16px;
-}
-
-.ejemplo-btn small {
-  color: #666;
-  font-size: 13px;
-}
-
-.municipal-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-}
-
-.municipal-table th,
-.municipal-table td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: left;
-}
-
-.row-hover:hover {
-  background-color: #f9f9f9;
-}
-
-.row-total {
-  background-color: #fff5ed;
-  font-weight: bold;
-}
-
-.row-total td {
-  color: #ea8215;
-  font-size: 16px;
-}
-
-.table-responsive {
-  overflow-x: auto;
-}
-
-.alert {
-  padding: 12px 20px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-}
-
-.alert-danger {
-  background-color: #f8d7da;
-  border: 1px solid #f5c2c7;
-  color: #842029;
-}
-</style>

@@ -8,6 +8,16 @@
         <h1>Aplicación de Saldos a Favor</h1>
         <p>Gestión de saldos a favor mediante procedimientos almacenados</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -94,24 +104,46 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'AplicaSdosFavor'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Aplicación de Saldos a Favor'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'AplicaSdosFavor'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Aplicación de Saldos a Favor'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos' // TODO confirmar
 const OP_CONSULTA_SALDOS = 'RECAUDADORA_CONSULTA_SDOS_FAVOR' // TODO confirmar
 const OP_APLICA_SALDOS = 'RECAUDADORA_APLICA_SDOS_FAVOR' // TODO confirmar
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({ cuenta: '', ejercicio: null, folio: null })
 const registros = ref([])
@@ -152,6 +184,7 @@ async function consultar() {
 
   console.log('Parámetros enviados:', params)
 
+  showLoading('Consultando saldos a favor...', 'Por favor espere')
   try {
     const data = await execute(OP_CONSULTA_SALDOS, BASE_DB, params)
     console.log('Respuesta del SP:', data)
@@ -160,6 +193,8 @@ async function consultar() {
     console.log('Registros procesados:', registros.value.length, 'registros')
   } catch (e) {
     console.error('Error en consulta:', e)
+  } finally {
+    hideLoading()
   }
 }
 
@@ -168,10 +203,14 @@ async function aplicar() {
   const params = [
     { nombre: 'p_registros', tipo: 'string', valor: JSON.stringify(registros.value) }
   ]
+  showLoading('Aplicando saldos a favor...', 'Por favor espere')
   try {
     await execute(OP_APLICA_SALDOS, BASE_DB, params)
     await consultar()
-  } catch (e) {}
+  } catch (e) {
+  } finally {
+    hideLoading()
+  }
 }
 
 function formatCurrency(v) {

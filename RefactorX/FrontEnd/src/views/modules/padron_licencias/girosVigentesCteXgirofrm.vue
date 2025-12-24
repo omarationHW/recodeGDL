@@ -1,27 +1,5 @@
 <template>
   <div class="module-view">
-    <!-- Navigation Header -->
-    <div class="navigation-header">
-      <button
-        type="button"
-        class="btn-nav-back"
-        @click="router.push({ name: 'ConsultaLicenciafrm' })"
-        title="Regresar a Consulta de Licencias"
-      >
-        <font-awesome-icon icon="arrow-left" />
-        <span>Regresar a Consulta</span>
-      </button>
-      <button
-        type="button"
-        class="btn-nav-help"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-        <span>Ayuda</span>
-      </button>
-    </div>
-
     <!-- Header del módulo -->
     <div class="module-view-header">
       <div class="module-view-icon">
@@ -30,6 +8,24 @@
       <div class="module-view-info">
         <h1>Giros Vigentes por Contribuyente</h1>
         <p>Padrón de Licencias - Reporte de Licencias Activas por Giro</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button
+          class="btn-municipal-warning"
+          @click="router.push({ name: 'ConsultaLicenciafrm' })"
+          title="Regresar a Consulta de Licencias"
+        >
+          <font-awesome-icon icon="arrow-left" />
+          Regresar
+        </button>
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
       </div>
     </div>
 
@@ -123,19 +119,39 @@
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Licencias Vigentes
-          <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords }} licencias</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="licencias.length > 0">
+            {{ formatNumber(licencias.length) }} licencias
+          </span>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="licencias.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="chart-line" size="3x" />
+          </div>
+          <h4>Licencias Vigentes por Giro</h4>
+          <p>Utilice los filtros o presione Buscar para cargar las licencias</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="licencias.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron licencias con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla con datos -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -150,7 +166,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="lic in licencias" :key="lic.numero_licencia" class="row-hover">
+              <tr
+                v-for="lic in paginatedLicencias"
+                :key="lic.numero_licencia"
+                @click="selectedRow = lic"
+                :class="{ 'table-row-selected': selectedRow === lic }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary">{{ lic.numero_licencia?.trim() }}</strong></td>
                 <td>{{ lic.contribuyente?.trim() || 'N/A' }}</td>
                 <td>
@@ -158,7 +180,9 @@
                     {{ lic.giro?.trim() || 'N/A' }}
                   </span>
                 </td>
-                <td>{{ lic.domicilio?.trim() || 'N/A' }}</td>
+                <td>
+                  <small class="text-muted">{{ lic.domicilio?.trim() || 'N/A' }}</small>
+                </td>
                 <td>
                   <span class="badge-secondary">
                     Zona {{ lic.zona || 'N/A' }}
@@ -183,62 +207,81 @@
                   </span>
                 </td>
               </tr>
-              <tr v-if="licencias.length === 0 && !loading">
-                <td colspan="8" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron licencias con los criterios especificados</p>
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
-      </div>
 
-      <!-- Paginación -->
-      <div class="pagination-container" v-if="totalRecords > 0 && !loading">
-        <div class="pagination-info">
-          <font-awesome-icon icon="info-circle" />
-          Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-          a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
-          de {{ totalRecords }} registros
-        </div>
+        <!-- Controles de Paginación -->
+        <div v-if="licencias.length > 0" class="pagination-controls">
+          <div class="pagination-info">
+            <span class="text-muted">
+              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+              a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+              de {{ formatNumber(totalRecords) }} registros
+            </span>
+          </div>
 
-        <div class="pagination-controls">
-          <div class="page-size-selector">
-            <label>Mostrar:</label>
-            <select v-model="itemsPerPage" @change="changePageSize">
-              <option :value="10">10</option>
-              <option :value="25">25</option>
-              <option :value="50">50</option>
-              <option :value="100">100</option>
+          <div class="pagination-size">
+            <label class="municipal-form-label me-2">Registros por página:</label>
+            <select
+              class="municipal-form-control form-control-sm"
+              :value="itemsPerPage"
+              @change="changePageSize($event.target.value)"
+              style="width: auto; display: inline-block;"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
             </select>
           </div>
 
-          <div class="pagination-nav">
+          <div class="pagination-buttons">
             <button
-              class="pagination-button"
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(1)"
+              :disabled="currentPage === 1"
+              title="Primera página"
+            >
+              <font-awesome-icon icon="angle-double-left" />
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
               @click="goToPage(currentPage - 1)"
               :disabled="currentPage === 1"
+              title="Página anterior"
             >
-              <font-awesome-icon icon="chevron-left" />
+              <font-awesome-icon icon="angle-left" />
             </button>
 
             <button
               v-for="page in visiblePages"
               :key="page"
-              class="pagination-button"
-              :class="{ active: page === currentPage }"
+              class="btn-sm"
+              :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
               @click="goToPage(page)"
             >
               {{ page }}
             </button>
 
             <button
-              class="pagination-button"
+              class="btn-municipal-secondary btn-sm"
               @click="goToPage(currentPage + 1)"
               :disabled="currentPage === totalPages"
+              title="Página siguiente"
             >
-              <font-awesome-icon icon="chevron-right" />
+              <font-awesome-icon icon="angle-right" />
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(totalPages)"
+              :disabled="currentPage === totalPages"
+              title="Última página"
+            >
+              <font-awesome-icon icon="angle-double-right" />
             </button>
           </div>
         </div>
@@ -295,55 +338,61 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading && licencias.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando licencias vigentes...</p>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'girosVigentesCteXgirofrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Giros Vigentes por Contribuyente'"
+      @close="showDocModal = false"
     />
-  </template>
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+const router = useRouter()
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -351,12 +400,40 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const licencias = ref([])
 const catalogoGiros = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
+const filtersPanelExpanded = ref(true)
+
+// Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
-const totalRecords = ref(0)
+const itemsPerPage = ref(10)
+const totalRecords = computed(() => licencias.value.length)
+const totalPages = computed(() => Math.ceil(totalRecords.value / itemsPerPage.value))
+
+const paginatedLicencias = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return licencias.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
+})
 
 // Filtros
 const filters = ref({
@@ -364,22 +441,6 @@ const filters = ref({
   zona: '',
   fechaInicio: '',
   fechaFin: ''
-})
-
-// Computed
-const totalPages = computed(() => {
-  return Math.ceil(totalRecords.value / itemsPerPage.value)
-})
-
-const visiblePages = computed(() => {
-  const pages = []
-  const start = Math.max(1, currentPage.value - 2)
-  const end = Math.min(totalPages.value, currentPage.value + 2)
-
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-  return pages
 })
 
 const licenciasVigentes = computed(() => {
@@ -418,7 +479,11 @@ const loadCatalogoGiros = async () => {
 }
 
 const loadLicencias = async () => {
-  setLoading(true, 'Cargando licencias vigentes...')
+  showLoading('Cargando licencias vigentes...', 'Consultando base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
+
+  const startTime = performance.now()
 
   try {
     const response = await execute(
@@ -435,30 +500,33 @@ const loadLicencias = async () => {
       'guadalajara'
     )
 
+    const endTime = performance.now()
+    const duration = ((endTime - startTime) / 1000).toFixed(2)
+    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
+
     if (response && response.result) {
       licencias.value = response.result
       if (licencias.value.length > 0) {
-        totalRecords.value = parseInt(licencias.value[0].total_records) || 0
+        toast.value.duration = durationText
+        showToast('success', `Se encontraron ${licencias.value.length} licencias`)
       } else {
-        totalRecords.value = 0
+        showToast('info', 'No se encontraron licencias')
       }
-      showToast('success', 'Licencias cargadas correctamente')
     } else {
       licencias.value = []
-      totalRecords.value = 0
       showToast('error', 'Error al cargar licencias')
     }
   } catch (error) {
     handleApiError(error)
     licencias.value = []
-    totalRecords.value = 0
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const searchLicencias = () => {
   currentPage.value = 1
+  selectedRow.value = null
   loadLicencias()
 }
 
@@ -469,24 +537,30 @@ const clearFilters = () => {
     fechaInicio: '',
     fechaFin: ''
   }
+  licencias.value = []
+  hasSearched.value = false
   currentPage.value = 1
-  loadLicencias()
+  selectedRow.value = null
 }
 
 const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-    loadLicencias()
-  }
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
 }
 
-const changePageSize = () => {
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
   currentPage.value = 1
-  loadLicencias()
+  selectedRow.value = null
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
 }
 
 const exportToExcel = async () => {
-  setLoading(true, 'Generando archivo Excel...')
+  showLoading('Generando archivo Excel...', 'Por favor espere')
 
   try {
     await Swal.fire({
@@ -497,19 +571,16 @@ const exportToExcel = async () => {
       timer: 2000
     })
 
-    // Aquí se implementaría la lógica de exportación a Excel
-    // usando una librería como xlsx o llamando a un endpoint específico
-
     showToast('info', 'Exportación a Excel en desarrollo')
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const generatePDF = async () => {
-  setLoading(true, 'Generando reporte PDF...')
+  showLoading('Generando reporte PDF...', 'Por favor espere')
 
   try {
     const response = await execute(
@@ -545,7 +616,7 @@ const generatePDF = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -587,7 +658,7 @@ const formatDate = (dateString) => {
 // Lifecycle
 onMounted(() => {
   loadCatalogoGiros()
-  loadLicencias()
+  // No cargar licencias automáticamente, esperar búsqueda del usuario
 })
 
 onBeforeUnmount(() => {

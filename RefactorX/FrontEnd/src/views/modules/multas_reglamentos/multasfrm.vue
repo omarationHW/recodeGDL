@@ -8,6 +8,16 @@
         <h1>Consulta General de Multas</h1>
         <p>Búsqueda por contribuyente, folio, domicilio o giro</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -82,42 +92,38 @@
           </div>
 
           <!-- Pagination Controls -->
-          <div v-if="rows.length > 0" class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid #dee2e6;">
+          <div v-if="rows.length > 0" class="pagination-controls">
             <div class="pagination-info">
               <span class="text-muted">
                 Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ rows.length }} registros
               </span>
             </div>
-            <div class="pagination-controls" style="display: flex; gap: 0.5rem;">
+            <div class="pagination-buttons">
               <button
                 class="btn-municipal-secondary"
                 :disabled="currentPage === 1"
-                @click="goToPage(1)"
-                style="padding: 0.5rem 0.75rem;">
+                @click="goToPage(1)">
                 <font-awesome-icon icon="angles-left" />
               </button>
               <button
                 class="btn-municipal-secondary"
                 :disabled="currentPage === 1"
-                @click="prevPage"
-                style="padding: 0.5rem 0.75rem;">
+                @click="prevPage">
                 <font-awesome-icon icon="chevron-left" />
               </button>
-              <span style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500;">
+              <span class="pagination-page-indicator">
                 Página {{ currentPage }} de {{ totalPages }}
               </span>
               <button
                 class="btn-municipal-secondary"
                 :disabled="currentPage === totalPages"
-                @click="nextPage"
-                style="padding: 0.5rem 0.75rem;">
+                @click="nextPage">
                 <font-awesome-icon icon="chevron-right" />
               </button>
               <button
                 class="btn-municipal-secondary"
                 :disabled="currentPage === totalPages"
-                @click="goToPage(totalPages)"
-                style="padding: 0.5rem 0.75rem;">
+                @click="goToPage(totalPages)">
                 <font-awesome-icon icon="angles-right" />
               </button>
             </div>
@@ -132,22 +138,44 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'multasfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Consulta General de Multas'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'multasfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Consulta General de Multas'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_MULTASFRM'
+const SCHEMA = 'publico'
 
 const filters = ref({ q: '' })
 const rows = ref([])
@@ -171,16 +199,19 @@ const paginatedRows = computed(() => {
 
 async function reload() {
   try {
+    showLoading('Consultando...', 'Por favor espere')
     currentPage.value = 1
     searched.value = true
     const data = await execute(OP, BASE_DB, [
       { nombre: 'p_filtro', tipo: 'string', valor: String(filters.value.q || '') }
-    ])
+    ], '', null, SCHEMA)
     const arr = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
     rows.value = arr
   } catch (e) {
     rows.value = []
     console.error('Error al cargar datos:', e)
+  } finally {
+    hideLoading()
   }
 }
 
@@ -227,47 +258,3 @@ function getStatusClass(status) {
 }
 </script>
 
-<style scoped>
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.status-success {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.status-danger {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.status-warning {
-  background-color: #fff3cd;
-  color: #856404;
-}
-
-.status-secondary {
-  background-color: #e2e3e5;
-  color: #383d41;
-}
-
-.text-end {
-  text-align: right;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-muted {
-  color: #6c757d;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-}
-</style>

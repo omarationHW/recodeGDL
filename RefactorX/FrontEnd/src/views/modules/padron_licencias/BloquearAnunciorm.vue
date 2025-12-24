@@ -9,14 +9,16 @@
         <h1>Bloquear/Desbloquear Anuncio</h1>
         <p>Padrón de Licencias - Gestión de bloqueos de anuncios publicitarios</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -149,11 +151,15 @@
                     required
                   >
                     <option value="">Seleccione un tipo...</option>
-                    <option value="ADMINISTRATIVO">Administrativo</option>
-                    <option value="JURIDICO">Jurídico</option>
-                    <option value="FISCAL">Fiscal</option>
-                    <option value="TECNICO">Técnico</option>
-                    <option value="URBANO">Urbano</option>
+                    <option value="1">BLOQUEADA</option>
+                    <option value="2">ESTADO 1</option>
+                    <option value="3">CABARET</option>
+                    <option value="4">SUSPENSION</option>
+                    <option value="5">RESPONSIVA</option>
+                    <option value="7">DESGLOSAR LIC</option>
+                    <option value="8">PARA REFRENDO</option>
+                    <option value="9">SOLVENTACION</option>
+                    <option value="10">INACTIVAS SIN PAGO</option>
                   </select>
                 </div>
               </div>
@@ -197,59 +203,61 @@
 
           <!-- Lista de Bloqueos -->
           <div class="mt-4" v-if="bloqueos.length > 0">
-            <h6 class="section-title header-with-badge">
-              <span>
+            <div class="section-title-container header-with-badge">
+              <h6 class="section-title">
                 <font-awesome-icon icon="list" />
                 Historial de Bloqueos
-              </span>
-              <span class="badge badge-purple">{{ bloqueos.length }}</span>
-            </h6>
+              </h6>
+              <div class="header-right">
+                <span class="badge-purple" v-if="bloqueos.length > 0">
+                  {{ bloqueos.length }} registros
+                </span>
+              </div>
+            </div>
             <div class="table-responsive">
               <table class="municipal-table">
                 <thead class="municipal-table-header">
                   <tr>
                     <th>Tipo</th>
-                    <th>Motivo Bloqueo</th>
-                    <th>Fecha Bloqueo</th>
-                    <th>Usuario</th>
-                    <th>Motivo Desbloqueo</th>
-                    <th>Fecha Desbloqueo</th>
+                    <th>Observaciones</th>
+                    <th>Fecha</th>
+                    <th>Realizó</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="bloqueo in bloqueos" :key="bloqueo.id_bloqueo" class="clickable-row">
+                  <tr
+                    v-for="(bloqueo, index) in bloqueos"
+                    :key="'bloqueo-' + index"
+                    @click="selectedRow = bloqueo"
+                    :class="{ 'table-row-selected': selectedRow === bloqueo }"
+                    class="row-hover"
+                  >
                     <td>
                       <span class="badge-warning">
-                        {{ bloqueo.tipo }}
+                        {{ bloqueo.tipo_bloqueo_desc || 'BLOQUEADA' }}
                       </span>
                     </td>
-                    <td>{{ bloqueo.motivo_bloqueo }}</td>
+                    <td>{{ bloqueo.observa || '-' }}</td>
                     <td>
                       <small class="text-muted">
                         <font-awesome-icon icon="calendar" />
-                        {{ formatDate(bloqueo.fecha_bloqueo) }}
+                        {{ formatDate(bloqueo.fecha_mov) }}
                       </small>
                     </td>
-                    <td><code>{{ bloqueo.usuario_bloqueo }}</code></td>
-                    <td>{{ bloqueo.motivo_desbloqueo || '-' }}</td>
+                    <td><code>{{ bloqueo.capturista || '-' }}</code></td>
                     <td>
-                      <small class="text-muted">
-                        {{ formatDate(bloqueo.fecha_desbloqueo) }}
-                      </small>
-                    </td>
-                    <td>
-                      <span :class="bloqueo.activo ? 'badge-danger' : 'badge-success'" class="badge">
-                        <font-awesome-icon :icon="bloqueo.activo ? 'lock' : 'unlock'" />
-                        {{ bloqueo.activo ? 'Bloqueado' : 'Desbloqueado' }}
+                      <span :class="esBloqueoActivo(bloqueo) ? 'badge-danger' : 'badge-success'" class="badge">
+                        <font-awesome-icon :icon="esBloqueoActivo(bloqueo) ? 'lock' : 'unlock'" />
+                        {{ esBloqueoActivo(bloqueo) ? 'Bloqueado' : 'Desbloqueado' }}
                       </span>
                     </td>
                     <td>
                       <button
-                        v-if="bloqueo.activo"
+                        v-if="esBloqueoActivo(bloqueo)"
                         class="btn-municipal-success btn-sm"
-                        @click="confirmarDesbloqueo(bloqueo)"
+                        @click.stop="confirmarDesbloqueo(bloqueo)"
                         title="Desbloquear"
                       >
                         <font-awesome-icon icon="unlock" /> Desbloquear
@@ -263,15 +271,30 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'BloquearAnunciorm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'BloquearAnunciorm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Bloquear/Desbloquear Anuncio'"
+        @close="showDocModal = false"
+      />
+    </div>
+    <!-- /module-view-content -->
   </div>
 </template>
 
@@ -283,41 +306,65 @@ import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { handleApiError, showToast } = useLicenciasErrorHandler()
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
 
 // Estado
 const searchAnuncio = ref('')
 const anuncioData = ref(null)
 const bloqueos = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 const bloqueoForm = ref({
   tipo: '',
   motivo: ''
 })
 
-// Computed
+// Computed - Basado en Delphi: vigente='V' y bloqueado > 0
 const hasBloqueosActivos = computed(() => {
-  return bloqueos.value.some(b => b.activo)
+  return bloqueos.value.some(b => b.vigente === 'V' && b.bloqueado > 0)
 })
+
+// Helper para determinar si un bloqueo está activo (Delphi: vigente='V' y bloqueado > 0)
+const esBloqueoActivo = (bloqueo) => {
+  return bloqueo.vigente === 'V' && bloqueo.bloqueado > 0
+}
 
 // Métodos
 const buscarAnuncio = async () => {
   if (!searchAnuncio.value) return
 
   const startTime = Date.now()
-  showLoading('Buscando anuncio...')
+  showLoading('Buscando anuncio...', 'Consultando información del sistema')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const response = await execute(
       'sp_bloquearanuncio_get_anuncio',
-      'licencias',
+      'padron_licencias',
       [
         { nombre: 'p_anuncio', valor: searchAnuncio.value, tipo: 'integer' }
       ],
@@ -330,7 +377,7 @@ const buscarAnuncio = async () => {
     if (response && response.result && response.result.length > 0) {
       anuncioData.value = response.result[0]
       await cargarBloqueos()
-      showToast('success', `Anuncio encontrado (${duration}s)`, 3000, 'bottom-right')
+      showToast('success', `Anuncio encontrado (${duration}s)`)
     } else {
       await Swal.fire({
         icon: 'error',
@@ -353,9 +400,9 @@ const cargarBloqueos = async () => {
   try {
     const response = await execute(
       'sp_bloquearanuncio_get_bloqueos',
-      'licencias',
+      'padron_licencias',
       [
-        { nombre: 'p_anuncio', valor: searchAnuncio.value, tipo: 'integer' }
+        { nombre: 'p_id_anuncio', valor: searchAnuncio.value, tipo: 'integer' }
       ],
       'guadalajara'
     )
@@ -398,15 +445,15 @@ const confirmarBloqueo = async () => {
 
   if (!confirm.isConfirmed) return
 
-  showLoading('Bloqueando anuncio...')
+  showLoading('Bloqueando anuncio...', 'Procesando solicitud')
   try {
     const response = await execute(
       'sp_bloquearanuncio_bloquear',
-      'licencias',
+      'padron_licencias',
       [
-        { nombre: 'p_anuncio', valor: searchAnuncio.value, tipo: 'integer' },
-        { nombre: 'p_tipo', valor: bloqueoForm.value.tipo, tipo: 'string' },
-        { nombre: 'p_motivo', valor: bloqueoForm.value.motivo, tipo: 'string' },
+        { nombre: 'p_id_anuncio', valor: searchAnuncio.value, tipo: 'integer' },
+        { nombre: 'p_tipo_bloqueo', valor: parseInt(bloqueoForm.value.tipo), tipo: 'integer' },
+        { nombre: 'p_observa', valor: bloqueoForm.value.motivo, tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
       'guadalajara'
@@ -425,7 +472,7 @@ const confirmarBloqueo = async () => {
 
       bloqueoForm.value = { tipo: '', motivo: '' }
       await cargarBloqueos()
-      showToast('success', 'Anuncio bloqueado exitosamente', 3000, 'bottom-right')
+      showToast('success', 'Anuncio bloqueado exitosamente')
     } else {
       await Swal.fire({
         icon: 'error',
@@ -445,7 +492,7 @@ const confirmarDesbloqueo = async (bloqueo) => {
     title: 'Desbloquear anuncio',
     html: `
       <p>Ingrese el motivo del desbloqueo:</p>
-      <p><strong>Bloqueo:</strong> ${bloqueo.tipo} - ${bloqueo.motivo_bloqueo}</p>
+      <p><strong>Bloqueo:</strong> ${bloqueo.tipo_bloqueo_desc || 'BLOQUEADA'} - ${bloqueo.observa || ''}</p>
     `,
     input: 'textarea',
     inputPlaceholder: 'Motivo del desbloqueo...',
@@ -467,14 +514,15 @@ const confirmarDesbloqueo = async (bloqueo) => {
 
   if (!motivo) return
 
-  showLoading('Desbloqueando anuncio...')
+  showLoading('Desbloqueando anuncio...', 'Procesando solicitud')
   try {
+    // Basado en Delphi: desbloquea por id_anuncio, no por id_bloqueo individual
     const response = await execute(
       'sp_bloquearanuncio_desbloquear',
-      'licencias',
+      'padron_licencias',
       [
-        { nombre: 'p_id_bloqueo', valor: bloqueo.id_bloqueo, tipo: 'integer' },
-        { nombre: 'p_motivo_desbloqueo', valor: motivo, tipo: 'string' },
+        { nombre: 'p_id_anuncio', valor: searchAnuncio.value, tipo: 'integer' },
+        { nombre: 'p_observa', valor: motivo, tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
       'guadalajara'
@@ -492,7 +540,7 @@ const confirmarDesbloqueo = async (bloqueo) => {
       })
 
       await cargarBloqueos()
-      showToast('success', 'Anuncio desbloqueado exitosamente', 3000, 'bottom-right')
+      showToast('success', 'Anuncio desbloqueado exitosamente')
     } else {
       await Swal.fire({
         icon: 'error',
@@ -512,6 +560,8 @@ const limpiarFormulario = () => {
   anuncioData.value = null
   bloqueos.value = []
   bloqueoForm.value = { tipo: '', motivo: '' }
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const formatDate = (dateString) => {

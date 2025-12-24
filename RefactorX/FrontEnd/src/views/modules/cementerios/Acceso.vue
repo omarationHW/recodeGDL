@@ -20,7 +20,6 @@
             type="text"
             class="municipal-form-control"
             placeholder="Ingrese su usuario"
-            :disabled="loading"
             autocomplete="username"
             required
             autofocus
@@ -37,7 +36,6 @@
             type="password"
             class="municipal-form-control"
             placeholder="Ingrese su contraseña"
-            :disabled="loading"
             autocomplete="current-password"
             required
           />
@@ -48,17 +46,12 @@
           {{ error }}
         </div>
 
-        <div v-if="loading" class="alert-info">
-          <font-awesome-icon icon="spinner fa-spin" />
-          Conectando con el servidor...
-        </div>
-
         <div class="form-actions">
-          <button type="submit" class="btn-municipal-primary" :disabled="loading || !isFormValid">
+          <button type="submit" class="btn-municipal-primary" :disabled="!isFormValid">
             <font-awesome-icon icon="sign-in-alt" />
             Ingresar
           </button>
-          <button type="button" @click="handleCancel" class="btn-municipal-secondary" :disabled="loading">
+          <button type="button" @click="handleCancel" class="btn-municipal-secondary">
             <font-awesome-icon icon="times" />
             Cancelar
           </button>
@@ -76,10 +69,12 @@
 
   <!-- Modal de Ayuda -->
   <DocumentationModal
-    :show="showDocumentation"
+    :show="showDocModal"
     :componentName="'Acceso'"
     :moduleName="'cementerios'"
-    @close="closeDocumentation"
+    :docType="docType"
+    :title="'Control de Acceso - Cementerios'"
+    @close="showDocModal = false"
   />
 </template>
 
@@ -89,23 +84,32 @@ import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
-
-// Modal de documentación
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
 const router = useRouter()
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const credentials = ref({
   usuario: '',
   password: ''
 })
 
-const loading = ref(false)
 const error = ref('')
 const intentos = ref(0)
 const maxIntentos = 3
@@ -124,7 +128,7 @@ const handleLogin = async () => {
   }
 
   error.value = ''
-  loading.value = true
+  showLoading('Validando credenciales...', 'Por favor espere')
 
   try {
     // Validar credenciales con el servidor
@@ -145,7 +149,7 @@ const handleLogin = async () => {
       'cementerios',
       null,
       'public'
-    , '', null, 'comun')
+    , '', null, 'publico')
 
     if (response.result && response.result.length > 0) {
       const result = response.result[0]
@@ -183,10 +187,11 @@ const handleLogin = async () => {
       error.value = 'Usuario o contraseña incorrectos'
     }
   } catch (err) {
+    console.error('Error al validar usuario:', err)
     error.value = 'Error de conexión con el servidor'
     intentos.value++
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -214,8 +219,9 @@ const registrarAcceso = async (idUsuario) => {
       'cementerios',
       null,
       'public'
-    , '', null, 'comun')
+    , '', null, 'publico')
   } catch (err) {
+    console.error('Error al registrar acceso:', err)
   }
 }
 
@@ -342,8 +348,7 @@ const handleCancel = () => {
   gap: 0.5rem;
 }
 
-.alert-danger,
-.alert-info {
+.alert-danger {
   padding: 0.875rem 1rem;
   border-radius: 0.5rem;
   margin-bottom: 1rem;
@@ -351,30 +356,8 @@ const handleCancel = () => {
   align-items: center;
   gap: 0.75rem;
   font-size: 0.95rem;
-}
-
-.alert-danger {
   background-color: #fee;
   color: var(--color-danger);
   border: 1px solid var(--color-danger);
-}
-
-.alert-info {
-  background-color: #e7f3ff;
-  color: #0066cc;
-  border: 1px solid #0066cc;
-}
-
-.fa-spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 </style>

@@ -10,6 +10,15 @@
         <p>Inicio > Reportes > Adeudo Global con Accesorios</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel1"
           :disabled="loading || adeudosConAccesorios.length === 0">
           <font-awesome-icon icon="file-excel" />
@@ -25,10 +34,7 @@
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -208,7 +214,6 @@
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
-                <option value="250">250</option>
               </select>
             </div>
 
@@ -349,7 +354,6 @@
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
-                <option value="250">250</option>
               </select>
             </div>
 
@@ -386,23 +390,26 @@
 
     </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'AdeGlobalLocales'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - AdeGlobalLocales'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'AdeGlobalLocales'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - AdeGlobalLocales'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const showFilters = ref(true)
@@ -430,21 +437,15 @@ const error2 = ref('')
 const searchPerformed1 = ref(false)
 const searchPerformed2 = ref(false)
 
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
 
 // Paginación - Tabla 1
 const currentPage1 = ref(1)
-const itemsPerPage1 = ref(25)
+const itemsPerPage1 = ref(10)
 const totalRecords1 = computed(() => adeudosConAccesorios.value.length)
 
 // Paginación - Tabla 2
 const currentPage2 = ref(1)
-const itemsPerPage2 = ref(25)
+const itemsPerPage2 = ref(10)
 const totalRecords2 = computed(() => localesSinAdeudo.value.length)
 
 // Métodos
@@ -453,32 +454,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione una oficina, mercado, año y mes para consultar adeudos globales con accesorios')
-}
-
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
+  showToast('Ayuda: Seleccione una oficina, mercado, año y mes para consultar adeudos globales con accesorios', 'info')
 }
 
 const fetchRecaudadoras = async () => {
@@ -486,27 +462,28 @@ const fetchRecaudadoras = async () => {
   loading.value = true
   error.value = ''
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success === true) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al cargar recaudadoras'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar recaudadoras'
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -525,34 +502,35 @@ const onRecChange = async () => {
     const nivelUsuario = 1; // TODO: Obtener del store de usuario
         const oficinaParam = selectedRec.value || null;
 
-    const res = await axios.post('/api/generic', {
-          eRequest: {
-            Operacion: 'sp_get_catalogo_mercados',
-            Base: 'padron_licencias',
-            Parametros: [
+    const res = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
               { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
               { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
-            ]
-          }
-        });
+            ],
+          '',
+          null,
+          'publico'
+        );
 
 
     console.log('.........');
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      mercados.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      mercados.value = res.data.result || []
       if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+        showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
       } else {
-        showToast('info', 'No se encontraron mercados para esta oficina')
+        showToast('No se encontraron mercados para esta oficina', 'info')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al cargar mercados'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al cargar mercados'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar mercados'
     console.error('Error al cargar mercados:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -561,19 +539,19 @@ const onRecChange = async () => {
 const buscar = async () => {
   if (!selectedRec.value || !selectedMercado.value || !axo.value || !mes.value) {
     error.value = 'Debe seleccionar oficina, mercado, año y mes'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (mes.value < 1 || mes.value > 12) {
     error.value = 'El mes debe estar entre 1 y 12'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (axo.value < 1995 || axo.value > 2999) {
     error.value = 'El año debe estar entre 1995 y 2999'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -592,34 +570,35 @@ const buscar = async () => {
     mes: mes.value
   });
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_ade_global_locales',
-        Base: 'padron_licencias',
-        Parametros: [
+    const res = await apiService.execute(
+          'sp_get_ade_global_locales',
+          'mercados',
+          [
           { nombre: 'p_office_id', valor: selectedRec.value, tipo: 'integer' },
           { nombre: 'p_market_id', valor: selectedMercado.value, tipo: 'integer' },
           { nombre: 'p_year', valor: axo.value, tipo: 'integer' },
           { nombre: 'p_month', valor: mes.value, tipo: 'integer' }
-        ]
-      }
-    })
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      adeudosConAccesorios.value = res.data.eResponse.data.result || []
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      adeudosConAccesorios.value = res.data.result || []
       if (adeudosConAccesorios.value.length > 0) {
-        showToast('success', `Se encontraron ${adeudosConAccesorios.value.length} locales con adeudos`)
+        showToast(`Se encontraron ${adeudosConAccesorios.value.length} locales con adeudos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron locales con adeudos con los criterios especificados')
+        showToast('No se encontraron locales con adeudos con los criterios especificados', 'info')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al consultar adeudos globales'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al consultar adeudos globales'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al consultar adeudos globales'
     console.error('Error al buscar adeudos:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     loadingTable1.value = false
@@ -629,19 +608,19 @@ const buscar = async () => {
 const buscarLocalesSinAdeudo = async () => {
   if (!selectedMercado.value || !axo.value || !mes.value) {
     error2.value = 'Debe seleccionar mercado, año y mes'
-    showToast('warning', error2.value)
+    showToast(error2.value, 'warning')
     return
   }
 
   if (mes.value < 1 || mes.value > 12) {
     error2.value = 'El mes debe estar entre 1 y 12'
-    showToast('warning', error2.value)
+    showToast(error2.value, 'warning')
     return
   }
 
   if (axo.value < 1995 || axo.value > 2999) {
     error2.value = 'El año debe estar entre 1995 y 2999'
-    showToast('warning', error2.value)
+    showToast(error2.value, 'warning')
     return
   }
 
@@ -654,34 +633,35 @@ const buscarLocalesSinAdeudo = async () => {
   currentPage2.value = 1
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_locales_sin_adeudo_con_accesorios',
-        Base: 'padron_licencias',
-        Parametros: [
+    const res = await apiService.execute(
+          'sp_get_locales_sin_adeudo_con_accesorios',
+          'mercados',
+          [
           { nombre: 'p_market_id', valor: selectedMercado.value, tipo: 'integer' },
           { nombre: 'p_year', valor: axo.value, tipo: 'integer' },
           { nombre: 'p_month', valor: mes.value, tipo: 'integer' },
           { nombre: 'p_year2', valor: axo.value, tipo: 'integer' }
-        ]
-      }
-    })
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      localesSinAdeudo.value = res.data.eResponse.data.result || []
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      localesSinAdeudo.value = res.data.result || []
       if (localesSinAdeudo.value.length > 0) {
-        showToast('success', `Se encontraron ${localesSinAdeudo.value.length} locales sin adeudo`)
+        showToast(`Se encontraron ${localesSinAdeudo.value.length} locales sin adeudo`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron locales sin adeudo con los criterios especificados')
+        showToast('No se encontraron locales sin adeudo con los criterios especificados', 'info')
       }
     } else {
-      error2.value = res.data.eResponse?.message || 'Error al consultar locales sin adeudo'
-      showToast('error', error2.value)
+      error2.value = res.message || 'Error al consultar locales sin adeudo'
+      showToast(error2.value, 'error')
     }
   } catch (err) {
     error2.value = 'Error de conexión al consultar locales sin adeudo'
     console.error('Error al buscar locales sin adeudo:', err)
-    showToast('error', error2.value)
+    showToast(error2.value, 'error')
   } finally {
     loading.value = false
     loadingTable2.value = false
@@ -704,34 +684,34 @@ const limpiarFiltros = () => {
   searchPerformed2.value = false
   currentPage1.value = 1
   currentPage2.value = 1
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel1 = () => {
   if (adeudosConAccesorios.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar en la tabla de locales con adeudos')
+    showToast('No hay datos para exportar en la tabla de locales con adeudos', 'warning')
     return
   }
   // TODO: Implementar exportación a Excel para tabla 1
-  showToast('info', 'Funcionalidad de exportación Excel 1 en desarrollo')
+  showToast('Funcionalidad de exportación Excel 1 en desarrollo', 'info')
 }
 
 const exportarExcel2 = () => {
   if (localesSinAdeudo.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar en la tabla de locales sin adeudo')
+    showToast('No hay datos para exportar en la tabla de locales sin adeudo', 'warning')
     return
   }
   // TODO: Implementar exportación a Excel para tabla 2
-  showToast('info', 'Funcionalidad de exportación Excel 2 en desarrollo')
+  showToast('Funcionalidad de exportación Excel 2 en desarrollo', 'info')
 }
 
 const imprimir = () => {
   if (adeudosConAccesorios.value.length === 0 && localesSinAdeudo.value.length === 0) {
-    showToast('warning', 'No hay datos para imprimir')
+    showToast('No hay datos para imprimir', 'warning')
     return
   }
   // TODO: Implementar impresión
-  showToast('info', 'Funcionalidad de impresión en desarrollo')
+  showToast('Funcionalidad de impresión en desarrollo', 'info')
 }
 
 // Utilidades
@@ -833,41 +813,3 @@ onMounted(() => {
   fetchRecaudadoras()
 })
 </script>
-
-<style scoped>
-/* Los estilos están definidos en municipal-theme.css */
-/* Estilos adicionales específicos del componente si son necesarios */
-
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.text-end {
-  text-align: right;
-}
-
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
-}
-
-.table-row-selected {
-  background-color: #fff3cd !important;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-  cursor: pointer;
-}
-
-.required {
-  color: #dc3545;
-}
-
-/* Override para columnas numéricas */
-.municipal-table td.text-end,
-.municipal-table th.text-end {
-  text-align: right;
-}
-</style>

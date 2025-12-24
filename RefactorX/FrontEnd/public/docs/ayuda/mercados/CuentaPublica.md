@@ -1,109 +1,109 @@
-﻿# CuentaPublica
-
-## DescripciÃ³n General
-
-**CategorÃ­a:** General
-
-**PropÃ³sito:**  del sistema de Mercados de Guadalajara.
-
-**Usuarios:** Personal administrativo del departamento de Mercados, personal de recaudaciÃ³n y supervisores del Ã¡rea.
-
-## Proceso Administrativo
-
-### Funcionalidad Principal
-
-Este mÃ³dulo forma parte del sistema integral de gestiÃ³n de mercados municipales y tiene como objetivo .toLowerCase().
-
-### InformaciÃ³n Requerida
-
-El mÃ³dulo requiere los siguientes datos para su operaciÃ³n:
-
-- InformaciÃ³n de la base de datos (tablas y consultas)
-
-### Validaciones
-
-El sistema realiza validaciones para garantizar la integridad de la informaciÃ³n:
-
-- ValidaciÃ³n de campos obligatorios
-- ValidaciÃ³n de formatos de datos
-- VerificaciÃ³n de permisos de usuario
-- Control de duplicidad de registros
-
-## Tablas de Base de Datos
-
-### Tablas Principales
-- Este mÃ³dulo utiliza consultas dinÃ¡micas (TQuery)
-
-### Consultas (TQuery)
-- **QryEstadAdeudo**: Consulta para obtenciÃ³n de datos
-- **QryTotalAdeudo**: Consulta para obtenciÃ³n de datos
-
-## Stored Procedures
-Este mÃ³dulo no utiliza procedimientos almacenados especÃ­ficos.
-
-## Impacto y Repercusiones
-
-### Registros Afectados
-
-### Documentos Generados
-- Registros en base de datos
-- BitÃ¡cora de movimientos
-
-### Validaciones de Negocio
-
-- VerificaciÃ³n de permisos de usuario segÃºn nivel de acceso
-- Control de fechas y periodos vÃ¡lidos
-- ValidaciÃ³n de importes y cÃ¡lculos
-- VerificaciÃ³n de estatus de registros (vigente/baja)
-
-## Flujo de Trabajo
-
-### Proceso TÃ­pico
-
-1. **Inicio:** El usuario accede al mÃ³dulo desde el menÃº principal
-2. **SelecciÃ³n:** Se seleccionan los parÃ¡metros necesarios (mercado, periodo, etc.)
-3. **Procesamiento:** El sistema valida la informaciÃ³n y procesa los datos
-4. **Resultado:** Se generan los reportes, actualizaciones o consultas solicitadas
-5. **ConfirmaciÃ³n:** El sistema confirma la operaciÃ³n exitosa
-
-### Casos Especiales
-
-## Notas Importantes
-
-### Consideraciones Especiales
-
-- Este mÃ³dulo es parte del sistema integral de mercados
-- Requiere conexiÃ³n activa a la base de datos
-- Los cambios son registrados en bitÃ¡cora de auditorÃ­a
-- Se recomienda realizar respaldos antes de operaciones masivas
-
-### Restricciones
-
-- Acceso restringido segÃºn perfil de usuario
-- No permite eliminaciÃ³n de registros histÃ³ricos
-- Requiere cierre de periodo para operaciones financieras
-
-### Permisos Necesarios
-- **Nivel requerido:** SegÃºn configuraciÃ³n del sistema
-- ValidaciÃ³n mediante tabla de permisos por usuario
-- Registro de accesos en bitÃ¡cora
-
-### Recomendaciones
-
-- Verificar la informaciÃ³n antes de confirmar cambios
-- Utilizar los filtros de bÃºsqueda para agilizar consultas
-- Revisar los reportes generados antes de impresiÃ³n masiva
-- Contactar al administrador del sistema ante dudas o problemas
-
-## InformaciÃ³n TÃ©cnica
-
-**MÃ³dulo:** CuentaPublica.pas
-**CategorÃ­a del Sistema:** General
-**Tablas identificadas:** 0 tabla(s)
-**Consultas identificadas:** 2 consulta(s)
-**Stored Procedures:** 0 procedimiento(s)
-
----
-
-*Documento generado automÃ¡ticamente para el Sistema de Mercados de Guadalajara*
-*Ãšltima actualizaciÃ³n: 04/11/2025*
+﻿# CuentaPublica
+
+## Descripción General
+
+**Categoría:** General
+
+**Propósito:**  del sistema de Mercados de Guadalajara.
+
+**Usuarios:** Personal administrativo del departamento de Mercados, personal de recaudación y supervisores del área.
+
+## Proceso Administrativo
+
+### Funcionalidad Principal
+
+Este módulo forma parte del sistema integral de gestión de mercados municipales y tiene como objetivo .toLowerCase().
+
+### Información Requerida
+
+El módulo requiere los siguientes datos para su operación:
+
+- Información de la base de datos (tablas y consultas)
+
+### Validaciones
+
+El sistema realiza validaciones para garantizar la integridad de la información:
+
+- Validación de campos obligatorios
+- Validación de formatos de datos
+- Verificación de permisos de usuario
+- Control de duplicidad de registros
+
+## Tablas de Base de Datos
+
+### Tablas Principales
+- Este módulo utiliza consultas dinámicas (TQuery)
+
+### Consultas (TQuery)
+- **QryEstadAdeudo**: Consulta para obtención de datos
+- **QryTotalAdeudo**: Consulta para obtención de datos
+
+## Stored Procedures
+Este módulo no utiliza procedimientos almacenados específicos.
+
+## Impacto y Repercusiones
+
+### Registros Afectados
+
+### Documentos Generados
+- Registros en base de datos
+- Bitácora de movimientos
+
+### Validaciones de Negocio
+
+- Verificación de permisos de usuario según nivel de acceso
+- Control de fechas y periodos válidos
+- Validación de importes y cálculos
+- Verificación de estatus de registros (vigente/baja)
+
+## Flujo de Trabajo
+
+### Proceso Típico
+
+1. **Inicio:** El usuario accede al módulo desde el menú principal
+2. **Selección:** Se seleccionan los parámetros necesarios (mercado, periodo, etc.)
+3. **Procesamiento:** El sistema valida la información y procesa los datos
+4. **Resultado:** Se generan los reportes, actualizaciones o consultas solicitadas
+5. **Confirmación:** El sistema confirma la operación exitosa
+
+### Casos Especiales
+
+## Notas Importantes
+
+### Consideraciones Especiales
+
+- Este módulo es parte del sistema integral de mercados
+- Requiere conexión activa a la base de datos
+- Los cambios son registrados en bitácora de auditoría
+- Se recomienda realizar respaldos antes de operaciones masivas
+
+### Restricciones
+
+- Acceso restringido según perfil de usuario
+- No permite eliminación de registros históricos
+- Requiere cierre de periodo para operaciones financieras
+
+### Permisos Necesarios
+- **Nivel requerido:** Según configuración del sistema
+- Validación mediante tabla de permisos por usuario
+- Registro de accesos en bitácora
+
+### Recomendaciones
+
+- Verificar la información antes de confirmar cambios
+- Utilizar los filtros de búsqueda para agilizar consultas
+- Revisar los reportes generados antes de impresión masiva
+- Contactar al administrador del sistema ante dudas o problemas
+
+## Información Técnica
+
+**Módulo:** CuentaPublica.pas
+**Categoría del Sistema:** General
+**Tablas identificadas:** 0 tabla(s)
+**Consultas identificadas:** 2 consulta(s)
+**Stored Procedures:** 0 procedimiento(s)
+
+---
+
+*Documento generado automáticamente para el Sistema de Mercados de Guadalajara*
+*Última actualización: 04/11/2025*

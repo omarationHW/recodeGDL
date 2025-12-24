@@ -14,11 +14,13 @@
         <p>Validacion de credenciales del sistema</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -106,39 +108,27 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - SeguridadLoginPublicos">
-      <h3>Inicio de Sesion</h3>
-      <p>Este modulo permite validar las credenciales de usuario contra la base de datos del sistema.</p>
-      <h4>Instrucciones:</h4>
-      <ol>
-        <li>Ingrese su nombre de usuario</li>
-        <li>Ingrese su contrasena</li>
-        <li>Presione el boton "Ingresar al Sistema" o la tecla Enter</li>
-      </ol>
-      <h4>Notas:</h4>
-      <ul>
-        <li>Las credenciales son sensibles a mayusculas y minusculas</li>
-        <li>Contacte al administrador si olvido su contrasena</li>
-        <li>Despues de varios intentos fallidos, la cuenta puede bloquearse</li>
-      </ul>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'SeguridadLoginPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'SeguridadLoginPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Seguridad — Inicio de Sesión'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
@@ -182,13 +172,19 @@ async function login() {
   }
 }
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>

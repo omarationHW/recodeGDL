@@ -18,7 +18,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -148,12 +152,12 @@
 
       <!-- Tabla de resultados -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
-          <div class="header-with-badge">
-            <h5>
-              <font-awesome-icon icon="list" />
-              Certificaciones Registradas
-            </h5>
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Certificaciones Registradas
+          </h5>
+          <div class="header-right">
             <span class="badge-purple" v-if="totalResultados > 0">
               {{ formatNumber(totalResultados) }} registros totales
             </span>
@@ -177,24 +181,12 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="certificaciones.length === 0 && !primeraBusqueda">
-                  <td colspan="9" class="text-center text-muted">
-                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                    <p>Utiliza los filtros para buscar certificaciones o crea una nueva</p>
-                  </td>
-                </tr>
-                <tr v-else-if="certificaciones.length === 0">
-                  <td colspan="9" class="text-center text-muted">
-                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                    <p>No se encontraron certificaciones con los filtros especificados</p>
-                  </td>
-                </tr>
                 <tr
-                  v-else
                   v-for="cert in certificaciones"
                   :key="`${cert.axo}-${cert.folio}`"
-                  @click="certificacionSeleccionada = cert"
-                  style="cursor: pointer;"
+                  @click="selectedRow = cert"
+                  :class="{ 'table-row-selected': selectedRow === cert }"
+                  class="row-hover"
                 >
                   <td>
                     <div class="folio-display">
@@ -267,6 +259,24 @@
             </table>
           </div>
 
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="certificaciones.length === 0 && !hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="file-certificate" size="3x" />
+            </div>
+            <h4>Gestión de Certificaciones</h4>
+            <p>Utiliza los filtros para buscar certificaciones o crea una nueva</p>
+          </div>
+
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="certificaciones.length === 0 && hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
+            </div>
+            <h4>Sin resultados</h4>
+            <p>No se encontraron certificaciones con los criterios especificados</p>
+          </div>
+
           <!-- Paginación -->
           <div class="pagination-controls" v-if="totalResultados > itemsPerPage">
             <div class="pagination-info">
@@ -295,7 +305,7 @@
             <div class="pagination-buttons">
               <button
                 class="btn-municipal-secondary btn-sm"
-                @click="cambiarPagina(1)"
+                @click="goToPage(1)"
                 :disabled="currentPage === 1"
                 title="Primera página"
               >
@@ -304,7 +314,7 @@
 
               <button
                 class="btn-municipal-secondary btn-sm"
-                @click="cambiarPagina(currentPage - 1)"
+                @click="goToPage(currentPage - 1)"
                 :disabled="currentPage === 1"
                 title="Página anterior"
               >
@@ -316,14 +326,14 @@
                 :key="page"
                 class="btn-sm"
                 :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
-                @click="cambiarPagina(page)"
+                @click="goToPage(page)"
               >
                 {{ page }}
               </button>
 
               <button
                 class="btn-municipal-secondary btn-sm"
-                @click="cambiarPagina(currentPage + 1)"
+                @click="goToPage(currentPage + 1)"
                 :disabled="currentPage === totalPages"
                 title="Página siguiente"
               >
@@ -332,7 +342,7 @@
 
               <button
                 class="btn-municipal-secondary btn-sm"
-                @click="cambiarPagina(totalPages)"
+                @click="goToPage(totalPages)"
                 :disabled="currentPage === totalPages"
                 title="Última página"
               >
@@ -342,6 +352,28 @@
           </div>
         </div>
       </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'certificacionesfrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Gestión de Certificaciones'"
+        @close="showDocModal = false"
+      />
     </div>
 
     <!-- Modal Ver Detalle -->
@@ -541,25 +573,31 @@
         </button>
       </template>
     </Modal>
-
-    <!-- Toast -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
 </template>
 
 <script setup>
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Composables
 const { execute } = useApi()
@@ -575,10 +613,11 @@ const {
 // Estado
 const certificaciones = ref([])
 const certificacionSeleccionada = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const estadisticas = ref([])
 const loadingEstadisticas = ref(false)
 const showFilters = ref(false)
-const primeraBusqueda = ref(false)
 
 // Modales
 const modalDetalleVisible = ref(false)
@@ -652,7 +691,8 @@ const toggleFilters = () => {
 
 const cargarCertificaciones = async () => {
   showLoading('Cargando certificaciones...', 'Consultando base de datos')
-  primeraBusqueda.value = true
+  hasSearched.value = true
+  selectedRow.value = null
   showFilters.value = false
 
   try {
@@ -732,19 +772,23 @@ const limpiarFiltros = () => {
     fecha_hasta: fechasDefault.fecha_hasta
   }
   certificaciones.value = []
-  primeraBusqueda.value = false
+  hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
   totalResultados.value = 0
 }
 
-const cambiarPagina = (page) => {
+const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value && page !== currentPage.value) {
     currentPage.value = page
+    selectedRow.value = null
     cargarCertificaciones()
   }
 }
 
 const changePageSize = () => {
   currentPage.value = 1
+  selectedRow.value = null
   cargarCertificaciones()
 }
 
@@ -993,10 +1037,6 @@ const cerrarModalForm = () => {
     observacion: '',
     tipo: ''
   }
-}
-
-const openDocumentation = () => {
-  window.open('/docs/padron_licencias/certificacionesfrm.md', '_blank')
 }
 
 // Helpers

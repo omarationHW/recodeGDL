@@ -4,9 +4,18 @@
       <div class="module-view-icon"><font-awesome-icon icon="map" /></div>
       <div class="module-view-info"><h1>Reporte Catálogo de Mercados</h1><p>Inicio > Mercados > Catálogo</p></div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="consultar" :disabled="loading"><font-awesome-icon icon="search" /> Consultar</button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0"><font-awesome-icon icon="file-excel" /> Exportar</button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda"><font-awesome-icon icon="question-circle" /> Ayuda</button>
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || results.length === 0"><font-awesome-icon icon="file-excel" /> Exportar</button>
+        
       </div>
     </div>
     <div class="module-view-content">
@@ -14,7 +23,7 @@
         <div class="municipal-card-header"><h5><font-awesome-icon icon="filter" /> Filtros</h5></div>
         <div class="municipal-card-body">
           <div class="form-row">
-            <div class="form-group"><label class="municipal-form-label">Recaudadora</label><select v-model="filters.oficina" class="municipal-form-control" :disabled="loading"><option value="">Todas</option><option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_rec }} - {{ rec.recaudadora }}</option></select></div>
+            <div class="form-group"><label class="municipal-form-label">Recaudadora</label><select v-model="filters.oficina" class="municipal-form-control" :disabled="loading"><option value="">Todas</option><option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">{{ rec.id_recaudadora }} - {{ rec.descripcion }}</option></select></div>
             <div class="form-group"><label class="municipal-form-label">Estado</label><select v-model="filters.estado" class="municipal-form-control" :disabled="loading"><option value="">Todos</option><option value="A">Activo</option><option value="I">Inactivo</option></select></div>
           </div>
         </div>
@@ -104,12 +113,20 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptMercados'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptMercados'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptMercados'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptMercados'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -151,8 +168,22 @@ const changePageSize = (size) => {
   currentPage.value = 1;
 };
 
-const fetchRecaudadoras = async () => { showLoading('Cargando recaudadoras...', 'Por favor espere'); loading.value = true; try { const response = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'mercados', Parametros: [] } }); if (response.data.eResponse?.success && response.data.eResponse?.data?.result) { recaudadoras.value = response.data.eResponse.data.result; } } catch (error) { console.error('Error:', error); } finally { loading.value = false; hideLoading(); } };
-const consultar = async () => { showLoading('Consultando catálogo de mercados...', 'Por favor espere'); loading.value = true; busquedaRealizada.value = false; try { const parametros = []; if (filters.value.oficina) parametros.push({ Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) }); if (filters.value.estado) parametros.push({ Nombre: 'p_estado', Valor: filters.value.estado }); const response = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_reporte_catalogo_mercados', Base: 'mercados', Parametros: parametros } }); if (response.data.eResponse?.success && response.data.eResponse?.data?.result) { results.value = response.data.eResponse.data.result; busquedaRealizada.value = true; currentPage.value = 1; } else { results.value = []; busquedaRealizada.value = true; } } catch (error) { console.error('Error:', error); results.value = []; busquedaRealizada.value = true; } finally { loading.value = false; hideLoading(); } };
+const fetchRecaudadoras = async () => { showLoading('Cargando recaudadoras...', 'Por favor espere'); loading.value = true; try { const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        ); if (response?.success && response?.data?.result) { recaudadoras.value = response.data.result; } } catch (error) { console.error('Error:', error); } finally { loading.value = false; hideLoading(); } };
+const consultar = async () => { showLoading('Consultando catálogo de mercados...', 'Por favor espere'); loading.value = true; busquedaRealizada.value = false; try { const parametros = []; if (filters.value.oficina) parametros.push({ nombre: 'p_oficina', valor: parseInt(filters.value.oficina) }); if (filters.value.estado) parametros.push({ nombre: 'p_estado', valor: filters.value.estado }); const response = await apiService.execute(
+          'sp_reporte_catalogo_mercados',
+          'mercados',
+          parametros,
+          '',
+          null,
+          'publico'
+        ); if (response?.success && response?.data?.result) { results.value = response.data.result; busquedaRealizada.value = true; currentPage.value = 1; } else { results.value = []; busquedaRealizada.value = true; } } catch (error) { console.error('Error:', error); results.value = []; busquedaRealizada.value = true; } finally { loading.value = false; hideLoading(); } };
 
 const getTipoEmisionTexto = (tipo) => { const tipos = { 'D': 'Diario', 'M': 'Mensual', 'E': 'Especial' }; return tipos[tipo] || tipo; };
 const getBadgeTipoEmision = (tipo) => { const badges = { 'D': 'badge-info', 'M': 'badge-primary', 'E': 'badge-warning' }; return badges[tipo] || 'badge-secondary'; };
@@ -164,4 +195,3 @@ const mostrarAyuda = () => { alert('Reporte Catálogo de Mercados\n\nGenera un l
 
 onMounted(() => { fetchRecaudadoras(); });
 </script>
-

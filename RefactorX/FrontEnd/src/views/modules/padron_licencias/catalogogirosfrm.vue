@@ -11,16 +11,29 @@
       </div>
       <div class="button-group ms-auto">
         <button
+          class="btn-municipal-success"
+          @click="abrirModalNuevo"
+        >
+          <font-awesome-icon icon="plus" />
+          Nuevo
+        </button>
+        <button
           class="btn-municipal-primary"
           @click="buscar"
-          :disabled="loading"
         >
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
         <button
+          class="btn-municipal-info"
+          @click="abrirDocumentacion"
+        >
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button
           class="btn-municipal-purple"
-          @click="openDocumentation"
+          @click="abrirAyuda"
         >
           <font-awesome-icon icon="question-circle" />
           Ayuda
@@ -161,13 +174,13 @@
             <div class="form-group">
               <label class="municipal-form-label">&nbsp;</label>
               <div class="btn-group-actions">
-                <button @click="buscar" class="btn-municipal-primary" :disabled="loading">
+                <button @click="buscar" class="btn-municipal-primary">
                   <font-awesome-icon icon="search" /> Buscar
                 </button>
-                <button @click="limpiarFiltros" class="btn-municipal-secondary" :disabled="loading">
+                <button @click="limpiarFiltros" class="btn-municipal-secondary">
                   <font-awesome-icon icon="eraser" /> Limpiar
                 </button>
-                <button @click="abrirModalNuevo" class="btn-municipal-success" :disabled="loading">
+                <button @click="abrirModalNuevo" class="btn-municipal-success">
                   <font-awesome-icon icon="plus" /> Nuevo
                 </button>
               </div>
@@ -183,12 +196,33 @@
             <font-awesome-icon icon="list" />
             Listado de Giros
           </h5>
-          <span class="badge-purple" v-if="totalRegistros > 0">
-            {{ totalRegistros.toLocaleString() }} registros
-          </span>
+          <div class="header-right">
+            <span class="badge-purple" v-if="giros.length > 0">
+              {{ giros.length }} registros
+            </span>
+          </div>
         </div>
         <div class="municipal-card-body p-0">
-          <div class="table-responsive">
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="giros.length === 0 && !hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="tags" size="3x" />
+            </div>
+            <h4>Catálogo de Giros</h4>
+            <p>Utiliza los filtros de búsqueda para consultar el catálogo de giros comerciales e industriales</p>
+          </div>
+
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="giros.length === 0 && hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
+            </div>
+            <h4>Sin resultados</h4>
+            <p>No se encontraron registros con los criterios especificados</p>
+          </div>
+
+          <!-- Tabla con datos -->
+          <div v-else class="table-responsive">
             <table class="table table-hover mb-0">
               <thead>
                 <tr>
@@ -202,23 +236,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="loading">
-                  <td colspan="7" class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                      <span class="visually-hidden">Cargando...</span>
-                    </div>
-                  </td>
-                </tr>
-                <tr v-else-if="giros.length === 0">
-                  <td colspan="7" class="empty-state">
-                    <div class="empty-state-content">
-                      <font-awesome-icon icon="inbox" class="empty-state-icon" />
-                      <p class="empty-state-text">No se encontraron giros con los filtros seleccionados</p>
-                      <p class="empty-state-hint">Intenta ajustar los filtros de búsqueda o presiona "Actualizar"</p>
-                    </div>
-                  </td>
-                </tr>
-                <tr v-else v-for="giro in giros" :key="giro.id_giro" class="clickable-row">
+                <tr
+                  v-for="giro in giros"
+                  :key="giro.id_giro"
+                  @click="selectedRow = giro"
+                  :class="{ 'table-row-selected': selectedRow === giro }"
+                  class="row-hover"
+                >
                   <td>
                     <span class="badge bg-secondary">{{ giro.cod_giro || 'S/N' }}</span>
                   </td>
@@ -280,56 +304,79 @@
           </div>
 
           <!-- Paginación -->
-          <div class="pagination-container" v-if="totalRegistros > 0 && !loading">
+          <div v-if="giros.length > 0" class="pagination-controls">
             <div class="pagination-info">
-              <font-awesome-icon icon="info-circle" />
-              Mostrando {{ ((paginaActual - 1) * registrosPorPagina) + 1 }}
-              a {{ Math.min(paginaActual * registrosPorPagina, totalRegistros) }}
-              de {{ totalRegistros }} registros
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+                de {{ formatNumber(totalRecords) }} registros
+              </span>
             </div>
 
-            <div class="pagination-controls">
-              <div class="page-size-selector">
-                <label>Mostrar:</label>
-                <select v-model="registrosPorPagina" @change="cambiarTamanioPagina">
-                  <option :value="10">10</option>
-                  <option :value="25">25</option>
-                  <option :value="50">50</option>
-                  <option :value="100">100</option>
-                </select>
-              </div>
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
 
-              <div class="pagination-nav">
-                <button
-                  class="pagination-button"
-                  @click="cambiarPagina(paginaActual - 1)"
-                  :disabled="paginaActual === 1"
-                >
-                  <font-awesome-icon icon="chevron-left" />
-                </button>
-
-                <button
-                  v-for="page in visiblePages"
-                  :key="page"
-                  class="pagination-button"
-                  :class="{ active: page === paginaActual }"
-                  @click="cambiarPagina(page)"
-                >
-                  {{ page }}
-                </button>
-
-                <button
-                  class="pagination-button"
-                  @click="cambiarPagina(paginaActual + 1)"
-                  :disabled="paginaActual === totalPaginas"
-                >
-                  <font-awesome-icon icon="chevron-right" />
-                </button>
-              </div>
+            <div class="pagination-buttons">
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+                <font-awesome-icon icon="angle-left" />
+              </button>
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="angle-right" />
+              </button>
+              <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda/Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'catalogogirosfrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Catálogo de Giros'"
+        @close="showDocModal = false"
+      />
     </div>
 
     <!-- Modal para detalle/edición -->
@@ -539,30 +586,7 @@
         </button>
       </template>
     </Modal>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <div class="toast-content">
-        <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" />
-          {{ toast.duration }}
-        </span>
-      </div>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
-
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'catalogogirosfrm'"
-    :moduleName="'padron_licencias'"
-    @close="closeDocumentation"
-  />
 </template>
 
 <script setup>
@@ -574,9 +598,19 @@ import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
@@ -589,16 +623,19 @@ const {
 const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estados
-const loading = ref(false)
 const loadingEstadisticas = ref(false)
 const giros = ref([])
 const estadisticas = ref(null)
-const totalRegistros = ref(0)
-const paginaActual = ref(1)
-const registrosPorPagina = ref(10)
 const mostrarModal = ref(false)
 const modoEdicion = ref('ver') // 'ver', 'editar', 'crear'
 const showFilters = ref(false) // CONTRAÍDO por defecto
+
+// Variables de control de tabla
+const selectedRow = ref(null)
+const hasSearched = ref(false)
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const totalRecordsCount = ref(0)
 
 // Filtros
 const filters = ref({
@@ -625,21 +662,18 @@ const giroForm = ref({
 })
 
 // Computed
-const totalPaginas = computed(() => {
-  return Math.ceil(totalRegistros.value / registrosPorPagina.value)
-})
+const totalRecords = computed(() => totalRecordsCount.value)
+const totalPages = computed(() => Math.ceil(totalRecords.value / itemsPerPage.value) || 1)
 
 const visiblePages = computed(() => {
   const pages = []
   const maxVisible = 5
-  let start = Math.max(1, paginaActual.value - Math.floor(maxVisible / 2))
-  let end = Math.min(totalPaginas.value, start + maxVisible - 1)
-
-  if (end - start < maxVisible - 1) {
-    start = Math.max(1, end - maxVisible + 1)
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
   }
-
-  for (let i = start; i <= end; i++) {
+  for (let i = startPage; i <= endPage; i++) {
     pages.push(i)
   }
   return pages
@@ -652,8 +686,22 @@ const modalTitle = computed(() => {
 })
 
 // Métodos
-const formatNumber = (num) => {
-  return num ? num.toLocaleString() : '0'
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
+  buscar()
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+  selectedRow.value = null
+  buscar()
 }
 
 const calculatePercentage = (part, total) => {
@@ -674,7 +722,7 @@ const cargarEstadisticas = async () => {
       [],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result[0]) {
@@ -690,15 +738,16 @@ const cargarEstadisticas = async () => {
 const buscar = async () => {
   const startTime = performance.now()
   showLoading('Cargando giros...', 'Buscando en el catálogo')
-  loading.value = true
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const response = await execute(
       'sp_catalogogiros_list',
       'padron_licencias',
       [
-        { nombre: 'p_page', valor: paginaActual.value, tipo: 'integer' },
-        { nombre: 'p_page_size', valor: registrosPorPagina.value, tipo: 'integer' },
+        { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
+        { nombre: 'p_page_size', valor: itemsPerPage.value, tipo: 'integer' },
         { nombre: 'p_codigo', valor: filters.value.codigo || null, tipo: 'string' },
         { nombre: 'p_descripcion', valor: filters.value.descripcion || null, tipo: 'string' },
         { nombre: 'p_clasificacion', valor: filters.value.clasificacion || null, tipo: 'string' },
@@ -707,7 +756,7 @@ const buscar = async () => {
       ],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -718,18 +767,17 @@ const buscar = async () => {
 
     if (response && response.result && response.result.length > 0) {
       giros.value = response.result
-      totalRegistros.value = parseInt(response.result[0].total_count)
-      showToast('success', `${totalRegistros.value.toLocaleString()} giros encontrados`, timeMessage)
+      // Extraer total_count del primer registro
+      totalRecordsCount.value = response.result[0].total_count || response.result.length
+      showToast('success', `${totalRecordsCount.value.toLocaleString()} giros encontrados`, timeMessage)
     } else {
       giros.value = []
-      totalRegistros.value = 0
+      totalRecordsCount.value = 0
       showToast('info', 'No se encontraron giros con los filtros seleccionados', timeMessage)
     }
   } catch (error) {
     hideLoading()
     handleApiError(error, 'Error al buscar giros')
-  } finally {
-    loading.value = false
   }
 }
 
@@ -741,20 +789,11 @@ const limpiarFiltros = () => {
     tipo: '',
     vigente: 'V'
   }
-  paginaActual.value = 1
-  buscar()
-}
-
-const cambiarPagina = (nuevaPagina) => {
-  if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas.value) {
-    paginaActual.value = nuevaPagina
-    buscar()
-  }
-}
-
-const cambiarTamanioPagina = () => {
-  paginaActual.value = 1
-  buscar()
+  giros.value = []
+  hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
+  totalRecordsCount.value = 0
 }
 
 const verDetalle = async (giro) => {
@@ -767,7 +806,7 @@ const verDetalle = async (giro) => {
       [{ nombre: 'p_id_giro', valor: giro.id_giro, tipo: 'integer' }],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -793,7 +832,7 @@ const editarGiro = async (giro) => {
       [{ nombre: 'p_id_giro', valor: giro.id_giro, tipo: 'integer' }],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -879,7 +918,7 @@ const guardarGiro = async () => {
       ],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -956,7 +995,7 @@ const actualizarGiro = async () => {
       ],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -1005,7 +1044,7 @@ const cambiarVigencia = async (giro, nuevaVigencia) => {
       ],
       '',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()

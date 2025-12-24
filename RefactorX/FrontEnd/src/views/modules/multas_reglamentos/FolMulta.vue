@@ -3,6 +3,16 @@
     <div class="module-view-header">
       <div class="module-view-icon"><font-awesome-icon icon="hashtag" /></div>
       <div class="module-view-info"><h1>Folio de Multa</h1><p>Gestión de folios</p></div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
     <div class="module-view-content">
       <!-- Formulario de búsqueda -->
@@ -37,7 +47,7 @@
           <div v-if="Array.isArray(result) && result.length > 0">
             <div v-for="(folio, idx) in paginatedResults" :key="idx" :class="{'mb-4': paginatedResults.length > 1}">
               <div class="table-responsive">
-                <table class="folio-table">
+                <table class="municipal-table">
                   <tbody>
                     <tr>
                       <th colspan="2" class="table-section-header">
@@ -154,42 +164,38 @@
             </div>
 
             <!-- Pagination Controls -->
-            <div v-if="result.length > pageSize" class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid #dee2e6; margin-top: 1rem;">
+            <div v-if="result.length > pageSize" class="pagination-controls" style="margin-top: 1rem;">
               <div class="pagination-info">
                 <span class="text-muted">
                   Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ result.length }} registros
                 </span>
               </div>
-              <div class="pagination-controls" style="display: flex; gap: 0.5rem;">
+              <div class="pagination-buttons">
                 <button
                   class="btn-municipal-secondary"
                   :disabled="currentPage === 1"
-                  @click="goToPage(1)"
-                  style="padding: 0.5rem 0.75rem;">
+                  @click="goToPage(1)">
                   <font-awesome-icon icon="angles-left" />
                 </button>
                 <button
                   class="btn-municipal-secondary"
                   :disabled="currentPage === 1"
-                  @click="prevPage"
-                  style="padding: 0.5rem 0.75rem;">
+                  @click="prevPage">
                   <font-awesome-icon icon="chevron-left" />
                 </button>
-                <span style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500;">
+                <span class="pagination-page-indicator">
                   Página {{ currentPage }} de {{ totalPages }}
                 </span>
                 <button
                   class="btn-municipal-secondary"
                   :disabled="currentPage === totalPages"
-                  @click="nextPage"
-                  style="padding: 0.5rem 0.75rem;">
+                  @click="nextPage">
                   <font-awesome-icon icon="chevron-right" />
                 </button>
                 <button
                   class="btn-municipal-secondary"
                   :disabled="currentPage === totalPages"
-                  @click="goToPage(totalPages)"
-                  style="padding: 0.5rem 0.75rem;">
+                  @click="goToPage(totalPages)">
                   <font-awesome-icon icon="angles-right" />
                 </button>
               </div>
@@ -221,24 +227,44 @@
           </div>
         </div>
       </div>
-    </div>
+    </div>    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'FolMulta'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Folio de Multa'"
+      @close="showAyuda = false"
+    />
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'FolMulta'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Folio de Multa'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_GEN = 'RECAUDADORA_FOL_MULTA'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const form = ref({ clave_cuenta: '', ejercicio: new Date().getFullYear() })
 const result = ref('')
 const currentPage = ref(1)
@@ -290,7 +316,7 @@ async function generar() {
     { nombre: 'p_ejercicio', tipo: 'integer', valor: Number(form.value.ejercicio || 0) }
   ]
   try {
-    const response = await execute(OP_GEN, BASE_DB, params)
+    const response = await execute(OP_GEN, BASE_DB, params, '', null, SCHEMA)
     console.log('📥 Respuesta de useApi:', response)
 
     // useApi ya extrae 'data' de eResponse, así que response = { result: [...], count: 1, debug: {...} }
@@ -340,177 +366,4 @@ function getBadgeClass(estado) {
   return classes[estado] || 'badge-secondary'
 }
 </script>
-
-<style scoped>
-.folio-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.folio-table tbody tr {
-  border-bottom: 1px solid #e9ecef;
-}
-
-.folio-table tbody tr:last-child {
-  border-bottom: none;
-}
-
-.folio-table tbody tr:hover:not(.table-section-header) {
-  background-color: #f8f9fa;
-}
-
-.table-section-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 12px 16px;
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: left;
-}
-
-.table-section-header svg {
-  margin-right: 8px;
-}
-
-.label-cell {
-  padding: 12px 16px;
-  width: 35%;
-  color: #495057;
-  background-color: #f8f9fa;
-  font-size: 0.95rem;
-}
-
-.value-cell {
-  padding: 12px 16px;
-  color: #212529;
-  font-size: 0.95rem;
-}
-
-.folio-number {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #667eea;
-}
-
-.amount {
-  color: #495057;
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.amount-highlight {
-  color: #ff6b6b;
-  font-weight: 700;
-  font-size: 1.3rem;
-}
-
-.amount-success {
-  color: #51cf66;
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.date-success {
-  color: #51cf66;
-  font-weight: 600;
-}
-
-.badge {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.badge-success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.badge-warning {
-  background-color: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
-}
-
-.badge-danger {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-
-.badge-info {
-  background-color: #d1ecf1;
-  color: #0c5460;
-  border: 1px solid #bee5eb;
-}
-
-.badge-secondary {
-  background-color: #e2e3e5;
-  color: #383d41;
-  border: 1px solid #d6d8db;
-}
-
-.no-results {
-  text-align: center;
-  padding: 40px 20px;
-  color: #6c757d;
-}
-
-.no-results svg {
-  margin-bottom: 20px;
-  opacity: 0.7;
-}
-
-.no-results h4 {
-  margin-bottom: 10px;
-  color: #495057;
-}
-
-.alert-danger {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 8px;
-  padding: 16px;
-  color: #721c24;
-}
-
-.alert-danger svg {
-  margin-right: 8px;
-}
-
-.table-responsive {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-@media (max-width: 768px) {
-  .label-cell {
-    width: 45%;
-    font-size: 0.85rem;
-    padding: 10px 12px;
-  }
-
-  .value-cell {
-    font-size: 0.85rem;
-    padding: 10px 12px;
-  }
-
-  .folio-number {
-    font-size: 1.2rem;
-  }
-
-  .amount-highlight {
-    font-size: 1.1rem;
-  }
-}
-</style>
 

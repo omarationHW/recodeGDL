@@ -8,6 +8,16 @@
         <h1>Cartas de Invitación Predial</h1>
         <p>Consulta de cartas de invitación por cuenta</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -91,23 +101,45 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'CartaInvitacion'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Cartas de Invitación Predial'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'CartaInvitacion'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Cartas de Invitación Predial'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_GEN = 'RECAUDADORA_CARTA_INVITACION'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({
   cuenta: '',
@@ -123,37 +155,26 @@ async function generar() {
     { nombre: 'p_ejercicio', valor: Number(filters.value.ejercicio || 0), tipo: 'integer' }
   ]
 
+  showLoading('Consultando...', 'Por favor espere')
   try {
-    const data = await execute(OP_GEN, BASE_DB, params)
+    const response = await execute(OP_GEN, BASE_DB, params, '', null, 'publico')
+
+    // Extraer datos de la estructura correcta
+    const data = response?.eResponse?.data || response?.data || response
     const arr = Array.isArray(data?.result) ? data.result : []
 
     if (arr.length > 0) {
-      if (arr[0].success) {
-        rows.value = arr
-        mensaje.value = arr[0].message
-      } else {
-        rows.value = []
-        mensaje.value = arr[0].message
-      }
+      rows.value = arr
+      mensaje.value = ''
     } else {
       rows.value = []
-      mensaje.value = 'No se encontraron resultados'
+      mensaje.value = 'No se encontraron cartas de invitación para esta cuenta'
     }
   } catch (e) {
     rows.value = []
     mensaje.value = e.message || 'Error al consultar cartas'
+  } finally {
+    hideLoading()
   }
 }
 </script>
-
-<style scoped>
-.alert-info {
-  background-color: #d1ecf1;
-  border: 1px solid #bee5eb;
-  color: #0c5460;
-  padding: 1rem;
-  border-radius: 4px;
-  margin-top: 1rem;
-}
-</style>
-

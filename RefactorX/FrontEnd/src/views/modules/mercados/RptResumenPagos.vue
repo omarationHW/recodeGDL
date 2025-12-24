@@ -10,14 +10,20 @@
         <p>Mercados > Resumen Consolidado de Pagos por Mercado</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || resumen.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -38,7 +44,7 @@
               <select class="municipal-form-control" v-model="selectedOficina" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -166,24 +172,26 @@
         </div>
       </div>
     </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptResumenPagos'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptResumenPagos'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptResumenPagos'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptResumenPagos'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted, watch } from 'vue'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
 import axios from 'axios'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const recaudadoras = ref([])
@@ -197,13 +205,6 @@ const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
 
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
-
 // Computed
 const totalGeneral = computed(() => {
   return resumen.value.reduce((sum, item) => sum + (parseFloat(item.importe_total) || 0), 0)
@@ -216,32 +217,7 @@ const promedioGlobal = computed(() => {
 
 // Métodos
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione una oficina y rango de fechas para consultar un resumen consolidado de pagos por mercado.')
-}
-
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
+  showToast('Seleccione una oficina y rango de fechas para consultar un resumen consolidado de pagos por mercado.', 'info')
 }
 
 const formatCurrency = (value) => {
@@ -262,15 +238,16 @@ const setFechasIniciales = () => {
 
 const fetchRecaudadoras = async () => {
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse.success) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
     }
   } catch (err) {
     console.error('Error al cargar recaudadoras:', err)
@@ -284,17 +261,18 @@ const fetchMercados = async (idRecaudadora) => {
   }
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_mercados_by_recaudadora',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_rec', Valor: parseInt(idRecaudadora) }
-        ]
-      }
-    })
-    if (res.data.eResponse.success) {
-      mercados.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_mercados_by_recaudadora',
+          'mercados',
+          [
+          { nombre: 'p_id_rec', valor: parseInt(idRecaudadora) }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      mercados.value = res.data.result || []
     }
   } catch (err) {
     console.error('Error al cargar mercados:', err)
@@ -305,13 +283,13 @@ const fetchMercados = async (idRecaudadora) => {
 const buscar = async () => {
   if (!selectedOficina.value || !fechaDesde.value || !fechaHasta.value) {
     error.value = 'Debe seleccionar oficina y rango de fechas'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (new Date(fechaDesde.value) > new Date(fechaHasta.value)) {
     error.value = 'La fecha desde no puede ser mayor que la fecha hasta'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -334,29 +312,30 @@ const buscar = async () => {
       parametros.push({ nombre: 'p_mercado', valor: null, tipo: 'integer' })
     }
 
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_rpt_resumen_pagos',
-        Base: 'mercados',
-        Parametros: parametros
-      }
-    })
+    const res = await apiService.execute(
+          'sp_rpt_resumen_pagos',
+          'mercados',
+          parametros,
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      resumen.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      resumen.value = res.data.result || []
       if (resumen.value.length > 0) {
-        showToast('success', `Se encontró resumen de ${resumen.value.length} mercados`)
+        showToast(`Se encontró resumen de ${resumen.value.length} mercados`, 'success')
       } else {
-        showToast('info', 'No se encontraron pagos con los criterios especificados')
+        showToast('No se encontraron pagos con los criterios especificados', 'info')
       }
     } else {
-      error.value = res.data.eResponse.message || 'Error al consultar resumen'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al consultar resumen'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al consultar resumen'
     console.error('Error al buscar:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -371,12 +350,12 @@ const limpiarFiltros = () => {
   resumen.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (resumen.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -409,10 +388,10 @@ const exportarExcel = () => {
     link.click()
     URL.revokeObjectURL(url)
 
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
     console.error('Error al exportar:', err)
-    showToast('error', 'Error al exportar el archivo')
+    showToast('Error al exportar el archivo', 'error')
   }
 }
 

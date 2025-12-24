@@ -1,67 +1,102 @@
 <template>
-  <div class="module-view module-layout">
-    <div class="module-view-header"><div class="module-view-icon"><font-awesome-icon icon="file-excel" /></div><div class="module-view-info"><h1>Exportar a Excel</h1><p>Exportación de datos a formato Excel</p></div>
+  <div class="module-view">
+    <!-- Header del módulo -->
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="file-excel" />
+      </div>
+      <div class="module-view-info">
+        <h1>Exportar a Excel</h1>
+        <p>Exportación de datos de apremios a formato Excel</p>
+      </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
       </div>
     </div>
+
     <div class="module-view-content">
-      <div class="municipal-card"><div class="municipal-card-header"><h5><font-awesome-icon icon="download" /> Exportación</h5></div><div class="municipal-card-body"><p class="text-muted mb-3">Exportar datos de apremios a formato Excel</p><div class="button-group"><button class="btn-municipal-primary" :disabled="loading" @click="exportar"><font-awesome-icon icon="file-excel" /> Exportar a Excel</button></div></div></div>
+      <!-- Tarjeta de exportación -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="download" />
+            Exportación de Datos
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <p class="text-muted mb-3">
+            Exportar datos de folios de pago de apremios a formato Excel (CSV)
+          </p>
+          <div class="button-group">
+            <button class="btn-municipal-primary" @click="exportar">
+              <font-awesome-icon icon="file-excel" />
+              Exportar a Excel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'ExportarExcel'"
+        :moduleName="'estacionamiento_exclusivo'"
+        :docType="docType"
+        :title="'Exportar a Excel'"
+        @close="showDocModal = false"
+      />
     </div>
-    
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      @close="closeDocumentation"
-      title="Ayuda - ExportarExcel"
-    >
-      <h3>Exportar Excel</h3>
-      <p>Documentacion del modulo Estacionamiento Exclusivo.</p>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'ExportarExcel'"
-      :moduleName="'estacionamiento_exclusivo'"
-      @close="closeTechDocs"
-    />
-
+    <!-- /module-view-content -->
   </div>
+  <!-- /module-view -->
 </template>
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref } from 'vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
+// Configuración del módulo
 const BASE_DB = 'estacionamiento_exclusivo'
 const OP_EXPORT = 'spd_15_foliospag'
 
-const { loading, execute } = useApi()
-const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
+// Composables
+const { execute } = useApi()
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Función de exportación
 const exportar = async () => {
-  showLoading('Exportando a Excel...', 'Generando archivo')
-  const t0 = performance.now()
+  showLoading('Exportando a Excel...', 'Generando archivo CSV')
+  const startTime = performance.now()
+
   try {
     const response = await execute(OP_EXPORT, BASE_DB, {
       prec: 0,
@@ -97,24 +132,37 @@ const exportar = async () => {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-    }
 
-    const dur = performance.now() - t0
-    const txt = dur < 1000 ? `${Math.round(dur)}ms` : `${(dur / 1000).toFixed(2)}s`
-    showToast('success', `Exportación completada en ${txt}`)
-  } catch (e) {
-    handleApiError(e)
+      const endTime = performance.now()
+      const duration = ((endTime - startTime) / 1000).toFixed(2)
+      const durationText = duration < 1
+        ? `${((endTime - startTime)).toFixed(0)}ms`
+        : `${duration}s`
+
+      toast.value.duration = durationText
+      showToast('success', `Exportación completada - ${exportData.length} registros`)
+    } else {
+      showToast('warning', 'No hay datos para exportar')
+    }
+  } catch (error) {
+    handleApiError(error)
   } finally {
     hideLoading()
   }
 }
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 </script>

@@ -8,6 +8,16 @@
         <h1>Sistema de Multas y Reglamentos</h1>
         <p>Bienvenido al módulo de gestión</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -129,12 +139,39 @@
         </div>
       </div>
     </div>
+  
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'psplash'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Sistema de Multas y Reglamentos'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'psplash'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Sistema de Multas y Reglamentos'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const router = useRouter()
 
@@ -151,179 +188,3 @@ function navigateTo(module) {
 }
 </script>
 
-<style scoped>
-.municipal-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-}
-
-.municipal-card-header {
-  padding: 15px 20px;
-  border-bottom: 1px solid #e0e0e0;
-  background: linear-gradient(135deg, #ea8215 0%, #d67512 100%);
-  color: white;
-  font-weight: bold;
-  border-radius: 8px 8px 0 0;
-}
-
-.municipal-card-header h5 {
-  margin: 0;
-  color: white;
-}
-
-.municipal-card-body {
-  padding: 20px;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.splash-card {
-  margin-bottom: 30px;
-}
-
-.splash-icon {
-  color: #ea8215;
-  margin-bottom: 20px;
-}
-
-.splash-title {
-  color: #333;
-  margin-bottom: 15px;
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-.splash-description {
-  color: #666;
-  font-size: 1.1rem;
-  max-width: 600px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.feature-card {
-  background: white;
-  border-radius: 8px;
-  padding: 25px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  text-align: center;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-}
-
-.feature-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(234, 130, 21, 0.2);
-  border-color: #ea8215;
-}
-
-.feature-icon {
-  color: #ea8215;
-  margin-bottom: 15px;
-}
-
-.feature-card h3 {
-  color: #333;
-  margin-bottom: 10px;
-  font-size: 1.2rem;
-}
-
-.feature-card p {
-  color: #666;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.info-item strong {
-  color: #333;
-  font-size: 0.9rem;
-}
-
-.info-item span {
-  color: #666;
-  font-size: 1rem;
-}
-
-.badge-success {
-  display: inline-block;
-  padding: 4px 12px;
-  background: #28a745;
-  color: white;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.quick-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 15px 20px;
-  background: white;
-  border: 2px solid #ea8215;
-  border-radius: 8px;
-  color: #ea8215;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.action-btn:hover {
-  background: linear-gradient(135deg, #ea8215 0%, #d67512 100%);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(234, 130, 21, 0.3);
-}
-
-.action-btn svg {
-  font-size: 1.2rem;
-}
-
-@media (max-width: 768px) {
-  .splash-title {
-    font-size: 1.5rem;
-  }
-
-  .splash-description {
-    font-size: 1rem;
-  }
-
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .quick-actions {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

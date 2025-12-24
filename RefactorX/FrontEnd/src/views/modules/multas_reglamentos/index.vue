@@ -1,215 +1,111 @@
 <template>
-  <div class="module-view module-layout">
-    <div class="module-view-header">
-      <div class="module-view-icon"><font-awesome-icon icon="gavel" /></div>
-      <div class="module-view-info">
-        <h1>Multas y Reglamentos</h1>
-        <p>Seleccione una operación del módulo</p>
+  <div class="module-dashboard">
+    <div class="dashboard-content">
+      <div class="dashboard-header">
+        <div class="header-left">
+          <img src="/img/GDL_LACIUDAD.png" alt="Guadalajara" class="header-logo" />
+        </div>
+        <div class="header-center">
+          <h1>Sistema de Multas y Reglamentos</h1>
+          <p>Gestion integral de multas, requerimientos y sanciones</p>
+        </div>
+        <div class="header-right">
+          <img src="/img/Innovacion_Gubernamental.png" alt="Innovacion Gubernamental" class="header-logo-right" />
+        </div>
       </div>
-    </div>
 
-    <div class="module-view-content">
-      <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5>Formularios del Módulo</h5>
-          <div class="legend">
-            <span class="badge badge-success"><font-awesome-icon icon="check-circle" /> Probado</span>
-            <span class="badge badge-secondary"><font-awesome-icon icon="clock" /> Pendiente</span>
+      <div class="systems-section">
+        <div class="section-header">
+          <div class="section-icon"><font-awesome-icon icon="gavel" /></div>
+          <h2>Modulos Disponibles</h2>
+        </div>
+
+        <div class="dashboard-grid">
+          <div v-for="sec in sections" :key="sec.title" class="module-card">
+            <div class="card-content">
+              <div class="module-icon"><font-awesome-icon :icon="sec.icon" /></div>
+              <h3 class="module-title">{{ sec.title }}</h3>
+              <p class="module-description">{{ sec.desc }}</p>
+            </div>
+            <div class="card-links">
+              <router-link v-for="link in sec.links" :key="link.to" :to="link.to" class="quick-link">
+                {{ link.label }}
+                <font-awesome-icon icon="chevron-right" class="link-arrow" />
+              </router-link>
+            </div>
           </div>
         </div>
-        <div class="municipal-card-body">
-          <ul class="menu-list">
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-actualiza-fecha-empresas' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Actualiza Fecha Empresas
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-aplica-sdos-favor' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Aplica Saldos a Favor
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-autdescto' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Autorización de Descuento
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-bloqctasreqfrm' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Bloqueo de Cuentas
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-bloqueo-multa' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Bloqueo de Multa
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-catastro-dm' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Catastro DM
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-consreq400' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                ConsReq400
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-ligapago' }">
-                <font-awesome-icon icon="check-circle" class="icon-tested" />
-                Liga Pago
-                <span class="badge badge-success">✓</span>
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-ligapagotra' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Liga Pago Tra
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-listareq' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Listado de Requerimientos
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-pagosmultfrm' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Pagos Multa FRM
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-req' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Requerimiento
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-reqfrm' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Requerimiento (Formulario)
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-reqtrans' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                ReqTrans
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-sdosfavor-ctrlexp' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Saldos a Favor - Control Expediente
-              </router-link>
-            </li>
-            <li>
-              <router-link :to="{ name: 'multas-reglamentos-sdosfavor-pagos' }">
-                <font-awesome-icon icon="clock" class="icon-pending" />
-                Saldos a Favor - Pagos
-              </router-link>
-            </li>
-          </ul>
-        </div>
       </div>
     </div>
+    <footer class="dashboard-footer">
+      <p>&copy; 2025 Ayuntamiento de Guadalajara. Todos los derechos reservados.</p>
+    </footer>
   </div>
 </template>
 
 <script setup>
-// Vista de índice del módulo
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome"
+
+const sections = [
+  {
+    icon: 'file-alt',
+    title: 'Requerimientos',
+    desc: 'Gestion de requerimientos fiscales',
+    links: [
+      { to: '/multas-reglamentos/req-frm', label: 'Nuevo Requerimiento' },
+      { to: '/multas-reglamentos/listareq', label: 'Lista de Requerimientos' },
+      { to: '/multas-reglamentos/requerimientos-dm', label: 'Requerimientos DM' }
+    ]
+  },
+  {
+    icon: 'gavel',
+    title: 'Multas',
+    desc: 'Administracion de multas',
+    links: [
+      { to: '/multas-reglamentos/multasfrm', label: 'Registro de Multas' },
+      { to: '/multas-reglamentos/multas-dm', label: 'Multas DM' },
+      { to: '/multas-reglamentos/bloqueo-multa', label: 'Bloqueo de Multas' }
+    ]
+  },
+  {
+    icon: 'percent',
+    title: 'Descuentos',
+    desc: 'Gestion de descuentos y condonaciones',
+    links: [
+      { to: '/multas-reglamentos/otorgadescto', label: 'Otorgar Descuento' },
+      { to: '/multas-reglamentos/autdescto', label: 'Autorizar Descuento' },
+      { to: '/multas-reglamentos/imprime-desctos', label: 'Imprimir Descuentos' }
+    ]
+  },
+  {
+    icon: 'credit-card',
+    title: 'Pagos',
+    desc: 'Registro y consulta de pagos',
+    links: [
+      { to: '/multas-reglamentos/ligapago', label: 'Liga de Pago' },
+      { to: '/multas-reglamentos/pagosmultfrm', label: 'Pagos de Multas' },
+      { to: '/multas-reglamentos/pagos-espe', label: 'Pagos Especiales' }
+    ]
+  },
+  {
+    icon: 'coins',
+    title: 'Saldos a Favor',
+    desc: 'Gestion de saldos a favor',
+    links: [
+      { to: '/multas-reglamentos/sdosfavor-dm', label: 'Saldos Favor DM' },
+      { to: '/multas-reglamentos/sol-sdos-favor', label: 'Solicitud' },
+      { to: '/multas-reglamentos/aplica-sdos-favor', label: 'Aplicar Saldos' }
+    ]
+  },
+  {
+    icon: 'chart-bar',
+    title: 'Reportes',
+    desc: 'Estadisticas y reportes',
+    links: [
+      { to: '/multas-reglamentos/estadreq', label: 'Estado Requerimientos' },
+      { to: '/multas-reglamentos/rep-oper', label: 'Reporte Operaciones' },
+      { to: '/multas-reglamentos/repavance', label: 'Reporte Avance' }
+    ]
+  }
+]
 </script>
-
-<style scoped>
-.menu-list {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 0.5rem;
-}
-
-.menu-list li {
-  margin: 0;
-}
-
-.menu-list li a {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid #dee2e6;
-  border-radius: 0.375rem;
-  text-decoration: none;
-  color: #495057;
-  transition: all 0.2s ease;
-  background: white;
-}
-
-.menu-list li a:hover {
-  background: #f8f9fa;
-  border-color: #0d6efd;
-  color: #0d6efd;
-  transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.icon-tested {
-  color: #198754;
-}
-
-.icon-pending {
-  color: #6c757d;
-}
-
-.badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-left: auto;
-}
-
-.badge-success {
-  background-color: #198754;
-  color: white;
-}
-
-.badge-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.legend {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.875rem;
-}
-
-.legend .badge {
-  margin-left: 0;
-}
-
-.municipal-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid #dee2e6;
-  background: #f8f9fa;
-}
-
-.municipal-card-header h5 {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #212529;
-}
-</style>

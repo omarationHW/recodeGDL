@@ -10,7 +10,16 @@
         <p>Inicio > Mercados > Secciones</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalCrear" :disabled="loading">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="abrirModalCrear" :disabled="loading">
           <font-awesome-icon icon="plus-circle" />
           Nueva Sección
         </button>
@@ -18,10 +27,7 @@
           <font-awesome-icon :icon="loading ? 'spinner' : 'sync'" :spin="loading" />
           Recargar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -29,7 +35,7 @@
       <!-- Estadísticas -->
       <div class="stats-grid mb-4">
         <div class="stat-card stat-card-primary">
-          <div class="stat-icon">
+          <div class="stat-icon-wrapper">
             <font-awesome-icon icon="layer-group" />
           </div>
           <div class="stat-content">
@@ -38,7 +44,7 @@
           </div>
         </div>
         <div class="stat-card stat-card-success">
-          <div class="stat-icon">
+          <div class="stat-icon-wrapper">
             <font-awesome-icon icon="store" />
           </div>
           <div class="stat-content">
@@ -47,7 +53,7 @@
           </div>
         </div>
         <div class="stat-card stat-card-info">
-          <div class="stat-icon">
+          <div class="stat-icon-wrapper">
             <font-awesome-icon icon="chart-bar" />
           </div>
           <div class="stat-content">
@@ -196,13 +202,16 @@
         </button>
         <button
           type="button"
-          class="btn-municipal-success"
+          class="btn-municipal-primary"
           @click="guardarSeccion"
           :disabled="guardando">
           <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />
           {{ guardando ? 'Guardando...' : 'Guardar' }}
         </button>
-      </template>
+      
+  <DocumentationModal :show="showAyuda" :component-name="'Secciones'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - Secciones'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'Secciones'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - Secciones'" @close="showDocumentacion = false" />
+</template>
     </Modal>
 
     <!-- Modal de Confirmación de Eliminación -->
@@ -235,11 +244,46 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2'
+
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import Modal from '@/components/common/Modal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 // Composables
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -316,25 +360,26 @@ const cargarSecciones = async () => {
   showLoading('Cargando secciones...')
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_secciones_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
+    const response = await apiService.execute(
+          'sp_secciones_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data.eResponse && response.data.eResponse.success === true) {
-      secciones.value = response.data.eResponse.data.result || []
+    if (response && response.success === true) {
+      secciones.value = response.data.result || []
       if (secciones.value.length > 0) {
         showToast(`Se cargaron ${secciones.value.length} secciones`, 'success')
       }
     } else {
-      error.value = response.data.eResponse?.message || 'Error al cargar secciones'
+      error.value = response?.message || 'Error al cargar secciones'
       showToast(error.value, 'error')
     }
   } catch (err) {
-    error.value = err.response?.data?.eResponse?.message || 'Error al cargar secciones'
+    error.value = err.response?.message || 'Error al cargar secciones'
     console.error('Error al cargar secciones:', err)
     showToast(error.value, 'error')
   } finally {
@@ -349,25 +394,33 @@ const guardarSeccion = async () => {
     return
   }
 
+  const confirmado = await confirmarAccion(
+    modoEdicion.value ? '¿Actualizar sección?' : '¿Guardar sección?',
+    modoEdicion.value ? 'Se actualizarán los datos' : 'Se creará una nueva sección',
+    modoEdicion.value ? 'Sí, actualizar' : 'Sí, guardar'
+  )
+  if (!confirmado) return
+
   guardando.value = true
   showLoading(modoEdicion.value ? 'Actualizando sección...' : 'Guardando sección...')
 
   try {
     const operacion = modoEdicion.value ? 'sp_secciones_update' : 'sp_secciones_create'
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: operacion,
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_seccion', Valor: form.value.seccion.trim().toUpperCase() },
-          { Nombre: 'p_descripcion', Valor: form.value.descripcion.trim() }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+      operacion,
+      'mercados',
+      [
+        { nombre: 'p_seccion', valor: form.value.seccion.trim().toUpperCase(), tipo: 'string' },
+        { nombre: 'p_descripcion', valor: form.value.descripcion.trim(), tipo: 'string' }
+      ],
+      '',
+      null,
+      'publico'
+    )
 
-    if (response.data.eResponse && response.data.eResponse.success === true) {
-      const result = response.data.eResponse.data.result[0]
+    if (response && response.success === true) {
+      const result = response.data.result[0]
 
       if (result.success) {
         showToast(result.message, 'success')
@@ -381,7 +434,7 @@ const guardarSeccion = async () => {
     }
   } catch (err) {
     console.error('Error al guardar sección:', err)
-    showToast(err.response?.data?.eResponse?.message || 'Error al guardar la sección', 'error')
+    showToast(err.response?.message || 'Error al guardar la sección', 'error')
   } finally {
     guardando.value = false
     hideLoading()
@@ -406,22 +459,29 @@ const cancelarEliminacion = () => {
 const confirmarEliminacion = async () => {
   if (!seccionAEliminar.value) return
 
+  const confirmado = await confirmarEliminar('Se eliminará la sección ' + seccionAEliminar.value.descripcion)
+  if (!confirmado) {
+    showDeleteModal.value = false
+    return
+  }
+
   showDeleteModal.value = false
   showLoading('Eliminando sección...')
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_secciones_delete',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_seccion', Valor: seccionAEliminar.value.seccion.trim() }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_secciones_delete',
+          'mercados',
+          [
+          { nombre: 'p_seccion', valor: seccionAEliminar.value.seccion.trim() }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data.eResponse && response.data.eResponse.success === true) {
-      const result = response.data.eResponse.data.result[0]
+    if (response && response.success === true) {
+      const result = response.data.result[0]
 
       if (result.success) {
         showToast(result.message, 'success')
@@ -434,7 +494,7 @@ const confirmarEliminacion = async () => {
     }
   } catch (err) {
     console.error('Error al eliminar sección:', err)
-    showToast(err.response?.data?.eResponse?.message || 'Error al eliminar la sección', 'error')
+    showToast(err.response?.message || 'Error al eliminar la sección', 'error')
   } finally {
     hideLoading()
     seccionAEliminar.value = null
@@ -446,157 +506,3 @@ onMounted(() => {
   cargarSecciones()
 })
 </script>
-
-<style scoped>
-/* Modal Overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1050;
-  animation: fadeIn 0.2s ease-in;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Modal Dialog */
-.modal-dialog-confirm {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  max-width: 480px;
-  width: 90%;
-  animation: slideDown 0.3s ease-out;
-  overflow: hidden;
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-50px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* Modal Header */
-.modal-header-confirm {
-  padding: 24px;
-  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.modal-icon-warning {
-  font-size: 28px;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-.modal-title-confirm {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-/* Modal Body */
-.modal-body-confirm {
-  padding: 24px;
-}
-
-.modal-body-confirm p {
-  margin: 0 0 12px 0;
-  color: #333;
-  font-size: 15px;
-}
-
-.section-info {
-  background: #f5f5f5;
-  border-left: 4px solid #f44336;
-  padding: 12px 16px;
-  border-radius: 4px;
-  margin: 16px 0;
-}
-
-.section-info strong {
-  color: #f44336;
-  font-size: 16px;
-}
-
-/* Modal Footer */
-.modal-footer-confirm {
-  padding: 16px 24px;
-  background: #f8f9fa;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  border-top: 1px solid #e9ecef;
-}
-
-/* Buttons */
-.btn-cancel,
-.btn-delete {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
-}
-
-.btn-cancel {
-  background: #6c757d;
-  color: white;
-}
-
-.btn-cancel:hover {
-  background: #5a6268;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
-}
-
-.btn-delete {
-  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-  color: white;
-}
-
-.btn-delete:hover {
-  background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
-}
-
-.btn-cancel:active,
-.btn-delete:active {
-  transform: translateY(0);
-}
-</style>

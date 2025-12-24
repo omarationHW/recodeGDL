@@ -19,7 +19,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -84,9 +88,9 @@
           <font-awesome-icon icon="list" />
           Documentos Registrados
         </h5>
-        <div class="ms-auto d-flex align-items-center gap-3">
-          <span class="badge-purple" v-if="totalRegistros > 0">
-            {{ totalRegistros.toLocaleString() }} registro{{ totalRegistros !== 1 ? 's' : '' }}
+        <div class="header-right">
+          <span class="badge-purple" v-if="documentos.length > 0">
+            {{ documentos.length }} registros
           </span>
         </div>
       </div>
@@ -119,23 +123,38 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="loading">
-                <td colspan="5" class="text-center py-4">
-                  <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Cargando...</span>
+              <!-- Empty State - Sin búsqueda -->
+              <tr v-if="documentos.length === 0 && !hasSearched">
+                <td colspan="5">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">
+                      <font-awesome-icon icon="file-alt" size="3x" />
+                    </div>
+                    <h4>Catálogo de Documentos</h4>
+                    <p>Presiona el botón "Actualizar" para cargar los documentos disponibles</p>
                   </div>
                 </td>
               </tr>
-              <tr v-else-if="documentos.length === 0">
-                <td colspan="5" class="empty-state">
-                  <div class="empty-state-content">
-                    <font-awesome-icon icon="inbox" class="empty-state-icon" />
-                    <p class="empty-state-text">No se encontraron documentos con los filtros seleccionados</p>
-                    <p class="empty-state-hint">Intenta ajustar los filtros de búsqueda o presiona "Actualizar"</p>
+              <!-- Empty State - Sin resultados -->
+              <tr v-else-if="documentos.length === 0 && hasSearched">
+                <td colspan="5">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">
+                      <font-awesome-icon icon="inbox" size="3x" />
+                    </div>
+                    <h4>Sin resultados</h4>
+                    <p>No se encontraron registros con los criterios especificados</p>
                   </div>
                 </td>
               </tr>
-              <tr v-else v-for="doc in documentos" :key="doc.cvedocto" class="clickable-row">
+              <tr
+                v-else
+                v-for="doc in documentos"
+                :key="doc.cvedocto"
+                @click="selectedRow = doc"
+                :class="{ 'table-row-selected': selectedRow === doc }"
+                class="row-hover"
+              >
                 <td style="text-align: center;">
                   <span class="badge badge-light-secondary">
                     <font-awesome-icon icon="hashtag" />
@@ -189,52 +208,53 @@
         </div>
 
         <!-- Paginación -->
-        <div class="pagination-container" v-if="totalRegistros > 0 && !loading">
+        <div v-if="documentos.length > 0" class="pagination-controls">
           <div class="pagination-info">
-            <font-awesome-icon icon="info-circle" />
-            Mostrando {{ ((paginaActual - 1) * registrosPorPagina) + 1 }}
-            a {{ Math.min(paginaActual * registrosPorPagina, totalRegistros) }}
-            de {{ totalRegistros.toLocaleString() }} registros
+            <span class="text-muted">
+              Mostrando {{ ((paginaActual - 1) * registrosPorPagina) + 1 }}
+              a {{ Math.min(paginaActual * registrosPorPagina, totalRegistros) }}
+              de {{ formatNumber(totalRegistros) }} registros
+            </span>
           </div>
 
-          <div class="pagination-controls">
-            <div class="page-size-selector">
-              <label>Mostrar:</label>
-              <select v-model.number="registrosPorPagina" @change="cambiarRegistrosPorPagina">
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
-              </select>
-            </div>
+          <div class="pagination-size">
+            <label class="municipal-form-label me-2">Registros por página:</label>
+            <select
+              class="municipal-form-control form-control-sm"
+              :value="registrosPorPagina"
+              @change="cambiarRegistrosPorPagina"
+              style="width: auto; display: inline-block;"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
 
-            <div class="pagination-nav">
-              <button
-                class="pagination-button"
-                @click="cambiarPagina(paginaActual - 1)"
-                :disabled="paginaActual === 1"
-              >
-                <font-awesome-icon icon="chevron-left" />
-              </button>
-
-              <button
-                v-for="page in visiblePages"
-                :key="page"
-                class="pagination-button"
-                :class="{ active: page === paginaActual }"
-                @click="cambiarPagina(page)"
-              >
-                {{ page }}
-              </button>
-
-              <button
-                class="pagination-button"
-                @click="cambiarPagina(paginaActual + 1)"
-                :disabled="paginaActual === totalPaginas"
-              >
-                <font-awesome-icon icon="chevron-right" />
-              </button>
-            </div>
+          <div class="pagination-buttons">
+            <button class="btn-municipal-secondary btn-sm" @click="cambiarPagina(1)" :disabled="paginaActual === 1">
+              <font-awesome-icon icon="angle-double-left" />
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="cambiarPagina(paginaActual - 1)" :disabled="paginaActual === 1">
+              <font-awesome-icon icon="angle-left" />
+            </button>
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="btn-sm"
+              :class="page === paginaActual ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+              @click="cambiarPagina(page)"
+            >
+              {{ page }}
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="cambiarPagina(paginaActual + 1)" :disabled="paginaActual === totalPaginas">
+              <font-awesome-icon icon="angle-right" />
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="cambiarPagina(totalPaginas)" :disabled="paginaActual === totalPaginas">
+              <font-awesome-icon icon="angle-double-right" />
+            </button>
           </div>
         </div>
       </div>
@@ -242,18 +262,25 @@
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
       <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
         <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" class="toast-duration-icon" />
-          {{ toast.duration }}
-        </span>
       </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'doctosfrm'"
+      :moduleName="'padron_licencias'"
+      :docType="docType"
+      :title="'Catálogo de Documentos'"
+      @close="showDocModal = false"
+    />
   </div>
   <!-- /module-view-content -->
 
@@ -376,14 +403,6 @@
       </button>
     </template>
   </Modal>
-
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'doctosfrm'"
-    :moduleName="'padron_licencias'"
-    @close="closeDocumentation"
-  />
 </div>
 <!-- /module-view -->
 </template>
@@ -408,16 +427,27 @@ const {
 } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
 
-// Documentation
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Estado
 const loading = ref(false)
 const documentos = ref([])
 const todosDocumentos = ref([]) // Cache
 const documentoSeleccionado = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const showModalCrear = ref(false)
 const showModalEditar = ref(false)
 const showModalVer = ref(false)
@@ -486,6 +516,8 @@ const aplicarFiltrosYPaginacion = () => {
 const buscar = async () => {
   const startTime = performance.now()
   showLoading('Cargando documentos...', 'Buscando en el catálogo')
+  hasSearched.value = true
+  selectedRow.value = null
   loading.value = true
   showFilters.value = false // Cerrar acordeón al actualizar
 
@@ -496,7 +528,7 @@ const buscar = async () => {
       [],
       '',      // tenant
       null,    // pagination
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -529,7 +561,10 @@ const limpiarFiltros = () => {
     cvedocto: null,
     documento: ''
   }
+  documentos.value = []
+  hasSearched.value = false
   paginaActual.value = 1
+  selectedRow.value = null
   if (todosDocumentos.value.length > 0) {
     aplicarFiltrosYPaginacion()
   }
@@ -538,12 +573,15 @@ const limpiarFiltros = () => {
 const cambiarPagina = (pagina) => {
   if (pagina >= 1 && pagina <= totalPaginas.value) {
     paginaActual.value = pagina
+    selectedRow.value = null
     aplicarFiltrosYPaginacion()
   }
 }
 
-const cambiarRegistrosPorPagina = () => {
+const cambiarRegistrosPorPagina = (event) => {
+  registrosPorPagina.value = parseInt(event.target.value)
   paginaActual.value = 1
+  selectedRow.value = null
   aplicarFiltrosYPaginacion()
 }
 
@@ -604,7 +642,7 @@ const crearDocumento = async () => {
       ],
       '',      // tenant
       null,    // pagination
-      'comun' // esquema
+      'publico' // esquema
     )
 
     hideLoading()
@@ -667,7 +705,7 @@ const actualizarDocumento = async () => {
       ],
       '',      // tenant
       null,    // pagination
-      'comun' // esquema
+      'publico' // esquema
     )
 
     hideLoading()
@@ -725,7 +763,7 @@ const eliminarDocumento = async (doc) => {
       ],
       '',      // tenant
       null,    // pagination
-      'comun' // esquema
+      'publico' // esquema
     )
 
     hideLoading()
@@ -776,6 +814,10 @@ const formatDate = (dateString) => {
   } catch (error) {
     return 'Fecha inválida'
   }
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
 }
 
 // Lifecycle

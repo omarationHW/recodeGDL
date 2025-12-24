@@ -7,7 +7,16 @@
         <p>Inicio > Reportes > Adeudos Anteriores a 1996</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || datos.length === 0">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || datos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
         </button>
@@ -15,10 +24,7 @@
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
     <div class="module-view-content">
@@ -27,7 +33,7 @@
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+            <font-awesome-icon :icon="showFilters ? 'angle-up' : 'angle-down'" class="ms-2" />
           </h5>
         </div>
         <div v-show="showFilters" class="municipal-card-body">
@@ -162,11 +168,11 @@
             </div>
             <div class="pagination-buttons">
               <button @click="previousPage" :disabled="currentPage === 1" class="btn-pagination">
-                <font-awesome-icon icon="chevron-left" />
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span>
               <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-pagination">
-                <font-awesome-icon icon="chevron-right" />
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>
@@ -177,12 +183,20 @@
       <font-awesome-icon :icon="getToastIcon()" /><span>{{ toast.message }}</span>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptAdeudosAnteriores'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptAdeudosAnteriores'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptAdeudosAnteriores'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptAdeudosAnteriores'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -211,19 +225,20 @@ const consultar = async () => {
   datos.value = [];
   currentPage.value = 1;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'rpt_adeudos_anteriores',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) || new Date().getFullYear() },
-          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) || 0 },
-          { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) || 12 }
-        ]
-      }
-    });
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      datos.value = response.data.eResponse.data.result;
+    const response = await apiService.execute(
+          'rpt_adeudos_anteriores',
+          'mercados',
+          [
+          { nombre: 'p_axo', valor: parseInt(filters.value.axo) || new Date().getFullYear() },
+          { nombre: 'p_oficina', valor: parseInt(filters.value.oficina) || 0 },
+          { nombre: 'p_periodo', valor: parseInt(filters.value.periodo) || 12 }
+        ],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success && response?.data?.result) {
+      datos.value = response.data.result;
       showToast(datos.value.length === 0 ? 'No se encontraron resultados' : `Se encontraron ${datos.value.length} registros`, datos.value.length === 0 ? 'info' : 'success');
     } else {
       showToast('No se encontraron resultados', 'warning');
@@ -256,182 +271,3 @@ onMounted(async () => {
   }
 });
 </script>
-
-<style src="@/styles/municipal-theme.css"></style>
-
-<style scoped>
-/* Print styles */
-@media print {
-  .module-view-header,
-  .municipal-card-header,
-  .pagination-container,
-  .button-group {
-    display: none !important;
-  }
-  .municipal-table {
-    font-size: 10px;
-  }
-  .sticky-header {
-    position: static !important;
-  }
-}
-
-/* Sticky header for scrolling tables */
-.sticky-header {
-  position: sticky;
-  top: 0;
-  background-color: #fff;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Table container with scroll */
-.table-container {
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-/* Empty state icons */
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-/* Row hover effect */
-.row-hover:hover {
-  background-color: #f0f8ff;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-/* Header with badge alignment */
-.header-with-badge {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-right {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-/* Pagination container */
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
-  padding: 1rem;
-  border-top: 1px solid #dee2e6;
-  background-color: #f8f9fa;
-}
-
-.pagination-info {
-  font-size: 0.9rem;
-  color: #666;
-  font-weight: 500;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.pagination-controls label {
-  margin: 0;
-  font-size: 0.9rem;
-  white-space: nowrap;
-}
-
-.pagination-controls select {
-  width: 80px;
-  padding: 0.375rem 0.75rem;
-}
-
-.pagination-buttons {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-pagination {
-  padding: 0.375rem 0.75rem;
-  border: 1px solid #6f42c1;
-  background-color: #fff;
-  color: #6f42c1;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.875rem;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background-color: #6f42c1;
-  color: #fff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(111, 66, 193, 0.2);
-}
-
-.btn-pagination:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Small form control for select */
-.municipal-form-control-sm {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-  height: auto;
-}
-
-/* Toast notification */
-.toast-notification {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  padding: 1rem 1.5rem;
-  border-radius: 0.5rem;
-  background-color: #fff;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  z-index: 9999;
-  animation: slideIn 0.3s ease-out;
-  min-width: 300px;
-  max-width: 500px;
-  width: auto;
-  height: auto;
-  max-height: 100px;
-}
-
-.toast-success {
-  border-left: 4px solid #28a745;
-}
-
-.toast-error {
-  border-left: 4px solid #dc3545;
-}
-
-.toast-warning {
-  border-left: 4px solid #ffc107;
-}
-
-.toast-info {
-  border-left: 4px solid #17a2b8;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-</style>

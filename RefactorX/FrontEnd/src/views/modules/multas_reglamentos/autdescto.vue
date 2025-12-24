@@ -8,6 +8,16 @@
         <h1>Autorización de Descuento</h1>
         <p>Autdescto</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -89,23 +99,45 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'autdescto'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Autorización de Descuento'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'autdescto'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Autorización de Descuento'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_AUTDESCTO' // TODO confirmar
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({ cuenta: '' })
 const rows = ref([])
@@ -129,6 +161,7 @@ async function reload() {
     { nombre: 'p_clave_cuenta', valor: String(filters.value.cuenta || ''), tipo: 'string' }
   ]
 
+  showLoading('Consultando...', 'Por favor espere')
   try {
     const data = await execute(OP_LIST, BASE_DB, params)
     const arr = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
@@ -138,53 +171,9 @@ async function reload() {
   } catch (e) {
     rows.value = []
     columns.value = []
+  } finally {
+    hideLoading()
   }
 }
 </script>
 
-<style scoped>
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding: 15px;
-  border-top: 1px solid #dee2e6;
-}
-
-.pagination-info {
-  color: #6c757d;
-  font-size: 14px;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.pagination-page {
-  color: #495057;
-  font-weight: 500;
-}
-
-.btn-pagination {
-  padding: 8px 16px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  background-color: #fff;
-  color: #495057;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.btn-pagination:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-</style>

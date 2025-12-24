@@ -8,10 +8,14 @@
         <h1>Catastro DM</h1>
         <p>Consulta con paginación server-side</p>
       </div>
-      <div class="module-view-actions">
-        <button class="btn-municipal-secondary" :disabled="loading" @click="reload">
-          <font-awesome-icon icon="sync-alt" />
-          Actualizar
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -96,23 +100,45 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'CatastroDM'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Catastro DM'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'CatastroDM'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Catastro DM'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos' // TODO confirmar
 const OP_CATASTRO_DM = 'RECAUDADORA_CATASTRO_DM' // TODO confirmar
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({ q: '', year: new Date().getFullYear() })
 const page = ref(1)
@@ -128,14 +154,21 @@ async function reload() {
     { nombre: 'p_offset', valor: (page.value - 1) * pageSize.value, tipo: 'integer' },
     { nombre: 'p_limit', valor: pageSize.value, tipo: 'integer' }
   ]
+  showLoading('Consultando...', 'Por favor espere')
   try {
-    const data = await execute(OP_CATASTRO_DM, BASE_DB, params)
+    const response = await execute(OP_CATASTRO_DM, BASE_DB, params, '', null, 'publico')
+
+    // Extraer datos de la estructura correcta
+    const data = response?.eResponse?.data || response?.data || response
     const arr = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
+
     rows.value = arr
     total.value = arr.length > 0 ? Number(arr[0].total_count || 0) : 0
   } catch (e) {
     rows.value = []
     total.value = 0
+  } finally {
+    hideLoading()
   }
 }
 
@@ -148,4 +181,3 @@ watch([pageSize], () => reload())
 
 reload()
 </script>
-

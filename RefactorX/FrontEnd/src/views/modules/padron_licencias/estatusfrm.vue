@@ -14,7 +14,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -190,7 +194,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(hist, index) in historialEstatus" :key="index" class="row-hover">
+              <tr
+                v-for="(hist, index) in historialEstatus"
+                :key="index"
+                @click="selectedRow = hist"
+                :class="{ 'table-row-selected': selectedRow === hist }"
+                class="row-hover"
+              >
                 <td>
                   <small class="text-muted">
                     <font-awesome-icon icon="calendar" />
@@ -217,9 +227,14 @@
                 </td>
               </tr>
               <tr v-if="historialEstatus.length === 0">
-                <td colspan="5" class="text-center text-muted">
-                  <font-awesome-icon icon="folder-open" size="2x" class="empty-icon" />
-                  <p>No hay historial de cambios de estatus</p>
+                <td colspan="5">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">
+                      <font-awesome-icon icon="history" size="3x" />
+                    </div>
+                    <h4>Sin historial</h4>
+                    <p>No hay cambios de estatus registrados para este trámite</p>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -227,18 +242,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading && !revisionInfo" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando información de la revisión...</p>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    </div>
-    <!-- /module-view-content -->
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
@@ -254,16 +257,20 @@
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'estatusfrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Cambio de Estatus de Revisión'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -275,10 +282,19 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
@@ -294,6 +310,8 @@ const { showLoading, hideLoading } = useGlobalLoading()
 const loading = ref(false)
 const revisionInfo = ref(null)
 const historialEstatus = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Filtros
 const filters = ref({
@@ -320,6 +338,8 @@ const searchTramite = async () => {
 
   loading.value = true
   showLoading('Buscando información de la revisión...', 'Consultando base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const response = await execute(
@@ -476,6 +496,8 @@ const clearFilters = () => {
   }
   revisionInfo.value = null
   historialEstatus.value = []
+  hasSearched.value = false
+  selectedRow.value = null
   resetForm()
 }
 

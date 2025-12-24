@@ -11,7 +11,7 @@
       </div>
       <div class="button-group ms-auto">
         <button
-          class="btn-municipal-primary"
+          class="btn-municipal-success"
           @click="abrirModalNuevo"
           :disabled="loading"
         >
@@ -27,8 +27,15 @@
           Actualizar
         </button>
         <button
+          class="btn-municipal-info"
+          @click="abrirDocumentacion"
+        >
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button
           class="btn-municipal-purple"
-          @click="mostrarAyuda"
+          @click="abrirAyuda"
         >
           <font-awesome-icon icon="question-circle" />
           Ayuda
@@ -194,7 +201,24 @@
         </div>
 
         <div class="municipal-card-body table-container">
-          <div class="table-responsive">
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="usuarios.length === 0 && !searchPerformed" class="empty-state">
+            <div class="empty-state-content">
+              <font-awesome-icon icon="inbox" class="empty-state-icon" style="width: 150px; height: 150px; font-size: 5rem;" />
+              <p class="empty-state-text">Utiliza los filtros de búsqueda para encontrar usuarios o actualiza la consulta completa</p>
+            </div>
+          </div>
+
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="usuarios.length === 0" class="empty-state">
+            <div class="empty-state-content">
+              <font-awesome-icon icon="inbox" class="empty-state-icon" style="width: 150px; height: 150px; font-size: 5rem;" />
+              <p class="empty-state-text">No se encontraron usuarios con los criterios especificados</p>
+            </div>
+          </div>
+
+          <!-- Tabla con datos -->
+          <div v-else class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
@@ -209,20 +233,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="usuarios.length === 0 && !searchPerformed">
-                  <td colspan="8" class="text-center text-muted">
-                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                    <p>Utiliza los filtros de búsqueda para encontrar usuarios o actualiza la consulta completa</p>
-                  </td>
-                </tr>
-                <tr v-else-if="usuarios.length === 0">
-                  <td colspan="8" class="text-center text-muted">
-                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                    <p>No se encontraron usuarios con los criterios especificados</p>
-                  </td>
-                </tr>
                 <tr
-                  v-else
                   v-for="(usuario, index) in paginatedUsuarios"
                   :key="index"
                   @click="selectedUsuario = usuario"
@@ -727,12 +738,14 @@
       </div>
     </Modal>
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda/Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'consultausuariosfrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Consulta de Usuarios'"
+      @close="showDocModal = false"
     />
   </div>
 </template>
@@ -758,6 +771,20 @@ const {
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
+
 // Estado
 const activeTab = ref('usuario')
 const showFilters = ref(false)
@@ -771,7 +798,6 @@ const searchPerformed = ref(false)
 const showModalNuevo = ref(false)
 const showModalEditar = ref(false)
 const showModalDetalle = ref(false)
-const showDocumentation = ref(false)
 
 // Paginación
 const currentPage = ref(1)
@@ -808,14 +834,6 @@ const formEditar = ref({
 // Métodos
 const toggleFilters = () => {
   showFilters.value = !showFilters.value
-}
-
-const mostrarAyuda = () => {
-  showDocumentation.value = true
-}
-
-const closeDocumentation = () => {
-  showDocumentation.value = false
 }
 
 const buscar = () => {
@@ -855,7 +873,7 @@ const cargarTodos = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -899,7 +917,7 @@ const buscarPorUsuario = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -943,7 +961,7 @@ const buscarPorNombre = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -988,7 +1006,7 @@ const buscarPorDepartamento = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -1139,7 +1157,7 @@ const crearUsuario = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -1245,7 +1263,7 @@ const actualizarUsuario = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -1349,7 +1367,7 @@ const darBajaUsuario = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -1407,7 +1425,7 @@ const cargarDependencias = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -1432,7 +1450,7 @@ const onDependenciaChange = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -1457,7 +1475,7 @@ const cargarDeptosModal = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -1481,7 +1499,7 @@ const cargarDeptosModalEditar = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {

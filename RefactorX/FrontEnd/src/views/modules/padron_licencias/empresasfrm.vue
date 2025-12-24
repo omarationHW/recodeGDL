@@ -18,7 +18,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -147,9 +151,11 @@
           <font-awesome-icon icon="list" />
           Resultados de Búsqueda
         </h5>
-        <span class="badge-purple" v-if="empresas.length > 0">
-          {{ totalRecords }} registro{{ totalRecords !== 1 ? 's' : '' }}
-        </span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="empresas.length > 0">
+            {{ totalRecords }} registro{{ totalRecords !== 1 ? 's' : '' }}
+          </span>
+        </div>
       </div>
 
       <div class="municipal-card-body">
@@ -168,7 +174,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="empresa in empresas" :key="empresa.empresa" class="row-hover">
+              <tr
+                v-for="empresa in empresas"
+                :key="empresa.empresa"
+                @click="selectedRow = empresa"
+                :class="{ 'table-row-selected': selectedRow === empresa }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary">{{ empresa.empresa }}</strong></td>
                 <td>{{ trimString(empresa.propietario) || 'N/A' }}</td>
                 <td><code>{{ trimString(empresa.rfc) || 'N/A' }}</code></td>
@@ -187,21 +199,21 @@
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="verEmpresa(empresa)"
+                      @click.stop="verEmpresa(empresa)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
                     </button>
                     <button
                       class="btn-municipal-primary btn-sm"
-                      @click="editarEmpresa(empresa)"
+                      @click.stop="editarEmpresa(empresa)"
                       title="Editar"
                     >
                       <font-awesome-icon icon="edit" />
                     </button>
                     <button
                       class="btn-municipal-danger btn-sm"
-                      @click="confirmarEliminarEmpresa(empresa)"
+                      @click.stop="confirmarEliminarEmpresa(empresa)"
                       title="Eliminar"
                     >
                       <font-awesome-icon icon="trash" />
@@ -213,13 +225,22 @@
           </table>
         </div>
 
-        <!-- Empty State -->
-        <div v-else class="empty-state">
-          <div class="empty-icon">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="empresas.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
             <font-awesome-icon icon="briefcase" size="3x" />
           </div>
-          <h5>No hay empresas registradas</h5>
+          <h4>Gestión de Empresas</h4>
           <p>Utiliza los filtros para buscar o registra una nueva empresa</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="empresas.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron registros con los criterios especificados</p>
         </div>
 
         <!-- Paginación -->
@@ -752,31 +773,30 @@
       </template>
     </Modal>
 
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
       <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
         <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" class="toast-duration-icon" />
-          {{ toast.duration }}
-        </span>
       </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'empresasfrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Empresas'"
+      @close="showDocModal = false"
     />
+
+    </div>
+    <!-- /module-view-content -->
   </div>
   <!-- /module-view -->
 </template>
@@ -790,17 +810,29 @@ import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
 
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
+
+// Composables
 const { execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const empresas = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const selectedEmpresa = ref(null)
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
@@ -909,7 +941,7 @@ const loadStats = async () => {
       'sp_empresas_estadisticas',
       'padron_licencias',
       [],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -923,6 +955,8 @@ const loadStats = async () => {
 
 const buscarEmpresas = async () => {
   showLoading('Cargando empresas...', 'Buscando registros en la base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
   try {
     const startTime = performance.now()
 
@@ -937,7 +971,7 @@ const buscarEmpresas = async () => {
         { nombre: 'p_rfc', valor: filters.value.rfc || null },
         { nombre: 'p_vigente', valor: filters.value.vigente || null }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     const endTime = performance.now()
@@ -976,7 +1010,9 @@ const limpiarFiltros = () => {
     vigente: ''
   }
   empresas.value = []
+  hasSearched.value = false
   currentPage.value = 1
+  selectedRow.value = null
   totalRecords.value = 0
 }
 
@@ -1052,7 +1088,7 @@ const crearEmpresa = async () => {
         { nombre: 'p_subzona', valor: newEmpresa.value.subzona },
         { nombre: 'p_vigente', valor: newEmpresa.value.vigente }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     if (response && response.result) {
@@ -1134,7 +1170,7 @@ const actualizarEmpresa = async () => {
         { nombre: 'p_subzona', valor: editForm.value.subzona },
         { nombre: 'p_vigente', valor: editForm.value.vigente }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     if (response && response.result) {
@@ -1186,7 +1222,7 @@ const eliminarEmpresa = async (empresa) => {
       [
         { nombre: 'p_empresa', valor: empresa.empresa }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     if (response && response.result) {

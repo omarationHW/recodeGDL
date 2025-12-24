@@ -6,6 +6,16 @@
         <h1>FRM Pol</h1>
         <p>Gestión de pólizas</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
     <div class="module-view-content">
       <!-- Formulario -->
@@ -145,24 +155,44 @@
           </div>
         </div>
       </div>
-    </div>
+    </div>    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'frmpol'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'FRM Pol'"
+      @close="showAyuda = false"
+    />
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'frmpol'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'FRM Pol'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_FRMPOL'
+const SCHEMA = 'publico'
 const jsonPayload = ref('')
 const result = ref(null)
 
@@ -181,7 +211,7 @@ async function ejecutar() {
       { nombre: 'p_params', tipo: 'json', valor: JSON.stringify(parsedPayload) }
     ]
 
-    const response = await execute(OP, BASE_DB, params)
+    const response = await execute(OP, BASE_DB, params, '', null, SCHEMA)
 
     if (response?.result) {
       result.value = response.result
@@ -238,306 +268,3 @@ function getPolizaValue(key) {
 }
 </script>
 
-<style scoped>
-.form-group.full-width {
-  width: 100%;
-}
-
-.municipal-form-control {
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-}
-
-.form-text {
-  color: #6c757d;
-  font-size: 0.85rem;
-  margin-top: 4px;
-  display: block;
-}
-
-.btn-municipal-secondary {
-  background: #6c757d;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  margin-left: 10px;
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  background: #5a6268;
-}
-
-.btn-municipal-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.alert-danger {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 8px;
-  padding: 16px;
-  color: #721c24;
-}
-
-.alert-danger svg {
-  margin-right: 8px;
-}
-
-.result-box {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  padding: 16px;
-}
-
-.result-box pre {
-  margin: 0;
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-/* Resumen de resultados */
-.result-summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.summary-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #dee2e6;
-}
-
-.summary-item svg {
-  font-size: 1.5rem;
-  color: #6c757d;
-}
-
-.summary-item.status-success {
-  background: #d4edda;
-  border-left-color: #28a745;
-}
-
-.summary-item.status-success svg {
-  color: #28a745;
-}
-
-.summary-item div {
-  flex: 1;
-}
-
-.summary-item strong {
-  display: block;
-  color: #495057;
-  font-size: 0.85rem;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.summary-item span {
-  display: block;
-  color: #212529;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-/* Sección de póliza */
-.poliza-section {
-  margin-bottom: 24px;
-}
-
-.poliza-section h6 {
-  margin: 0 0 16px 0;
-  padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.poliza-section h6 svg {
-  margin-right: 8px;
-}
-
-.poliza-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.poliza-item {
-  background: white;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  padding: 16px;
-  transition: all 0.3s ease;
-}
-
-.poliza-item:hover {
-  border-color: #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-  transform: translateY(-2px);
-}
-
-.poliza-item.highlight {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-}
-
-.poliza-item.highlight .poliza-label {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.poliza-item.highlight .poliza-value {
-  color: white;
-}
-
-.poliza-item.amount {
-  background: #fff3cd;
-  border-color: #ffc107;
-}
-
-.poliza-label {
-  font-size: 0.85rem;
-  color: #6c757d;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-}
-
-.poliza-value {
-  font-size: 1.1rem;
-  color: #212529;
-  font-weight: 700;
-}
-
-.poliza-value.folio {
-  font-size: 1.8rem;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.poliza-value.total {
-  font-size: 1.5rem;
-  color: #856404;
-}
-
-.poliza-value.records {
-  font-size: 1.3rem;
-  color: #667eea;
-}
-
-/* Sección de parámetros */
-.params-section {
-  margin-bottom: 24px;
-}
-
-.params-section h6 {
-  margin: 0 0 12px 0;
-  padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.params-section h6 svg {
-  margin-right: 8px;
-}
-
-.params-content {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  padding: 16px;
-  overflow-x: auto;
-}
-
-.params-content pre {
-  margin: 0;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-  color: #212529;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-/* JSON colapsable */
-.json-raw {
-  background: white;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.json-raw summary {
-  padding: 14px 16px;
-  background: #f8f9fa;
-  cursor: pointer;
-  font-weight: 600;
-  color: #495057;
-  user-select: none;
-  transition: all 0.2s ease;
-}
-
-.json-raw summary:hover {
-  background: #e9ecef;
-  color: #212529;
-}
-
-.json-raw summary svg {
-  margin-right: 8px;
-  color: #667eea;
-}
-
-.json-raw pre {
-  margin: 0;
-  padding: 16px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-  background: #2d2d2d;
-  color: #f8f9fa;
-  overflow-x: auto;
-  white-space: pre;
-}
-
-.json-raw[open] summary {
-  border-bottom: 1px solid #dee2e6;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .poliza-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .result-summary {
-    grid-template-columns: 1fr;
-  }
-
-  .poliza-value.folio {
-    font-size: 1.5rem;
-  }
-
-  .poliza-value.total {
-    font-size: 1.3rem;
-  }
-}
-</style>

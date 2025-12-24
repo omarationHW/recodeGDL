@@ -14,11 +14,13 @@
         <p>Altas/Bajas masivas de multas y calcomanias</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -26,7 +28,7 @@
     <div class="module-view-content">
       <!-- Seccion de Seleccion de Operacion -->
       <div class="form-section">
-        <div class="section-header">
+        <div class="section-header header-with-badge">
           <div class="section-icon"><font-awesome-icon icon="tasks" /></div>
           <div class="section-title-group">
             <h3>Seleccionar Operacion</h3>
@@ -36,33 +38,33 @@
         <div class="section-body">
           <div class="operation-cards">
             <div
-              class="operation-card"
-              :class="{ active: operacion === 'A' }"
+              class="operation-card row-hover"
+              :class="{ active: operacion === 'A', 'table-row-selected': operacion === 'A' }"
               @click="seleccionarOperacion('A')"
             >
-              <div class="op-icon op-altas"><font-awesome-icon icon="plus-circle" /></div>
+              <div class="op-icon op-altas empty-state-icon"><font-awesome-icon icon="plus-circle" /></div>
               <div class="op-content">
                 <strong>A - Altas de Multas</strong>
                 <p>Insertar folios de multas de estacionometros</p>
               </div>
             </div>
             <div
-              class="operation-card"
-              :class="{ active: operacion === 'B' }"
+              class="operation-card row-hover"
+              :class="{ active: operacion === 'B', 'table-row-selected': operacion === 'B' }"
               @click="seleccionarOperacion('B')"
             >
-              <div class="op-icon op-bajas"><font-awesome-icon icon="minus-circle" /></div>
+              <div class="op-icon op-bajas empty-state-icon"><font-awesome-icon icon="minus-circle" /></div>
               <div class="op-content">
                 <strong>B - Bajas de Multas</strong>
                 <p>Dar de baja folios de multas existentes</p>
               </div>
             </div>
             <div
-              class="operation-card"
-              :class="{ active: operacion === 'C' }"
+              class="operation-card row-hover"
+              :class="{ active: operacion === 'C', 'table-row-selected': operacion === 'C' }"
               @click="seleccionarOperacion('C')"
             >
-              <div class="op-icon op-calco"><font-awesome-icon icon="id-card" /></div>
+              <div class="op-icon op-calco empty-state-icon"><font-awesome-icon icon="id-card" /></div>
               <div class="op-content">
                 <strong>C - Altas de Calcomanias</strong>
                 <p>Insertar calcomanias sin propietario</p>
@@ -74,8 +76,8 @@
 
       <!-- Seccion de Carga de Archivo (solo si hay operacion seleccionada) -->
       <div class="form-section" v-if="operacion">
-        <div class="section-header section-header-info">
-          <div class="section-icon"><font-awesome-icon icon="file-upload" /></div>
+        <div class="section-header section-header-info header-with-badge">
+          <div class="section-icon empty-state-icon"><font-awesome-icon icon="file-upload" /></div>
           <div class="section-title-group">
             <h3>Cargar Archivo de Datos</h3>
             <span class="section-subtitle">{{ getOperacionTitulo() }}</span>
@@ -107,7 +109,7 @@
 
           <!-- Info del archivo cargado -->
           <div v-if="archivoNombre" class="file-info-box">
-            <font-awesome-icon icon="file-alt" class="file-icon" />
+            <font-awesome-icon icon="file-alt" class="file-icon empty-state-icon" />
             <div class="file-details">
               <strong>{{ archivoNombre }}</strong>
               <div class="file-stats">
@@ -151,8 +153,8 @@
 
       <!-- Seccion de Tabla de Registros -->
       <div class="form-section" v-if="registros.length > 0">
-        <div class="section-header" :class="getSectionHeaderClass()">
-          <div class="section-icon"><font-awesome-icon icon="table" /></div>
+        <div class="section-header header-with-badge" :class="getSectionHeaderClass()">
+          <div class="section-icon empty-state-icon"><font-awesome-icon icon="table" /></div>
           <div class="section-title-group">
             <h3>Registros a Procesar</h3>
             <span class="section-subtitle">{{ registros.length }} registros cargados</span>
@@ -184,7 +186,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(r, idx) in registros" :key="idx" :class="getRowClass(r)">
+                <tr v-for="(r, idx) in registros" :key="idx" :class="getRowClass(r)" class="row-hover">
                   <td>{{ idx + 1 }}</td>
                   <td>{{ r.axo }}</td>
                   <td><code class="folio-code">{{ r.folio }}</code></td>
@@ -209,7 +211,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(r, idx) in registros" :key="idx" :class="getRowClass(r)">
+                <tr v-for="(r, idx) in registros" :key="idx" :class="getRowClass(r)" class="row-hover">
                   <td>{{ idx + 1 }}</td>
                   <td>{{ r.axo }}</td>
                   <td><code class="folio-code">{{ r.folio }}</code></td>
@@ -235,7 +237,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(r, idx) in registros" :key="idx" :class="getRowClass(r)">
+                <tr v-for="(r, idx) in registros" :key="idx" :class="getRowClass(r)" class="row-hover">
                   <td>{{ idx + 1 }}</td>
                   <td><code class="folio-code">{{ r.calco }}</code></td>
                   <td>{{ r.tipo }}</td>
@@ -253,8 +255,8 @@
 
       <!-- Seccion de Resultado -->
       <div class="form-section" v-if="resultado">
-        <div class="section-header" :class="resultado.errores === 0 ? 'section-header-success' : 'section-header-warning'">
-          <div class="section-icon"><font-awesome-icon icon="clipboard-check" /></div>
+        <div class="section-header header-with-badge" :class="resultado.errores === 0 ? 'section-header-success' : 'section-header-warning'">
+          <div class="section-icon empty-state-icon"><font-awesome-icon icon="clipboard-check" /></div>
           <div class="section-title-group">
             <h3>Resultado del Proceso</h3>
             <span class="section-subtitle">{{ getOperacionTitulo() }}</span>
@@ -263,21 +265,21 @@
         <div class="section-body">
           <div class="result-grid">
             <div class="result-card result-success">
-              <font-awesome-icon icon="check-circle" class="result-icon" />
+              <font-awesome-icon icon="check-circle" class="result-icon empty-state-icon" />
               <div class="result-content">
                 <span class="result-value">{{ resultado.exitosos }}</span>
                 <span class="result-label">Exitosos</span>
               </div>
             </div>
             <div class="result-card result-error">
-              <font-awesome-icon icon="times-circle" class="result-icon" />
+              <font-awesome-icon icon="times-circle" class="result-icon empty-state-icon" />
               <div class="result-content">
                 <span class="result-value">{{ resultado.errores }}</span>
                 <span class="result-label">Errores</span>
               </div>
             </div>
             <div class="result-card result-total">
-              <font-awesome-icon icon="info-circle" class="result-icon" />
+              <font-awesome-icon icon="info-circle" class="result-icon empty-state-icon" />
               <div class="result-content">
                 <span class="result-value">{{ resultado.total }}</span>
                 <span class="result-label">Total</span>
@@ -297,27 +299,15 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - Transferencia de Folios">
-      <h3>Transferencia de Folios</h3>
-      <p>Este modulo permite realizar operaciones masivas sobre folios de estacionamientos.</p>
-      <h4>Opciones disponibles:</h4>
-      <ul>
-        <li><strong>A - Altas de Multas:</strong> Inserta nuevos folios de multas de estacionometros</li>
-        <li><strong>B - Bajas de Multas:</strong> Da de baja folios existentes (cancelacion)</li>
-        <li><strong>C - Altas de Calcomanias:</strong> Inserta calcomanias sin propietario asignado</li>
-      </ul>
-      <h4>Instrucciones:</h4>
-      <ol>
-        <li>Seleccione el tipo de operacion (A, B o C)</li>
-        <li>Cargue el archivo de texto con los datos</li>
-        <li>Verifique los registros en la tabla</li>
-        <li>Presione "Procesar Todo" para ejecutar</li>
-      </ol>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'TransFoliosPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'TransFoliosPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Transferencia de Folios'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
@@ -327,11 +317,10 @@ import Swal from 'sweetalert2'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
@@ -348,13 +337,19 @@ const procesando = ref(false)
 const procesadosCount = ref(0)
 const resultado = ref(null)
 
-// Documentacion
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 function seleccionarOperacion(op) {
   operacion.value = op
@@ -1111,5 +1106,44 @@ function getStatusIcon(r) {
 .btn-municipal-success:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Nuevas clases de estilo estandarizado */
+.row-hover {
+  transition: all 0.2s ease;
+}
+
+.row-hover:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.table-row-selected {
+  background-color: #e7f3ff !important;
+  border-left: 3px solid #667eea;
+}
+
+.header-with-badge {
+  position: relative;
+}
+
+.header-with-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.empty-state-icon {
+  opacity: 0.95;
+  transition: transform 0.2s ease;
+}
+
+.empty-state-icon:hover {
+  transform: scale(1.05);
 }
 </style>

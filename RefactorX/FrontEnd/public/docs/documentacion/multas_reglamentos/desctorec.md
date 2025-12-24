@@ -1,38 +1,26 @@
-# Desctorec
+# Documentación: desctorec
 
-## Descripcion
+## Análisis Técnico
 
-Componente del modulo **Multas Reglamentos**.
+> ⚠️ Pendiente de documentar
 
-## Funcionalidad
+## Casos de Uso
 
-Este componente proporciona la interfaz para desctorec.
+> ⚠️ Pendiente de documentar
 
-## Uso
+## Casos de Prueba
 
-```vue
-<desctorec />
-```
+> ⚠️ Pendiente de documentar
 
-## Propiedades
+## Arquitectura
 
-| Propiedad | Tipo | Descripcion |
-|-----------|------|-------------|
-| - | - | Sin propiedades especificas |
+> ⚠️ Pendiente de documentar
 
-## Eventos
+## Integración con Backend
 
-| Evento | Descripcion |
-|--------|-------------|
-| - | Sin eventos especificos |
+> ⚠️ Pendiente de documentar
 
-## Procedimientos Almacenados
+## Consideraciones de Migración
 
-Los procedimientos almacenados utilizados por este componente se encuentran en:
-`/Base/multas_reglamentos/database/`
+> ⚠️ Pendiente de documentar
 
-## Notas Tecnicas
-
-- Modulo: multas_reglamentos
-- Componente: desctorec.vue
-- Ruta: /src/views/modules/multas_reglamentos/desctorec.vue

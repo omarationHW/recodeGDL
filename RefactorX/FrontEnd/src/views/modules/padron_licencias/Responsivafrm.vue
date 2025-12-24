@@ -7,20 +7,23 @@
       </div>
       <div class="module-view-info">
         <h1>Responsivas de Licencias</h1>
-        <p>Padrón de Licencias - Gestión de Responsivas y Supervisiones</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Gestión de Responsivas y Supervisiones</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button
           class="btn-municipal-primary"
           @click="openCreateModal"
-          :disabled="loading || !licenciaData"
+          :disabled="!licenciaData"
         >
           <font-awesome-icon icon="plus" />
           Nueva Responsiva
@@ -70,7 +73,7 @@
           <button
             class="btn-municipal-primary"
             @click="searchLicencia"
-            :disabled="loading || !searchForm.licencia"
+            :disabled="!searchForm.licencia"
           >
             <font-awesome-icon icon="search" />
             Buscar Licencia
@@ -78,7 +81,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearSearch"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -186,7 +188,7 @@
           <button
             class="btn-municipal-info"
             @click="searchByFolio"
-            :disabled="loading || !folioSearch.axo || !folioSearch.folio"
+            :disabled="!folioSearch.axo || !folioSearch.folio"
           >
             <font-awesome-icon icon="search" />
             Buscar por Folio
@@ -197,24 +199,46 @@
 
     <!-- Tabla de Responsivas -->
     <div class="municipal-card" v-if="licenciaData">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           {{ tipoDocumento === 'R' ? 'Responsivas' : 'Supervisiones' }} Registradas
-          <span class="badge-purple" v-if="responsivas.length > 0">{{ responsivas.length }} registros</span>
         </h5>
-        <button
-          class="btn-municipal-secondary btn-sm"
-          @click="loadResponsivas"
-          :disabled="loading"
-        >
-          <font-awesome-icon icon="sync-alt" />
-          Actualizar
-        </button>
+        <div class="header-right">
+          <span class="badge-purple" v-if="responsivas.length > 0">
+            {{ responsivas.length }} registros
+          </span>
+          <button
+            class="btn-municipal-secondary btn-sm ms-2"
+            @click="loadResponsivas"
+          >
+            <font-awesome-icon icon="sync-alt" />
+            Actualizar
+          </button>
+        </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="responsivas.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="file-contract" size="3x" />
+          </div>
+          <h4>Responsivas de Licencias</h4>
+          <p>Busque una licencia para ver sus responsivas o supervisiones registradas</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="responsivas.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron {{ tipoDocumento === 'R' ? 'responsivas' : 'supervisiones' }} para esta licencia</p>
+        </div>
+
+        <!-- Tabla de resultados -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -230,7 +254,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="responsiva in responsivas" :key="`${responsiva.axo}-${responsiva.folio}`" class="clickable-row">
+              <tr
+                v-for="responsiva in responsivas"
+                :key="`${responsiva.axo}-${responsiva.folio}`"
+                @click="selectedRow = responsiva"
+                :class="{ 'table-row-selected': selectedRow === responsiva }"
+                class="row-hover"
+              >
                 <td><strong>{{ responsiva.axo }}</strong></td>
                 <td><code>{{ responsiva.folio }}</code></td>
                 <td><span class="badge-purple">{{ responsiva.licencia }}</span></td>
@@ -257,7 +287,7 @@
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="viewResponsiva(responsiva)"
+                      @click.stop="viewResponsiva(responsiva)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
@@ -265,7 +295,7 @@
                     <button
                       v-if="responsiva.vigente === 'V'"
                       class="btn-municipal-danger btn-sm"
-                      @click="confirmCancelResponsiva(responsiva)"
+                      @click.stop="confirmCancelResponsiva(responsiva)"
                       title="Cancelar"
                     >
                       <font-awesome-icon icon="ban" />
@@ -273,23 +303,9 @@
                   </div>
                 </td>
               </tr>
-              <tr v-if="responsivas.length === 0 && !loading">
-                <td colspan="9" class="text-center text-muted">
-                  <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                  <p>No se encontraron {{ tipoDocumento === 'R' ? 'responsivas' : 'supervisiones' }} para esta licencia</p>
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando información...</p>
       </div>
     </div>
 
@@ -418,48 +434,58 @@
       </div>
     </Modal>
 
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'Responsivafrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Responsivas de Licencias'"
+      @close="showDocModal = false"
     />
+  </div>
+  <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
 import { ref } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
-
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -467,7 +493,11 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const tipoDocumento = ref('R')
 const searchForm = ref({
   licencia: null
@@ -501,7 +531,9 @@ const searchLicencia = async () => {
     return
   }
 
-  setLoading(true, 'Buscando licencia...')
+  showLoading('Buscando licencia...', 'Consultando información de la base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
   const startTime = performance.now()
 
   try {
@@ -538,14 +570,15 @@ const searchLicencia = async () => {
     licenciaData.value = null
     responsivas.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const loadResponsivas = async () => {
   if (!licenciaData.value) return
 
-  setLoading(true, 'Cargando responsivas...')
+  showLoading('Cargando responsivas...', 'Consultando documentos registrados')
+  selectedRow.value = null
 
   try {
     const response = await execute(
@@ -568,7 +601,7 @@ const loadResponsivas = async () => {
     handleApiError(error)
     responsivas.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -583,7 +616,7 @@ const searchByFolio = async () => {
     return
   }
 
-  setLoading(true, 'Buscando por folio...')
+  showLoading('Buscando por folio...', 'Consultando documento')
 
   try {
     const response = await execute(
@@ -611,7 +644,7 @@ const searchByFolio = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -711,7 +744,7 @@ const confirmCancelResponsiva = async (responsiva) => {
 }
 
 const cancelResponsiva = async (responsiva, motivo) => {
-  setLoading(true, 'Cancelando...')
+  showLoading('Cancelando documento...', 'Procesando cancelación')
 
   try {
     const response = await execute(
@@ -742,7 +775,7 @@ const cancelResponsiva = async (responsiva, motivo) => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -756,6 +789,8 @@ const clearSearch = () => {
   }
   licenciaData.value = null
   responsivas.value = []
+  hasSearched.value = false
+  selectedRow.value = null
   showToast('info', 'Búsqueda limpiada')
 }
 

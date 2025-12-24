@@ -10,30 +10,17 @@
         <p>Otras Obligaciones - Cancelación de contratos/concesiones</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
-      </div>
-    
-      <button class="btn-help-icon" @click="openDocumentation" title="Ayuda">
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
         <button class="btn-municipal-secondary" @click="goBack">
-          <font-awesome-icon icon="arrow-left" /> Salir
+          <font-awesome-icon icon="arrow-left" />
+          Salir
         </button>
       </div>
     </div>
@@ -130,7 +117,7 @@
 
       <!-- Panel de datos encontrados -->
       <div class="municipal-card" v-if="registroActual">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header header-with-badge">
           <h5>
             <font-awesome-icon icon="info-circle" />
             Datos del Registro
@@ -340,18 +327,12 @@
   </div>
 
   <DocumentationModal
-    :show="showDocumentation"
+    :show="showDocModal"
     :componentName="'GBaja'"
     :moduleName="'otras_obligaciones'"
-    @close="closeDocumentation"
-  />
-
-  <!-- Modal de Documentacion Tecnica -->
-  <TechnicalDocsModal
-    :show="showTechDocs"
-    :componentName="'GBaja'"
-    :moduleName="'otras_obligaciones'"
-    @close="showTechDocs = false"
+    :docType="docType"
+    :title="'Baja de Registros'"
+    @close="showDocModal = false"
   />
 
   <!-- Modal de pagos -->
@@ -363,7 +344,6 @@
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -375,11 +355,18 @@ import Swal from 'sweetalert2'
 
 const router = useRouter()
 const route = useRoute()
-const showDocumentation = ref(false)
-const showTechDocs = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const mostrarDocumentacion = () => showTechDocs.value = true
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const BASE_DB = 'otras_obligaciones'

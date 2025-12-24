@@ -8,6 +8,16 @@
         <h1>Leyes</h1>
         <p>Consulta de leyes y reglamentos</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -75,45 +85,25 @@
             </table>
           </div>
 
-          <!-- Pagination Controls -->
-          <div v-if="rows.length > 0" class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid #dee2e6;">
+          <!-- Paginación -->
+          <div v-if="rows.length > 0" class="pagination-controls">
             <div class="pagination-info">
-              <span class="text-muted">
-                Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ rows.length }} registros
-              </span>
+              Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ rows.length }} registros
             </div>
-            <div class="pagination-controls" style="display: flex; gap: 0.5rem;">
-              <button
-                class="btn-municipal-secondary"
-                :disabled="currentPage === 1"
-                @click="goToPage(1)"
-                style="padding: 0.5rem 0.75rem;">
-                <font-awesome-icon icon="angles-left" />
-              </button>
-              <button
-                class="btn-municipal-secondary"
-                :disabled="currentPage === 1"
-                @click="prevPage"
-                style="padding: 0.5rem 0.75rem;">
-                <font-awesome-icon icon="chevron-left" />
-              </button>
-              <span style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500;">
-                Página {{ currentPage }} de {{ totalPages }}
-              </span>
-              <button
-                class="btn-municipal-secondary"
-                :disabled="currentPage === totalPages"
-                @click="nextPage"
-                style="padding: 0.5rem 0.75rem;">
-                <font-awesome-icon icon="chevron-right" />
-              </button>
-              <button
-                class="btn-municipal-secondary"
-                :disabled="currentPage === totalPages"
-                @click="goToPage(totalPages)"
-                style="padding: 0.5rem 0.75rem;">
-                <font-awesome-icon icon="angles-right" />
-              </button>
+            <div class="pagination-size">
+              <label>Mostrar:</label>
+              <select v-model="pageSize" @change="currentPage = 1">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+            <div class="pagination-buttons">
+              <button @click="goToPage(1)" :disabled="currentPage === 1">«</button>
+              <button @click="prevPage" :disabled="currentPage === 1">‹</button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button @click="nextPage" :disabled="currentPage >= totalPages">›</button>
+              <button @click="goToPage(totalPages)" :disabled="currentPage >= totalPages">»</button>
             </div>
           </div>
         </div>
@@ -130,22 +120,42 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'leyesfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Leyes'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'leyesfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Leyes'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_LEYESFRM'
+const SCHEMA = 'publico'
 
 const filters = ref({ q: '' })
 const rows = ref([])
@@ -198,7 +208,7 @@ async function reload() {
   ]
 
   try {
-    const response = await execute(OP, BASE_DB, params)
+    const response = await execute(OP, BASE_DB, params, '', null, SCHEMA)
     searched.value = true
 
     // Manejar diferentes formatos de respuesta
@@ -227,76 +237,3 @@ async function reload() {
 }
 </script>
 
-<style scoped>
-.form-text {
-  color: #6c757d;
-  font-size: 0.85rem;
-  margin-top: 4px;
-  display: block;
-}
-
-.table-container {
-  overflow-x: auto;
-}
-
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.municipal-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 0;
-}
-
-.municipal-table-header {
-  background-color: #f8f9fa;
-  border-bottom: 2px solid #dee2e6;
-}
-
-.municipal-table-header th {
-  padding: 12px;
-  text-align: left;
-  font-weight: 600;
-  color: #495057;
-  border-bottom: 2px solid #dee2e6;
-}
-
-.municipal-table tbody tr {
-  border-bottom: 1px solid #dee2e6;
-}
-
-.municipal-table tbody tr:hover {
-  background-color: #f8f9fa;
-}
-
-.municipal-table tbody td {
-  padding: 12px;
-  color: #212529;
-}
-
-.alert-danger {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 8px;
-  padding: 16px;
-  color: #721c24;
-}
-
-.alert-danger svg {
-  margin-right: 8px;
-}
-
-.alert-info {
-  background-color: #d1ecf1;
-  border: 1px solid #bee5eb;
-  border-radius: 8px;
-  padding: 16px;
-  color: #0c5460;
-}
-
-.alert-info svg {
-  margin-right: 8px;
-}
-</style>

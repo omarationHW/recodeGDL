@@ -14,19 +14,11 @@
         <p>Agregar por placa/folio y generar archivo</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -54,29 +46,20 @@
       </div>
     </div>
     
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
-      @close="closeDocumentation"
-      title="Ayuda - GenIndividualPublicos"
-    >
-      <h3>Gen Individual Publicos</h3>
-      <p>Documentacion del modulo Estacionamiento Publico.</p>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
+      :show="showDocModal"
       :componentName="'GenIndividualPublicos'"
       :moduleName="'estacionamiento_publico'"
-      @close="closeTechDocs"
+      :docType="docType"
+      :title="'Generación Individual — Remesa'"
+      @close="showDocModal = false"
     />
 
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, nextTick } from 'vue'
 import { useApi } from '@/composables/useApi'
@@ -85,7 +68,7 @@ import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -206,13 +189,76 @@ async function generarArchivo() {
   }
 }
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 </script>
+
+<style scoped>
+/* Estilos actualizados según especificaciones municipales */
+.municipal-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid #dee2e6;
+  margin-bottom: 1rem;
+}
+
+.municipal-tab {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6c757d;
+  transition: all 0.3s ease;
+}
+
+.municipal-tab:hover {
+  color: #ea8215;
+  border-bottom-color: #ea8215;
+}
+
+.municipal-tab.active {
+  color: #ea8215;
+  border-bottom-color: #ea8215;
+}
+
+.row-hover {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.row-hover:hover {
+  background-color: rgba(234, 130, 21, 0.1);
+}
+
+.table-row-selected {
+  background-color: rgba(234, 130, 21, 0.15);
+  font-weight: 500;
+}
+
+.header-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  color: #dee2e6;
+  margin-bottom: 1rem;
+}
+</style>
 

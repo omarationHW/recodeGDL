@@ -6,6 +6,16 @@
         <h1>Multas DM</h1>
         <p>Consulta de multas con paginación</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
     <div class="module-view-content">
       <div class="municipal-card">
@@ -70,23 +80,43 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'MultasDM'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Multas DM'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'MultasDM'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Multas DM'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const BASE_DB = 'multas_reglamentos'
-const OP_LIST = 'RECAUDADORA_MULTAS_DM' // TODO confirmar
-
-const { loading, execute } = useApi()
+const OP_LIST = 'RECAUDADORA_MULTAS_DM'
+const SCHEMA = 'publico'
 
 const filters = ref({ cuenta: '', ejercicio: new Date().getFullYear() })
 const page = ref(1)
@@ -102,7 +132,7 @@ async function reload() {
     { nombre: 'p_limit', tipo: 'integer', valor: pageSize.value }
   ]
   try {
-    const data = await execute(OP_LIST, BASE_DB, params)
+    const data = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
     // El backend devuelve data.result en lugar de data.rows
     const result = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
     rows.value = result

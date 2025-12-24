@@ -1,10 +1,10 @@
 <template>
-  <div class="container-fluid py-4">
+  <div class="module-view">
     <div class="municipal-card">
       <div class="municipal-card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Catálogo de Recargos</h5>
         <button class="btn btn-municipal-primary btn-sm" @click="abrirModal(null)">
-          <i class="bi bi-plus-circle me-1"></i> Agregar
+          <font-awesome-icon icon="plus-circle" /> Agregar
         </button>
       </div>
       <div class="municipal-card-body">
@@ -38,10 +38,10 @@
                 <td>{{ recargo.usuario }}</td>
                 <td>
                   <button class="btn btn-sm btn-outline-primary me-1" @click="abrirModal(recargo)" title="Editar">
-                    <i class="bi bi-pencil">Editar</i>
+                    <font-awesome-icon icon="pencil" />
                   </button>
                   <button class="btn btn-sm btn-outline-danger" @click="confirmarEliminar(recargo)" title="Eliminar">
-                    <i class="bi bi-trash">Eliminar</i>
+                    <font-awesome-icon icon="trash" />
                   </button>
                 </td>
               </tr>
@@ -107,14 +107,51 @@
       <p class="mb-0">{{ confirmMessage }}</p>
     </Modal>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'Recargos'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - Recargos'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'Recargos'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - Recargos'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import Swal from 'sweetalert2'
+
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
+import { ref, computed, onMounted } from 'vue';
 import Modal from '@/components/common/Modal.vue';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { withLoading } = useGlobalLoading();
 const { showToast } = useToast();
@@ -143,15 +180,16 @@ const formatDate = (value) => {
 const cargarRecargos = async () => {
   await withLoading(async () => {
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_recargos_ingresos_list',
-          Base: 'padron_licencias',
-          Parametros: []
-        }
-      });
-      if (response.data.eResponse?.success) {
-        recargos.value = response.data.eResponse.data.result || [];
+      const response = await apiService.execute(
+          'sp_recargos_ingresos_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
+      if (response?.success) {
+        recargos.value = response.data.result || [];
       }
     } catch (error) {
       console.error('Error al cargar recargos:', error);
@@ -188,21 +226,22 @@ const guardar = async () => {
   saving.value = true;
   try {
     const operacion = isEditing.value ? 'sp_recargos_update_mercados' : 'sp_recargos_create';
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: operacion,
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },
-          { Nombre: 'p_periodo', Valor: parseInt(form.value.periodo) },
-          { Nombre: 'p_porcentaje', Valor: parseFloat(form.value.porcentaje) },
-          { Nombre: 'p_usuario_id', Valor: 1 }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+      operacion,
+      'mercados',
+      [
+        { nombre: 'p_axo', valor: parseInt(form.value.axo), tipo: 'integer' },
+        { nombre: 'p_periodo', valor: parseInt(form.value.periodo), tipo: 'integer' },
+        { nombre: 'p_porcentaje', valor: parseFloat(form.value.porcentaje), tipo: 'numeric' },
+        { nombre: 'p_usuario_id', valor: 1, tipo: 'integer' }
+      ],
+      '',
+      null,
+      'publico'
+    );
 
-    if (response.data.eResponse?.success) {
-      const result = response.data.eResponse.data.result?.[0];
+    if (response?.success) {
+      const result = response.data.result?.[0];
       if (result?.success !== false) {
         showModal.value = false;
         await cargarRecargos();
@@ -232,18 +271,19 @@ const ejecutarEliminar = async () => {
 
   await withLoading(async () => {
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_recargos_delete',
-          Base: 'padron_licencias',
-          Parametros: [
-            { Nombre: 'p_axo', Valor: recargoToDelete.value.axo },
-            { Nombre: 'p_periodo', Valor: recargoToDelete.value.periodo }
-          ]
-        }
-      });
+      const response = await apiService.execute(
+          'sp_recargos_delete',
+          'mercados',
+          [
+            { nombre: 'p_axo', valor: recargoToDelete.value.axo },
+            { nombre: 'p_periodo', valor: recargoToDelete.value.periodo }
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data.eResponse?.success) {
+      if (response?.success) {
         await cargarRecargos();
         showToast('Recargo eliminado correctamente', 'success');
       }

@@ -10,10 +10,16 @@
         <p>Inicio > Mercados > Emisión de Recibos</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
         </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        
       </div>
     </div>
 
@@ -36,7 +42,7 @@
               <select class="municipal-form-control" v-model="selectedRec" @change="onRecChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -134,7 +140,7 @@
                     <p>No se encontraron locales para el mercado seleccionado</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(row, index) in recibos" :key="index" class="row-hover">
+                <tr v-else v-for="(row, index) in paginatedRecibos" :key="index" class="row-hover">
                   <td><strong class="text-primary">{{ row.local }}{{ row.letra_local || '' }}</strong></td>
                   <td>{{ row.nombre }}</td>
                   <td>{{ row.descripcion_local }}</td>
@@ -157,6 +163,80 @@
               </tfoot>
             </table>
           </div>
+
+          <!-- Controles de paginación -->
+          <div v-if="recibos.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, recibos.length) }}
+                de {{ recibos.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -170,12 +250,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'EmisionLocales'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - EmisionLocales'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'EmisionLocales'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - EmisionLocales'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -183,6 +272,7 @@ const { showLoading, hideLoading } = useGlobalLoading()
 const showFilters = ref(true)
 const recaudadoras = ref([])
 const mercados = ref([])
+const categorias = ref([])
 const selectedRec = ref('')
 const selectedMercado = ref('')
 const axo = ref(new Date().getFullYear())
@@ -193,6 +283,10 @@ const recibos = ref([])
 const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 // Toast
 const toast = ref({
@@ -206,16 +300,43 @@ const totalSubtotal = computed(() => {
   return recibos.value.reduce((sum, row) => sum + Number(row.subtotal || 0), 0)
 })
 
+const paginatedRecibos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return recibos.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(recibos.value.length / itemsPerPage.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
 // Métodos
 const toggleFilters = () => {
   showFilters.value = !showFilters.value
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione una oficina, mercado, año y periodo para generar la emisión de recibos')
+  showToast('Ayuda: Seleccione una oficina, mercado, año y periodo para generar la emisión de recibos', 'info')
 }
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = {
     show: true,
     type,
@@ -245,27 +366,28 @@ const fetchRecaudadoras = async () => {
   loading.value = true
   error.value = ''
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success === true) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al cargar recaudadoras'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar recaudadoras'
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -283,32 +405,33 @@ const onRecChange = async () => {
     const nivelUsuario = 1
     const oficinaParam = selectedRec.value || null
 
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_catalogo_mercados',
-        Base: 'padron_licencias',
-        Parametros: [
+    const res = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
           { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
           { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
-        ]
-      }
-    })
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      mercados.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      mercados.value = res.data.result || []
       if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+        showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
       } else {
-        showToast('info', 'No se encontraron mercados para esta oficina')
+        showToast('No se encontraron mercados para esta oficina', 'info')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al cargar mercados'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al cargar mercados'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar mercados'
     console.error('Error al cargar mercados:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -317,13 +440,13 @@ const onRecChange = async () => {
 const generarEmision = async () => {
   if (!selectedRec.value || !selectedMercado.value || !axo.value || !periodo.value) {
     error.value = 'Debe seleccionar oficina, mercado, año y periodo'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (periodo.value < 1 || periodo.value > 12) {
     error.value = 'El periodo debe estar entre 1 y 12'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -333,35 +456,36 @@ const generarEmision = async () => {
   searchPerformed.value = true
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_emision_locales_generar',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: selectedRec.value },
-          { Nombre: 'p_mercado', Valor: selectedMercado.value },
-          { Nombre: 'p_axo', Valor: axo.value },
-          { Nombre: 'p_periodo', Valor: periodo.value }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+          'sp_emision_locales_generar',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: selectedRec.value },
+          { nombre: 'p_mercado', valor: selectedMercado.value },
+          { nombre: 'p_axo', valor: axo.value },
+          { nombre: 'p_periodo', valor: periodo.value }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      recibos.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      recibos.value = res.data.result || []
       if (recibos.value.length > 0) {
-        showToast('success', `Se generaron ${recibos.value.length} recibos`)
+        showToast(`Se generaron ${recibos.value.length} recibos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron locales para el mercado seleccionado')
+        showToast('No se encontraron locales para el mercado seleccionado', 'info')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al generar emisión'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al generar emisión'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al generar emisión'
     console.error('Error al generar emisión:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -376,7 +500,7 @@ const limpiarFiltros = () => {
   recibos.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 // Utilidades
@@ -391,46 +515,41 @@ const formatNumber = (number) => {
   return new Intl.NumberFormat('es-MX').format(number)
 }
 
+// Paginación - Métodos
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
+}
+
+// Fetch Categorías
+const fetchCategorias = async () => {
+  try {
+    const res = await apiService.execute(
+          'sp_categoria_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+
+    if (res.success) {
+      categorias.value = res.data.result || []
+    }
+  } catch (err) {
+    console.error('Error al cargar categorías:', err)
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   fetchRecaudadoras()
+  fetchCategorias()
 })
 </script>
-
-<style scoped>
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.text-end {
-  text-align: right;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-}
-
-.required {
-  color: #dc3545;
-}
-
-.municipal-table td.text-end,
-.municipal-table th.text-end {
-  text-align: right;
-}
-
-.municipal-table td.text-center,
-.municipal-table th.text-center {
-  text-align: center;
-}
-</style>

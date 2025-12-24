@@ -8,7 +8,18 @@
       <div class="module-view-info">
         <h1>Padrón de Energía Eléctrica</h1>
         <p>Mercados - Consulta de locales con registro de consumo eléctrico</p>
-      </div>
+      
+      <div class="header-actions">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        </div>
+</div>
     </div>
 
     <div class="module-view-content">
@@ -34,10 +45,10 @@
                 <option value="">Seleccione...</option>
                 <option
                   v-for="rec in recaudadoras"
-                  :key="rec.id_rec"
-                  :value="rec.id_rec"
+                  :key="rec.id_recaudadora"
+                  :value="rec.id_recaudadora"
                 >
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -136,7 +147,7 @@
                   <p>No se encontraron registros de energía para el mercado seleccionado</p>
                 </td>
               </tr>
-              <tr v-else v-for="(row, idx) in padron" :key="`padron-${idx}`" class="row-hover">
+              <tr v-else v-for="(row, idx) in paginatedData" :key="`padron-${idx}`" class="row-hover">
                 <td>{{ row.oficina }}</td>
                 <td>{{ row.num_mercado }}</td>
                 <td>{{ row.categoria }}</td>
@@ -159,20 +170,103 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Controles de paginación -->
+        <div v-if="padron.length > 0" class="pagination-controls">
+          <div class="pagination-info">
+            <span class="text-muted">
+              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+              a {{ Math.min(currentPage * itemsPerPage, padron.length) }}
+              de {{ padron.length }} registros
+            </span>
+          </div>
+
+          <div class="pagination-size">
+            <label class="municipal-form-label me-2">Registros por página:</label>
+            <select
+              class="municipal-form-control form-control-sm"
+              :value="itemsPerPage"
+              @change="changePageSize($event.target.value)"
+              style="width: auto; display: inline-block;"
+            >
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+
+          <div class="pagination-buttons">
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(1)"
+              :disabled="currentPage === 1"
+              title="Primera página"
+            >
+              <font-awesome-icon icon="angle-double-left" />
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              title="Página anterior"
+            >
+              <font-awesome-icon icon="angle-left" />
+            </button>
+
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="btn-sm"
+              :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              title="Página siguiente"
+            >
+              <font-awesome-icon icon="angle-right" />
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(totalPages)"
+              :disabled="currentPage === totalPages"
+              title="Última página"
+            >
+              <font-awesome-icon icon="angle-double-right" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'PadronEnergia'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - PadronEnergia'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'PadronEnergia'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - PadronEnergia'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/composables/useToast'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const toast = useToast()
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
+
+const { showToast } = useToast()
 const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado reactivo
@@ -181,6 +275,10 @@ const mercados = ref([])
 const padron = ref([])
 const loading = ref(false)
 const searchExecuted = ref(false)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 const form = ref({
   recaudadora_id: '',
@@ -193,6 +291,46 @@ const mercadoSeleccionadoNombre = computed(() => {
   const mercado = mercados.value.find(m => m.num_mercado_nvo == form.value.mercado_id)
   return mercado ? `${mercado.num_mercado_nvo} - ${mercado.descripcion}` : ''
 })
+
+// Computed para paginación
+const totalPages = computed(() => {
+  return Math.ceil(padron.value.length / itemsPerPage.value)
+})
+
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return padron.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
+}
 
 // Inicializar
 onMounted(async () => {
@@ -208,30 +346,31 @@ onMounted(async () => {
 const fetchRecaudadoras = async () => {
   loading.value = true
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
+    const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
     // La API devuelve los datos en eResponse.data.result
-    const apiResponse = response.data.eResponse || response.data
+    const apiResponse = response || response.data
     const data = apiResponse.data?.result || apiResponse.data || []
 
     if (Array.isArray(data) && data.length > 0) {
       recaudadoras.value = data
     } else if (apiResponse.success === false) {
-      toast.error(apiResponse.message || 'Error al cargar recaudadoras')
+      showToast(apiResponse.message || 'Error al cargar recaudadoras', 'error')
       recaudadoras.value = []
     } else {
       recaudadoras.value = []
-      toast.warning('No se encontraron recaudadoras')
+      showToast('No se encontraron recaudadoras', 'warning')
     }
   } catch (error) {
     console.error('Error fetchRecaudadoras:', error)
-    toast.error('Error al cargar recaudadoras: ' + error.message)
+    showToast('Error al cargar recaudadoras: ' + error.message, 'error')
   } finally {
     loading.value = false
   }
@@ -248,32 +387,33 @@ const onRecaudadoraChange = async () => {
 
   loading.value = true
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_mercados_by_recaudadora',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_recaudadora_id', Valor: parseInt(form.value.recaudadora_id) }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_get_mercados_by_recaudadora',
+          'mercados',
+          [
+          { nombre: 'p_recaudadora_id', valor: parseInt(form.value.recaudadora_id) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
     // La API devuelve los datos en eResponse.data.result
-    const apiResponse = response.data.eResponse || response.data
+    const apiResponse = response || response.data
     const data = apiResponse.data?.result || apiResponse.data || []
 
     if (Array.isArray(data) && data.length > 0) {
       mercados.value = data
     } else if (apiResponse.success === false) {
-      toast.error(apiResponse.message || 'Error al cargar mercados')
+      showToast(apiResponse.message || 'Error al cargar mercados', 'error')
       mercados.value = []
     } else {
       mercados.value = []
-      toast.warning('No hay mercados para esta recaudadora')
+      showToast('No hay mercados para esta recaudadora', 'warning')
     }
   } catch (error) {
     console.error('Error onRecaudadoraChange:', error)
-    toast.error('Error al cargar mercados: ' + error.message)
+    showToast('Error al cargar mercados: ' + error.message, 'error')
   } finally {
     loading.value = false
   }
@@ -282,7 +422,7 @@ const onRecaudadoraChange = async () => {
 // Buscar padrón de energía
 const buscarPadron = async () => {
   if (!form.value.recaudadora_id || !form.value.mercado_id) {
-    toast.warning('Debe seleccionar recaudadora y mercado')
+    showToast('Debe seleccionar recaudadora y mercado', 'warning')
     return
   }
 
@@ -291,34 +431,36 @@ const buscarPadron = async () => {
   searchExecuted.value = true
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'rpt_padron_energia',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(form.value.recaudadora_id) },
-          { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado_id) }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'rpt_padron_energia',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(form.value.recaudadora_id) },
+          { nombre: 'p_mercado', valor: parseInt(form.value.mercado_id) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
     // La API devuelve los datos en eResponse.data.result
-    const apiResponse = response.data.eResponse || response.data
+    const apiResponse = response || response.data
     const data = apiResponse.data?.result || apiResponse.data || []
 
     if (Array.isArray(data) && data.length > 0) {
       padron.value = data
-      toast.success(`Se encontraron ${padron.value.length} locales con energía`)
+      currentPage.value = 1 // Resetear a la primera página
+      showToast(`Se encontraron ${padron.value.length} locales con energía`, 'success')
     } else if (apiResponse.success === false) {
-      toast.error(apiResponse.message || 'Error al buscar padrón de energía')
+      showToast(apiResponse.message || 'Error al buscar padrón de energía', 'error')
       padron.value = []
     } else {
       padron.value = []
-      toast.info('No se encontraron registros de energía para este mercado')
+      showToast('No se encontraron registros de energía para este mercado', 'info')
     }
   } catch (error) {
     console.error('Error buscarPadron:', error)
-    toast.error('Error al buscar padrón: ' + error.message)
+    showToast('Error al buscar padrón: ' + error.message, 'error')
   } finally {
     loading.value = false
   }
@@ -327,7 +469,7 @@ const buscarPadron = async () => {
 // Exportar a Excel
 const exportarExcel = () => {
   if (padron.value.length === 0) {
-    toast.warning('No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -372,12 +514,10 @@ const exportarExcel = () => {
     link.click()
     document.body.removeChild(link)
 
-    toast.success('Archivo exportado correctamente')
+    showToast('Archivo exportado correctamente', 'success')
   } catch (error) {
     console.error('Error exportarExcel:', error)
-    toast.error('Error al exportar: ' + error.message)
+    showToast('Error al exportar: ' + error.message, 'error')
   }
 }
 </script>
-
-<style src="@/styles/municipal-theme.css"></style>

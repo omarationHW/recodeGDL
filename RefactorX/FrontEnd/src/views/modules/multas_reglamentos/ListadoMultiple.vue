@@ -6,6 +6,16 @@
         <h1>Listado Múltiple</h1>
         <p>Consulta general con filtros</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
     <div class="module-view-content">
       <div class="municipal-card">
@@ -85,26 +95,46 @@
           </div>
         </div>
       </div>
-    </div>
+    </div>    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'ListadoMultiple'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Listado Múltiple'"
+      @close="showAyuda = false"
+    />
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'ListadoMultiple'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Listado Múltiple'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_LISTADO_MULTIPLE'
 const OP_COUNT = 'RECAUDADORA_LISTADO_MULTIPLE_COUNT'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({ q: '' })
 const rows = ref([])
@@ -131,7 +161,7 @@ async function loadData() {
   ]
 
   try {
-    const response = await execute(OP_LIST, BASE_DB, params)
+    const response = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
     // Manejar diferentes formatos de respuesta
     let data = null
     if (response?.result) {
@@ -162,7 +192,7 @@ async function getCount() {
   ]
 
   try {
-    const response = await execute(OP_COUNT, BASE_DB, params)
+    const response = await execute(OP_COUNT, BASE_DB, params, '', null, SCHEMA)
     let data = null
     if (response?.result) {
       data = response.result
@@ -190,52 +220,4 @@ function goToPage(page) {
 reload()
 </script>
 
-<style scoped>
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #dee2e6;
-}
-
-.pagination-info {
-  color: #6c757d;
-  font-size: 0.9rem;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.pagination-text {
-  margin: 0 12px;
-  color: #495057;
-  font-weight: 500;
-}
-
-.btn-pagination {
-  padding: 6px 12px;
-  border: 1px solid #dee2e6;
-  background-color: #fff;
-  color: #495057;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background-color: #0d6efd;
-  color: #fff;
-  border-color: #0d6efd;
-}
-
-.btn-pagination:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-</style>
 

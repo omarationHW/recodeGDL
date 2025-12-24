@@ -13,8 +13,13 @@
         <button class="btn-municipal-secondary" @click="limpiarBusqueda" :disabled="loading">
           <font-awesome-icon icon="eraser" /> Limpiar
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -139,51 +144,51 @@
         </div>
         <div class="municipal-card-body">
           <!-- Tab Navigation -->
-          <div class="tab-navigation">
+          <div class="municipal-tabs">
             <button
-              class="tab-button"
+              class="municipal-tab"
               :class="{ active: activeTab === 'modificacion' }"
               @click="activeTab = 'modificacion'"
             >
               <font-awesome-icon icon="edit" /> Modificación
             </button>
             <button
-              class="tab-button"
+              class="municipal-tab"
               :class="{ active: activeTab === 'baja' }"
               @click="activeTab = 'baja'"
             >
               <font-awesome-icon icon="times-circle" /> Baja
             </button>
             <button
-              class="tab-button"
+              class="municipal-tab"
               :class="{ active: activeTab === 'cajones' }"
               @click="activeTab = 'cajones'"
             >
               <font-awesome-icon icon="car" /> Cajones
             </button>
             <button
-              class="tab-button"
+              class="municipal-tab"
               :class="{ active: activeTab === 'categoria' }"
               @click="activeTab = 'categoria'"
             >
               <font-awesome-icon icon="tags" /> Categoría
             </button>
             <button
-              class="tab-button"
+              class="municipal-tab"
               :class="{ active: activeTab === 'adeudos' }"
               @click="activeTab = 'adeudos'; loadAdeudos()"
             >
               <font-awesome-icon icon="dollar-sign" /> Adeudos
             </button>
             <button
-              class="tab-button"
+              class="municipal-tab"
               :class="{ active: activeTab === 'recibos' }"
               @click="activeTab = 'recibos'; loadRecibos()"
             >
               <font-awesome-icon icon="receipt" /> Recibos
             </button>
             <button
-              class="tab-button"
+              class="municipal-tab"
               :class="{ active: activeTab === 'multas' }"
               @click="activeTab = 'multas'; loadMultas()"
             >
@@ -372,7 +377,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(adeudo, idx) in paginatedAdeudos" :key="idx" class="row-hover" @dblclick="aplicarPago(adeudo)">
+                    <tr v-for="(adeudo, idx) in paginatedAdeudos" :key="idx" class="municipal-table-row row-hover" @dblclick="aplicarPago(adeudo)">
                       <td>{{ adeudo.concepto }}</td>
                       <td>{{ adeudo.axo }}</td>
                       <td>{{ adeudo.mes }}</td>
@@ -392,7 +397,7 @@
                     </tr>
                     <tr v-if="adeudos.length === 0">
                       <td colspan="7" class="text-center text-muted">
-                        <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                        <font-awesome-icon icon="inbox" size="2x" class="empty-state-icon" />
                         <p>Sin adeudos registrados</p>
                       </td>
                     </tr>
@@ -499,7 +504,7 @@
                       :key="idx"
                       @click="selectRecibo(recibo)"
                       :class="{ 'table-row-selected': selectedRecibo === recibo }"
-                      class="row-hover"
+                      class="municipal-table-row row-hover"
                     >
                       <td>{{ formatDate(recibo.fecha_movto) }}</td>
                       <td>{{ recibo.pag_reca }}</td>
@@ -510,7 +515,7 @@
                     </tr>
                     <tr v-if="recibos.length === 0">
                       <td colspan="6" class="text-center text-muted">
-                        <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                        <font-awesome-icon icon="inbox" size="2x" class="empty-state-icon" />
                         <p>Sin recibos registrados</p>
                       </td>
                     </tr>
@@ -567,7 +572,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(multa, idx) in paginatedMultas" :key="idx" class="row-hover">
+                    <tr v-for="(multa, idx) in paginatedMultas" :key="idx" class="municipal-table-row row-hover">
                       <td><strong class="text-primary">{{ multa.folio }}</strong></td>
                       <td>{{ formatDate(multa.fecha) }}</td>
                       <td>{{ multa.concepto }}</td>
@@ -581,7 +586,7 @@
                     </tr>
                     <tr v-if="multas.length === 0">
                       <td colspan="5" class="text-center text-muted">
-                        <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                        <font-awesome-icon icon="inbox" size="2x" class="empty-state-icon" />
                         <p>Sin multas registradas</p>
                       </td>
                     </tr>
@@ -624,35 +629,15 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - Actualización">
-      <div class="help-content">
-        <h4><font-awesome-icon icon="info-circle" /> Actualización de Estacionamientos Públicos</h4>
-        <p>Este módulo permite realizar diversas operaciones sobre estacionamientos públicos.</p>
-
-        <h5><font-awesome-icon icon="list" /> Pestañas Disponibles:</h5>
-        <ul class="help-list">
-          <li><strong>Modificación:</strong> Cambiar datos generales (calle, teléfono, fechas)</li>
-          <li><strong>Baja:</strong> Dar de baja el estacionamiento (cancelar)</li>
-          <li><strong>Cajones:</strong> Incrementar o decrementar el número de cajones</li>
-          <li><strong>Categoría:</strong> Cambiar la categoría del estacionamiento</li>
-          <li><strong>Adeudos:</strong> Ver adeudos y aplicar pagos o borrar adeudos</li>
-          <li><strong>Recibos:</strong> Ver historial de pagos realizados</li>
-          <li><strong>Multas:</strong> Ver multas relacionadas</li>
-        </ul>
-
-        <h5><font-awesome-icon icon="tasks" /> Instrucciones:</h5>
-        <ol class="help-list">
-          <li>Busque el estacionamiento por su número</li>
-          <li>Seleccione la pestaña de la operación que desea realizar</li>
-          <li>Complete los campos necesarios</li>
-          <li>Haga clic en el botón correspondiente para ejecutar la acción</li>
-        </ol>
-      </div>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'ActualizacionPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'ActualizacionPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Actualización de Estacionamientos'"
+      @close="showDocModal = false"
+    />
 
     <!-- Modal Detalle de Recibo -->
     <Teleport to="body">
@@ -704,7 +689,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(det, idx) in detalleRecibo" :key="idx">
+                  <tr v-for="(det, idx) in detalleRecibo" :key="idx" class="municipal-table-row">
                     <td>{{ det.tipo }}</td>
                     <td>{{ det.concepto }}</td>
                     <td>{{ det.axo }}</td>
@@ -716,7 +701,7 @@
                   </tr>
                   <tr v-if="detalleRecibo.length === 0">
                     <td colspan="8" class="text-center text-muted">
-                      <font-awesome-icon icon="inbox" class="empty-icon" />
+                      <font-awesome-icon icon="inbox" class="empty-state-icon" />
                       <p>Sin detalle disponible</p>
                     </td>
                   </tr>
@@ -756,14 +741,13 @@
 <script setup>
 import { reactive, ref, computed, nextTick } from 'vue'
 import Swal from 'sweetalert2'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 
 const BASE_DB = 'estacionamiento_publico'
-const BASE_SCHEMA = 'public'
+const BASE_SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
 const {
@@ -1360,10 +1344,16 @@ async function borrarAdeudo(adeudo) {
 }
 
 // Documentación y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
 
-const showTechDocs = ref(false)
-const closeTechDocs = () => showTechDocs.value = false
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>

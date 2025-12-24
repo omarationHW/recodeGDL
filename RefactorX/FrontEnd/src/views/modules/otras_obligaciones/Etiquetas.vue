@@ -19,19 +19,11 @@
           <font-awesome-icon icon="sync" :spin="loading || loadingEtiquetas" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-secondary"
-          @click="openTechDocs"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -330,7 +322,7 @@
 
         <div class="municipal-card-body" v-else-if="!loadingEtiquetas && !etiquetas">
           <div class="text-center text-muted">
-            <font-awesome-icon icon="info-circle" size="2x" class="empty-icon" />
+            <font-awesome-icon icon="info-circle" size="2x" class="empty-state-icon" />
             <p>No se encontraron etiquetas para esta tabla.</p>
             <p class="small">Se crearán nuevas etiquetas al guardar.</p>
           </div>
@@ -344,23 +336,16 @@
 
   <!-- Modal de Ayuda -->
   <DocumentationModal
-    :show="showDocumentation"
+    :show="showDocModal"
     :componentName="'Etiquetas'"
     :moduleName="'otras_obligaciones'"
-    @close="closeDocumentation"
-  />
-
-  <!-- Modal de Documentacion Tecnica -->
-  <TechnicalDocsModal
-    :show="showTechDocs"
-    :componentName="'Etiquetas'"
-    :moduleName="'otras_obligaciones'"
-    @close="closeTechDocs"
+    :docType="docType"
+    :title="'Catálogo de Etiquetas'"
+    @close="showDocModal = false"
   />
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -373,12 +358,18 @@ import Swal from 'sweetalert2'
 const router = useRouter()
 
 // Composables
-const showDocumentation = ref(false)
-const showTechDocs = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const openTechDocs = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const BASE_DB = 'otras_obligaciones'

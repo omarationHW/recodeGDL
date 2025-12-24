@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Liga de Anuncios</h1>
-        <p>Padrón de Licencias - Ligar/Desligar Anuncios a Licencias o Empresas</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Ligar/Desligar Anuncios a Licencias o Empresas</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -43,7 +46,7 @@
             <button
               class="btn-municipal-primary"
               @click="buscarAnuncio"
-              :disabled="loading || !searchForm.anuncioId"
+              :disabled="!searchForm.anuncioId"
             >
               <font-awesome-icon icon="search" />
               Buscar Anuncio
@@ -139,7 +142,7 @@
             <button
               class="btn-municipal-primary"
               @click="buscarTarget"
-              :disabled="loading || !searchForm.targetId"
+              :disabled="!searchForm.targetId"
             >
               <font-awesome-icon icon="search" />
               Buscar
@@ -206,7 +209,6 @@
           <button
             class="btn-municipal-primary"
             @click="ligarAnuncio"
-            :disabled="loading"
           >
             <font-awesome-icon icon="link" />
             Ligar Anuncio
@@ -214,7 +216,6 @@
           <button
             class="btn-municipal-secondary"
             @click="resetForm"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Cancelar
@@ -223,36 +224,31 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando...</p>
-      </div>
-    </div>
-
     <!-- Toast Notification -->
-    </div>
-    <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'ligaAnunciofrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Liga de Anuncios'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -261,23 +257,33 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const searchForm = ref({
@@ -288,6 +294,7 @@ const searchForm = ref({
 const ligaType = ref('') // 'licencia' o 'empresa'
 const anuncioEncontrado = ref(null)
 const targetEncontrado = ref(null)
+const hasSearched = ref(false)
 
 // Métodos
 const buscarAnuncio = async () => {
@@ -301,7 +308,8 @@ const buscarAnuncio = async () => {
     return
   }
 
-  setLoading(true, 'Buscando anuncio...')
+  showLoading('Buscando anuncio...', 'Consultando base de datos')
+  hasSearched.value = true
 
   try {
     const response = await execute(
@@ -338,7 +346,7 @@ const buscarAnuncio = async () => {
     handleApiError(error)
     anuncioEncontrado.value = null
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -353,7 +361,7 @@ const buscarTarget = async () => {
     return
   }
 
-  setLoading(true, `Buscando ${ligaType.value}...`)
+  showLoading(`Buscando ${ligaType.value}...`, 'Consultando base de datos')
 
   try {
     const spName = ligaType.value === 'licencia' ? 'sp_buscar_licencia' : 'sp_buscar_empresa'
@@ -393,7 +401,7 @@ const buscarTarget = async () => {
     handleApiError(error)
     targetEncontrado.value = null
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -423,7 +431,7 @@ const ligarAnuncio = async () => {
     return
   }
 
-  setLoading(true, 'Ligando anuncio...')
+  showLoading('Ligando anuncio...', 'Procesando solicitud')
 
   try {
     const response = await execute(
@@ -461,7 +469,7 @@ const ligarAnuncio = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -473,6 +481,7 @@ const resetForm = () => {
   ligaType.value = ''
   anuncioEncontrado.value = null
   targetEncontrado.value = null
+  hasSearched.value = false
 }
 
 // Lifecycle

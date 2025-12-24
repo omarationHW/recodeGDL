@@ -19,10 +19,11 @@
           <font-awesome-icon icon="eraser" />
           Limpiar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -77,7 +78,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchActividades"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -85,7 +85,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -105,14 +104,30 @@
           <span class="badge-purple" v-if="actividades.length > 0">
             {{ actividades.length }} registros
           </span>
-          <div v-if="loading" class="spinner-border spinner-sm" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="actividades.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="search" size="3x" />
+          </div>
+          <h4>Búsqueda de Actividades</h4>
+          <p>Utilice los filtros para buscar actividades por código SCIAN, descripción o ID de giro</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="actividades.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron actividades con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla de resultados -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -127,7 +142,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="actividad in actividades" :key="actividad.id_giro" class="clickable-row" @click="viewActividad(actividad)">
+              <tr
+                v-for="actividad in paginatedActividades"
+                :key="actividad.id_giro"
+                @click="selectedRow = actividad"
+                :class="{ 'table-row-selected': selectedRow === actividad }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary">{{ actividad.id_giro }}</strong></td>
                 <td>
                   <span class="badge-secondary">
@@ -163,14 +184,59 @@
                   </div>
                 </td>
               </tr>
-              <tr v-if="actividades.length === 0 && !loading">
-                <td colspan="8" class="text-center text-muted empty-state">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron actividades. Use los filtros para buscar.</p>
-                </td>
-              </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Paginación -->
+        <div v-if="actividades.length > 0" class="pagination-controls">
+          <div class="pagination-info">
+            <span class="text-muted">
+              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+              a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+              de {{ formatNumber(totalRecords) }} registros
+            </span>
+          </div>
+
+          <div class="pagination-size">
+            <label class="municipal-form-label me-2">Registros por página:</label>
+            <select
+              class="municipal-form-control form-control-sm"
+              :value="itemsPerPage"
+              @change="changePageSize($event.target.value)"
+              style="width: auto; display: inline-block;"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+
+          <div class="pagination-buttons">
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+              <font-awesome-icon icon="angle-double-left" />
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+              <font-awesome-icon icon="angle-left" />
+            </button>
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="btn-sm"
+              :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+              <font-awesome-icon icon="angle-right" />
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+              <font-awesome-icon icon="angle-double-right" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -219,14 +285,6 @@
             </button>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading && actividades.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Buscando actividades...</p>
       </div>
     </div>
 
@@ -309,38 +367,48 @@
         <font-awesome-icon icon="times" />
       </button>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'BusquedaActividadFrm'"
+      :moduleName="'padron_licencias'"
+      :docType="docType"
+      :title="'Búsqueda de Actividades'"
+      @close="showDocModal = false"
+    />
     </div>
     <!-- /module-view-content -->
   </div>
   <!-- /module-view -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'BusquedaActividadFrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
-  </template>
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -348,18 +416,48 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const actividades = ref([])
 const actividadSeleccionada = ref(null)
 const selectedActividad = ref(null)
 const showViewModal = ref(false)
 const showFilters = ref(true)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Filtros
 const filters = ref({
   scian: '',
   descripcion: '',
   id_giro: ''
+})
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const totalRecords = computed(() => actividades.value.length)
+const totalPages = computed(() => Math.ceil(totalRecords.value / itemsPerPage.value))
+
+const paginatedActividades = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return actividades.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
 })
 
 // Métodos
@@ -379,7 +477,9 @@ const searchActividades = async () => {
     return
   }
 
-  setLoading(true, 'Buscando actividades...')
+  showLoading('Buscando actividades...', 'Procesando criterios de búsqueda')
+  hasSearched.value = true
+  selectedRow.value = null
 
   // Medir tiempo de ejecución
   const startTime = performance.now()
@@ -428,7 +528,7 @@ const searchActividades = async () => {
         text: 'Para buscar por descripción, debe proporcionar también un código SCIAN',
         confirmButtonColor: '#ea8215'
       })
-      setLoading(false)
+      hideLoading()
       return
     }
 
@@ -457,7 +557,7 @@ const searchActividades = async () => {
     handleApiError(error)
     actividades.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -469,7 +569,26 @@ const clearFilters = () => {
   }
   actividades.value = []
   actividadSeleccionada.value = null
+  hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
   showToast('info', 'Filtros limpiados')
+}
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+  selectedRow.value = null
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
 }
 
 const viewActividad = (actividad) => {
@@ -528,5 +647,3 @@ onBeforeUnmount(() => {
   showViewModal.value = false
 })
 </script>
-
-<!-- NO inline styles - All styles in municipal-theme.css -->

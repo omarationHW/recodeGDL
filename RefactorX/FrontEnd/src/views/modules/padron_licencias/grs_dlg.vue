@@ -7,20 +7,22 @@
       </div>
       <div class="module-view-info">
         <h1>Selección de Giros</h1>
-        <p>Padrón de Licencias - Diálogo de Selección de Giros</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Diálogo de Selección de Giros</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button
           class="btn-municipal-primary"
           @click="openSelectionDialog"
-          :disabled="loading"
         >
           <font-awesome-icon icon="plus" />
           Abrir Selector
@@ -32,16 +34,23 @@
 
     <!-- Giros seleccionados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="check-square" />
           Giros Seleccionados
-          <span class="badge-purple" v-if="selectedGiros.length > 0">{{ selectedGiros.length }} giros</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="selectedGiros.length > 0">
+            {{ selectedGiros.length }} giros
+          </span>
+        </div>
       </div>
       <div class="municipal-card-body">
         <div v-if="selectedGiros.length === 0" class="empty-state">
-          <font-awesome-icon icon="list-ul" size="2x" class="empty-icon" />
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="list-ul" size="3x" />
+          </div>
+          <h4>Sin Giros Seleccionados</h4>
           <p>No hay giros seleccionados. Haga clic en "Abrir Selector" para agregar giros.</p>
         </div>
 
@@ -58,7 +67,7 @@
             </div>
             <button
               class="btn-municipal-danger btn-sm"
-              @click="removeGiro(giro)"
+              @click.stop="removeGiro(giro)"
               title="Eliminar"
             >
               <font-awesome-icon icon="times" />
@@ -107,7 +116,7 @@
               <button
                 v-if="!isGiroSelected(giro.id)"
                 class="btn-municipal-primary btn-sm"
-                @click="addGiroFromSearch(giro)"
+                @click.stop="addGiroFromSearch(giro)"
               >
                 <font-awesome-icon icon="plus" />
                 Agregar
@@ -123,14 +132,6 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando giros...</p>
       </div>
     </div>
 
@@ -238,28 +239,31 @@
       </div>
     </Modal>
 
-    <!-- Toast Notification -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'grs_dlg'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Selección de Giros'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -268,24 +272,34 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const selectedGiros = ref([])
@@ -296,11 +310,15 @@ const searchResults = ref([])
 const modalSearchQuery = ref('')
 const modalSearchResults = ref([])
 const showSelectionDialog = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 let searchTimeout = null
 
 // Métodos
 const loadGiros = async () => {
-  setLoading(true, 'Cargando catálogo de giros...')
+  showLoading('Cargando catálogo de giros...')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const startTime = performance.now()
@@ -340,7 +358,7 @@ const loadGiros = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 

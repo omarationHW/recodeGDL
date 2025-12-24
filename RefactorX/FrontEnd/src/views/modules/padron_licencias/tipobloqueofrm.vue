@@ -18,7 +18,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -105,7 +109,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="tipo in tiposBloqueo" :key="tipo.id" class="clickable-row">
+              <tr
+                v-for="tipo in tiposBloqueo"
+                :key="tipo.id"
+                @click="selectedRow = tipo"
+                :class="{ 'table-row-selected': selectedRow === tipo }"
+                class="row-hover"
+              >
                 <td>
                   <span class="badge-secondary">
                     <font-awesome-icon icon="tag" />
@@ -122,21 +132,21 @@
                   <div class="btn-group-table">
                     <button
                       class="btn-table btn-table-info"
-                      @click="verTipo(tipo)"
+                      @click.stop="verTipo(tipo)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
                     </button>
                     <button
                       class="btn-table btn-table-primary"
-                      @click="editarTipo(tipo)"
+                      @click.stop="editarTipo(tipo)"
                       title="Editar"
                     >
                       <font-awesome-icon icon="edit" />
                     </button>
                     <button
                       class="btn-table btn-table-danger"
-                      @click="eliminarTipo(tipo)"
+                      @click.stop="eliminarTipo(tipo)"
                       title="Eliminar"
                     >
                       <font-awesome-icon icon="trash" />
@@ -144,14 +154,26 @@
                   </div>
                 </td>
               </tr>
-              <tr v-if="tiposBloqueo.length === 0 && !loading">
-                <td colspan="4" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron tipos de bloqueo. Presione "Actualizar" para cargar los datos.</p>
-                </td>
-              </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="tiposBloqueo.length === 0 && !hasSearched && !loading" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="ban" size="3x" />
+          </div>
+          <h4>Catálogo de Tipos de Bloqueo</h4>
+          <p>Presione el botón "Actualizar" para cargar el catálogo de tipos de bloqueo</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="tiposBloqueo.length === 0 && hasSearched && !loading" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron tipos de bloqueo con los criterios especificados</p>
         </div>
 
         <!-- Paginación -->
@@ -238,6 +260,16 @@
         <font-awesome-icon icon="times" />
       </button>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'tipobloqueofrm'"
+      :moduleName="'padron_licencias'"
+      :docType="docType"
+      :title="'Tipos de Bloqueo'"
+      @close="showDocModal = false"
+    />
   </div>
   <!-- /module-view-content -->
 
@@ -385,14 +417,6 @@
       </button>
     </template>
   </Modal>
-
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'tipobloqueofrm'"
-    :moduleName="'padron_licencias'"
-    @close="closeDocumentation"
-  />
 </template>
 
 <script setup>
@@ -415,16 +439,27 @@ const {
 } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
 
-// Documentation
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Estado
 const loading = ref(false)
 const tiposBloqueo = ref([])
 const todosTiposBloqueo = ref([]) // Cache de todos los datos
 const tipoSeleccionado = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const showModalCrear = ref(false)
 const showModalEditar = ref(false)
 const showModalVer = ref(false)
@@ -489,6 +524,8 @@ const buscar = async () => {
   const startTime = performance.now()
   showLoading('Cargando tipos de bloqueo...', 'Buscando en el catálogo')
   loading.value = true
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const response = await execute(
@@ -533,21 +570,25 @@ const limpiarFiltros = () => {
     descripcion: '',
     sel_cons: ''
   }
+  tiposBloqueo.value = []
+  todosTiposBloqueo.value = []
+  hasSearched.value = false
   paginaActual.value = 1
-  if (todosTiposBloqueo.value.length > 0) {
-    aplicarFiltrosYPaginacion()
-  }
+  selectedRow.value = null
+  totalRegistros.value = 0
 }
 
 const cambiarPagina = (nuevaPagina) => {
   if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas.value) {
     paginaActual.value = nuevaPagina
+    selectedRow.value = null
     aplicarFiltrosYPaginacion()
   }
 }
 
 const cambiarRegistrosPorPagina = () => {
   paginaActual.value = 1
+  selectedRow.value = null
   aplicarFiltrosYPaginacion()
 }
 

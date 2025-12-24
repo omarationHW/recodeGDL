@@ -8,6 +8,16 @@
         <h1>Multas 400</h1>
         <p>Consulta de multas del artículo 400</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -129,22 +139,44 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'multas400frm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Multas 400'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'multas400frm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Multas 400'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_MULTAS400FRM'
+const SCHEMA = 'publico'
 
 const filters = ref({ filtro: '' })
 const allRows = ref([])
@@ -199,6 +231,7 @@ async function reload() {
   searched.value = false
   currentPage.value = 1
   try {
+    showLoading('Consultando...', 'Por favor espere')
     console.log('🔍 Iniciando búsqueda con filtro:', filters.value.filtro)
 
     const params = [
@@ -207,7 +240,7 @@ async function reload() {
 
     console.log('📤 Parámetros enviados:', params)
 
-    const response = await execute(OP, BASE_DB, params)
+    const response = await execute(OP, BASE_DB, params, '', null, SCHEMA)
 
     console.log('📥 Respuesta recibida:', response)
 
@@ -232,6 +265,8 @@ async function reload() {
     console.error('❌ Error al buscar multas 400:', e)
     allRows.value = []
     searched.value = true
+  } finally {
+    hideLoading()
   }
 }
 
@@ -249,149 +284,4 @@ function formatDate(value) {
 }
 </script>
 
-<style scoped>
-.text-center {
-  text-align: center;
-}
-
-.text-muted {
-  color: #6c757d;
-}
-
-.text-right {
-  text-align: right;
-}
-
-.text-bold {
-  font-weight: 600;
-}
-
-.text-small {
-  font-size: 0.875rem;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-}
-
-/* Badges */
-.badge {
-  display: inline-block;
-  padding: 0.25em 0.5em;
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1;
-  color: #fff;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: baseline;
-  border-radius: 0.25rem;
-}
-
-.badge-success {
-  background-color: #28a745;
-}
-
-.badge-warning {
-  background-color: #ffc107;
-  color: #212529;
-}
-
-/* Paginación */
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #dee2e6;
-}
-
-.btn-pagination {
-  padding: 0.5rem 1rem;
-  border: 1px solid #dee2e6;
-  background-color: #fff;
-  color: #495057;
-  cursor: pointer;
-  border-radius: 0.25rem;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background-color: #007bff;
-  color: #fff;
-  border-color: #007bff;
-}
-
-.btn-pagination:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.pagination-info {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.btn-page {
-  min-width: 2.5rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #dee2e6;
-  background-color: #fff;
-  color: #495057;
-  cursor: pointer;
-  border-radius: 0.25rem;
-  transition: all 0.2s;
-  font-size: 0.875rem;
-}
-
-.btn-page:hover {
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.btn-page.active {
-  background-color: #007bff;
-  color: #fff;
-  border-color: #007bff;
-  font-weight: 600;
-}
-
-.btn-page:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .pagination-container {
-    flex-wrap: wrap;
-  }
-
-  .btn-pagination {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.8rem;
-  }
-
-  .btn-page {
-    min-width: 2rem;
-    padding: 0.4rem 0.6rem;
-    font-size: 0.75rem;
-  }
-
-  .municipal-table {
-    font-size: 0.75rem;
-  }
-
-  .municipal-table th,
-  .municipal-table td {
-    padding: 0.5rem;
-  }
-}
-</style>
 

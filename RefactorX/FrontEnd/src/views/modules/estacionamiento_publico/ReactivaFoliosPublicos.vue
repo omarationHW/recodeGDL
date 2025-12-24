@@ -14,11 +14,13 @@
         <p>Búsqueda por placa+folio o año+folio</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -101,7 +103,7 @@
 
       <!-- Sección de Resultados -->
       <div class="form-section" v-if="resultados.length > 0 || loading">
-        <div class="section-header section-header-info">
+        <div class="section-header section-header-info header-with-badge">
           <div class="section-icon"><font-awesome-icon icon="list" /></div>
           <div class="section-title-group">
             <h3>Resultados de Búsqueda</h3>
@@ -136,7 +138,7 @@
                 </tr>
                 <tr v-if="resultados.length === 0 && !loading">
                   <td colspan="5" class="empty-state">
-                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
+                    <font-awesome-icon icon="search" size="2x" class="empty-state-icon" />
                     <p>No se encontraron folios con los criterios especificados</p>
                   </td>
                 </tr>
@@ -207,31 +209,19 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - ReactivaFoliosPublicos">
-      <h3>Reactivar Folios</h3>
-      <p>Este módulo permite reactivar folios de estacionamientos públicos que fueron cancelados.</p>
-      <h4>Opciones de búsqueda:</h4>
-      <ul>
-        <li><strong>Placa + Folio:</strong> Busca por placa del vehículo y número de folio</li>
-        <li><strong>Año + Folio:</strong> Busca por año fiscal y número de folio</li>
-      </ul>
-      <h4>Instrucciones:</h4>
-      <ol>
-        <li>Seleccione el tipo de búsqueda</li>
-        <li>Ingrese los criterios correspondientes</li>
-        <li>Presione "Buscar Folios"</li>
-        <li>Revise los resultados y presione "Reactivar Seleccionados"</li>
-      </ol>
-    </DocumentationModal>
-
-    <!-- Modal de Documentación Técnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'ReactivaFoliosPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'ReactivaFoliosPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Reactivar Folios Estacionamientos'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, nextTick } from 'vue'
 import Swal from 'sweetalert2'
@@ -240,7 +230,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -394,12 +384,18 @@ async function reactivar() {
 }
 
 // Documentación y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>
@@ -561,7 +557,7 @@ const closeTechDocs = () => showTechDocs.value = false
   color: #6c757d;
 }
 
-.empty-icon {
+.empty-state-icon {
   margin-bottom: 1rem;
   opacity: 0.5;
 }

@@ -8,25 +8,6 @@
         <h1>Estado de Cuenta</h1>
         <p>Aseo Contratado - Estado de cuenta detallado por contrato</p>
       </div>
-      <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
-        </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
-      </div>
-    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -267,20 +248,10 @@
       <h4>Exportación:</h4>
       <p>Puede exportar el estado de cuenta a PDF o imprimirlo directamente.</p>
     </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'Rpt_EstadoCuenta'"
-      :moduleName="'aseo_contratado'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
@@ -289,6 +260,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
+const loading = ref(false)
 const showDocumentation = ref(false)
 const reporteGenerado = ref(false)
 const numContrato = ref(null)
@@ -303,8 +275,6 @@ const totales = computed(() => {
   const suma_gastos = adeudos.value.reduce((sum, a) => sum + parseFloat(a.gastos_cobranza || 0), 0)
   const total_adeudo = adeudos.value.reduce((sum, a) => sum + parseFloat(a.total_periodo || 0), 0)
   const total_pagado = pagos.value.reduce((sum, p) => sum + parseFloat(p.importe || 0), 0)
-
-const { showLoading, hideLoading } = useGlobalLoading()
   const saldo = total_pagado - total_adeudo
 
   return {
@@ -323,7 +293,7 @@ const buscarContrato = async () => {
     return
   }
 
-  showLoading()
+  loading.value = true
   try {
     // 1. Buscar información del contrato
     const responseContrato = await execute('sp16_contratos_buscar', 'aseo_contratado', {
@@ -332,12 +302,12 @@ const buscarContrato = async () => {
       parVigencia: 'T'
     })
 
-    if (!responseContrato || !responseContrato || responseContrato.length === 0) {
+    if (!responseContrato || !responseContrato.data || responseContrato.data.length === 0) {
       showToast('Contrato no encontrado', 'warning')
       return
     }
 
-    contratoInfo.value = responseContrato[0]
+    contratoInfo.value = responseContrato.data[0]
 
     // 2. Obtener adeudos del contrato
     const responseAdeudos = await execute('SP_ASEO_ADEUDOS_ESTADO_CUENTA', 'aseo_contratado', {
@@ -346,7 +316,7 @@ const buscarContrato = async () => {
       p_fecha_hasta: fechaCorte.value || null
     })
 
-    adeudos.value = responseAdeudos || []
+    adeudos.value = responseAdeudos && responseAdeudos.data ? responseAdeudos.data : []
 
     // 3. Obtener pagos del contrato (SP a implementar)
     try {
@@ -354,9 +324,8 @@ const buscarContrato = async () => {
         p_control_contrato: contratoInfo.value.control_contrato,
         p_fecha_hasta: fechaCorte.value || null
       })
-      pagos.value = responsePagos || []
+      pagos.value = responsePagos && responsePagos.data ? responsePagos.data : []
     } catch (error) {
-      hideLoading()
       // SP no existe aún, simular datos vacíos
       pagos.value = []
     }
@@ -364,11 +333,10 @@ const buscarContrato = async () => {
     reporteGenerado.value = true
     showToast('Estado de cuenta generado correctamente', 'success')
   } catch (error) {
-    hideLoading()
     showToast('Error al generar estado de cuenta', 'error')
-    handleApiError(error)
+    console.error('Error:', error)
   } finally {
-    hideLoading()
+    loading.value = false
   }
 }
 

@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Modificación de Adeudos</h1>
-        <p>Padrón de Licencias - Cálculo y Ajuste de Saldos de Licencias</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Cálculo y Ajuste de Saldos de Licencias</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -45,7 +48,7 @@
           <button
             class="btn-municipal-primary"
             @click="searchLicencia"
-            :disabled="loading || !searchForm.id_licencia"
+            :disabled="!searchForm.id_licencia"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -53,7 +56,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearSearch"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -98,33 +100,43 @@
 
     <!-- Detalle de Adeudos -->
     <div class="municipal-card" v-if="licenciaData">
-      <div class="municipal-card-header header-with-actions">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list-alt" />
           Detalle de Adeudos
-          <span class="badge-purple" v-if="adeudos.length > 0">{{ adeudos.length }} registros</span>
         </h5>
-        <div class="header-actions">
-          <button
-            class="btn-municipal-success btn-sm"
-            @click="abrirModalNuevoAdeudo"
-            :disabled="loading"
-          >
-            <font-awesome-icon icon="plus" />
-            Agregar
-          </button>
-          <button
-            class="btn-municipal-primary btn-sm"
-            @click="recalcularSaldos"
-            :disabled="loading"
-          >
-            <font-awesome-icon icon="sync-alt" />
-            Recalcular
-          </button>
+        <div class="header-right">
+          <span class="badge-purple" v-if="adeudos.length > 0">{{ adeudos.length }} registros</span>
+          <div class="button-group">
+            <button
+              class="btn-municipal-success btn-sm"
+              @click="abrirModalNuevoAdeudo"
+            >
+              <font-awesome-icon icon="plus" />
+              Agregar
+            </button>
+            <button
+              class="btn-municipal-primary btn-sm"
+              @click="recalcularSaldos"
+            >
+              <font-awesome-icon icon="sync-alt" />
+              Recalcular
+            </button>
+          </div>
         </div>
       </div>
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin adeudos -->
+        <div v-if="adeudos.length === 0" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin adeudos</h4>
+          <p>No se encontraron adeudos para esta licencia</p>
+        </div>
+
+        <!-- Tabla de adeudos -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -140,7 +152,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(adeudo, index) in adeudos" :key="index" class="clickable-row">
+              <tr
+                v-for="(adeudo, index) in adeudos"
+                :key="index"
+                @click="selectedRow = adeudo"
+                :class="{ 'table-row-selected': selectedRow === adeudo }"
+                class="row-hover"
+              >
                 <td>{{ adeudo.concepto || 'Concepto General' }}</td>
                 <td class="text-end">${{ formatCurrency(adeudo.forma) }}</td>
                 <td class="text-end">${{ formatCurrency(adeudo.derechos) }}</td>
@@ -155,25 +173,19 @@
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-warning btn-sm"
-                      @click="abrirModalEditarAdeudo(adeudo, index)"
+                      @click.stop="abrirModalEditarAdeudo(adeudo, index)"
                       title="Editar"
                     >
                       <font-awesome-icon icon="edit" />
                     </button>
                     <button
                       class="btn-municipal-danger btn-sm"
-                      @click="confirmarEliminarAdeudo(adeudo, index)"
+                      @click.stop="confirmarEliminarAdeudo(adeudo, index)"
                       title="Eliminar"
                     >
                       <font-awesome-icon icon="trash" />
                     </button>
                   </div>
-                </td>
-              </tr>
-              <tr v-if="adeudos.length === 0 && !loading">
-                <td colspan="9" class="text-center text-muted">
-                  <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                  <p>No se encontraron adeudos para esta licencia</p>
                 </td>
               </tr>
             </tbody>
@@ -224,25 +236,30 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando información...</p>
-      </div>
-    </div>
-
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'modlicAdeudofrm'"
+      :moduleName="'padron_licencias'"
+      :docType="docType"
+      :title="'Modificación de Adeudos'"
+      @close="showDocModal = false"
+    />
+
+    </div>
+    <!-- /module-view-content -->
   </div>
   <!-- /module-view -->
 
@@ -362,14 +379,6 @@
         </div>
       </div>
     </Modal>
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'modlicAdeudofrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
   </template>
 
 <script setup>
@@ -378,23 +387,37 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Modal from '@/components/common/Modal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Estado de búsqueda y selección
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Estado
 const searchForm = ref({
@@ -433,7 +456,9 @@ const searchLicencia = async () => {
     return
   }
 
-  setLoading(true, 'Buscando licencia...')
+  showLoading('Buscando licencia...', 'Consultando base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     // Buscar información de licencia
@@ -468,7 +493,7 @@ const searchLicencia = async () => {
     adeudos.value = []
     saldosData.value = null
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -527,7 +552,7 @@ const recalcularSaldos = async () => {
   })
 
   if (result.isConfirmed) {
-    setLoading(true, 'Recalculando saldos...')
+    showLoading('Recalculando saldos...', 'Procesando cálculos')
 
     try {
       const response = await execute(
@@ -559,7 +584,7 @@ const recalcularSaldos = async () => {
         confirmButtonColor: '#ea8215'
       })
     } finally {
-      setLoading(false)
+      hideLoading()
     }
   }
 }
@@ -571,6 +596,8 @@ const clearSearch = () => {
   licenciaData.value = null
   adeudos.value = []
   saldosData.value = null
+  hasSearched.value = false
+  selectedRow.value = null
   showToast('info', 'Búsqueda limpiada')
 }
 
@@ -717,7 +744,7 @@ const confirmarEliminarAdeudo = async (adeudo, index) => {
 }
 
 const eliminarAdeudo = async (adeudo, index) => {
-  setLoading(true, 'Eliminando adeudo...')
+  showLoading('Eliminando adeudo...', 'Procesando solicitud')
 
   try {
     const response = await execute(
@@ -746,7 +773,7 @@ const eliminarAdeudo = async (adeudo, index) => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 </script>
@@ -793,20 +820,6 @@ const eliminarAdeudo = async (adeudo, index) => {
 
 .text-end {
   text-align: right;
-}
-
-/* Header con acciones */
-.header-with-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.5rem;
 }
 
 /* Formulario de adeudo */

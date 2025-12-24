@@ -7,6 +7,16 @@
       <div class="module-view-info">
         <h1>Requerimientos Multas 400</h1>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -116,20 +126,40 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'reqmultas400frm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Requerimientos Multas 400'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'reqmultas400frm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Requerimientos Multas 400'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const BASE_DB = 'multas_reglamentos'
 
 const filters = ref({
@@ -263,194 +293,3 @@ function formatValue(value, column) {
 }
 </script>
 
-<style scoped>
-.mb-3 {
-  margin-bottom: 1rem;
-}
-
-.radio-group {
-  display: flex;
-  gap: 2rem;
-  margin-top: 0.5rem;
-}
-
-.radio-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-
-.radio-label input[type='radio'] {
-  cursor: pointer;
-}
-
-.search-section {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e0e0e0;
-}
-
-.section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #333;
-}
-
-.form-row {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-end;
-  flex-wrap: wrap;
-}
-
-.form-group {
-  flex: 1;
-  min-width: 200px;
-}
-
-.button-wrapper {
-  display: flex;
-  align-items: flex-end;
-}
-
-.btn-municipal-secondary {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: background-color 0.2s;
-  white-space: nowrap;
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  background-color: #5a6268;
-}
-
-.btn-municipal-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.loading-message {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 2rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  margin-top: 1rem;
-}
-
-.spinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid #e0e0e0;
-  border-top-color: #007bff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.results-header {
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #007bff;
-}
-
-.results-header h3 {
-  font-size: 1.1rem;
-  color: #333;
-  margin: 0;
-}
-
-.table-responsive {
-  overflow-x: auto;
-  margin-bottom: 1rem;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.pagination-info {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.btn-pagination {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
-.btn-pagination:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.page-info {
-  font-size: 0.9rem;
-  color: #333;
-  font-weight: 500;
-}
-
-.no-results {
-  text-align: center;
-  padding: 3rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  margin-top: 1rem;
-}
-
-.no-results p {
-  font-size: 1rem;
-  color: #666;
-  margin: 0;
-}
-
-.municipal-table {
-  width: 100%;
-  font-size: 0.9rem;
-}
-
-.municipal-table td {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
-}
-</style>

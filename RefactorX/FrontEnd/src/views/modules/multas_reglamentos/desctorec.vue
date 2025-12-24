@@ -6,6 +6,16 @@
         <h1>Descuento Recargos</h1>
         <p>Consulta descuentos aplicados a recargos de predios</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -77,74 +87,76 @@
           </div>
 
           <!-- Pagination Controls -->
-          <div v-if="rows.length > 0" class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid #dee2e6;">
+          <div v-if="rows.length > 0" class="pagination-controls">
             <div class="pagination-info">
-              <span class="text-muted">
-                Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ rows.length }} registros
-              </span>
+              Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ rows.length }} registros
             </div>
-            <div class="pagination-controls" style="display: flex; gap: 0.5rem;">
-              <button
-                class="btn-municipal-secondary"
-                :disabled="currentPage === 1"
-                @click="goToPage(1)"
-                style="padding: 0.5rem 0.75rem;">
-                <font-awesome-icon icon="angles-left" />
-              </button>
-              <button
-                class="btn-municipal-secondary"
-                :disabled="currentPage === 1"
-                @click="prevPage"
-                style="padding: 0.5rem 0.75rem;">
-                <font-awesome-icon icon="chevron-left" />
-              </button>
-              <span style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500;">
-                Página {{ currentPage }} de {{ totalPages }}
-              </span>
-              <button
-                class="btn-municipal-secondary"
-                :disabled="currentPage === totalPages"
-                @click="nextPage"
-                style="padding: 0.5rem 0.75rem;">
-                <font-awesome-icon icon="chevron-right" />
-              </button>
-              <button
-                class="btn-municipal-secondary"
-                :disabled="currentPage === totalPages"
-                @click="goToPage(totalPages)"
-                style="padding: 0.5rem 0.75rem;">
-                <font-awesome-icon icon="angles-right" />
-              </button>
+            <div class="pagination-size">
+              <label>Mostrar:</label>
+              <select v-model="pageSize" @change="currentPage = 1">
+                <option :value="10">10</option>
+                <option :value="25">25</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+            <div class="pagination-buttons">
+              <button @click="goToPage(1)" :disabled="currentPage === 1">«</button>
+              <button @click="prevPage" :disabled="currentPage === 1">‹</button>
+              <span>Página {{ currentPage }} de {{ totalPages }}</span>
+              <button @click="nextPage" :disabled="currentPage >= totalPages">›</button>
+              <button @click="goToPage(totalPages)" :disabled="currentPage >= totalPages">»</button>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'desctorec'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Descuento Recargos'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'desctorec'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Descuento Recargos'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_DESCTOREC'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({ cuenta: '' })
 const rows = ref([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 
-const SCHEMA = 'multas_reglamentos'
+const SCHEMA = 'publico'
 
 // Computed properties para paginación
 const totalPages = computed(() => Math.ceil(rows.value.length / pageSize.value))
@@ -184,11 +196,14 @@ async function buscar() {
   const params = [
     { nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') }
   ]
+  showLoading('Consultando...', 'Por favor espere')
   try {
     const data = await execute(OP, BASE_DB, params, '', null, SCHEMA)
     rows.value = Array.isArray(data?.result) ? data.result : Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
   } catch (e) {
     rows.value = []
+  } finally {
+    hideLoading()
   }
 }
 

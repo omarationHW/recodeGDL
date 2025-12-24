@@ -13,7 +13,6 @@
         <button
           class="btn-municipal-purple"
           @click="abrirModalNuevo"
-          :disabled="loading"
         >
           <font-awesome-icon icon="plus-circle" />
           Nuevo Bloqueo
@@ -21,15 +20,15 @@
         <button
           class="btn-municipal-primary"
           @click="cargarBloqueos"
-          :disabled="loading"
         >
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -109,7 +108,6 @@
             <button
               class="btn-municipal-primary"
               @click="buscar"
-              :disabled="loading"
             >
               <font-awesome-icon icon="search" />
               Buscar
@@ -117,7 +115,6 @@
             <button
               class="btn-municipal-secondary"
               @click="limpiarFiltros"
-              :disabled="loading"
             >
               <font-awesome-icon icon="times" />
               Limpiar
@@ -156,7 +153,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="bloqueo in bloqueos" :key="`${bloqueo.tipo_registro}-${bloqueo.numero_registro}`" class="clickable-row">
+                <tr
+                  v-for="bloqueo in bloqueos"
+                  :key="`${bloqueo.tipo_registro}-${bloqueo.numero_registro}`"
+                  @click="selectedRow = bloqueo"
+                  :class="{ 'table-row-selected': selectedRow === bloqueo }"
+                  class="row-hover"
+                >
                   <td>
                     <span class="badge" :class="{
                       'badge-primary': bloqueo.tipo_registro === 'Licencia',
@@ -184,8 +187,7 @@
                     <div class="btn-group">
                       <button
                         class="btn-action btn-info"
-                        @click="verDetalle(bloqueo)"
-                        :disabled="loading"
+                        @click.stop="verDetalle(bloqueo)"
                         title="Ver detalle"
                       >
                         <font-awesome-icon icon="eye" />
@@ -193,8 +195,7 @@
                       <button
                         v-if="bloqueo.vigente === 'V'"
                         class="btn-action btn-primary"
-                        @click="editarBloqueo(bloqueo)"
-                        :disabled="loading"
+                        @click.stop="editarBloqueo(bloqueo)"
                         title="Editar bloqueo"
                       >
                         <font-awesome-icon icon="edit" />
@@ -202,8 +203,7 @@
                       <button
                         v-if="bloqueo.vigente === 'V'"
                         class="btn-action btn-danger"
-                        @click="confirmarCancelacion(bloqueo)"
-                        :disabled="loading"
+                        @click.stop="confirmarCancelacion(bloqueo)"
                         title="Cancelar bloqueo"
                       >
                         <font-awesome-icon icon="times" />
@@ -211,22 +211,31 @@
                     </div>
                   </td>
                 </tr>
-                <tr v-if="bloqueos.length === 0">
-                  <td colspan="8" class="empty-state">
-                    <div class="empty-state-content">
-                      <font-awesome-icon icon="inbox" class="empty-state-icon" />
-                      <p class="empty-state-text">No se encontraron bloqueos</p>
-                      <p class="empty-state-hint">Intenta ajustar los filtros de búsqueda</p>
-                    </div>
-                  </td>
-                </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="bloqueos.length === 0 && !hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="lock" size="3x" />
+            </div>
+            <h4>Bloqueo de Domicilios</h4>
+            <p>Configure los filtros y presione "Buscar" para consultar los bloqueos registrados</p>
+          </div>
+
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="bloqueos.length === 0 && hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
+            </div>
+            <h4>Sin resultados</h4>
+            <p>No se encontraron bloqueos con los criterios especificados</p>
           </div>
         </div>
 
         <!-- Paginación -->
-        <div class="pagination-container" v-if="totalRecords > 0 && !loading">
+        <div class="pagination-container" v-if="totalRecords > 0">
           <div class="pagination-info">
             <font-awesome-icon icon="info-circle" />
             Mostrando {{ ((currentPage - 1) * pageSize) + 1 }}
@@ -275,23 +284,29 @@
           </div>
         </div>
       </div>
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'bloqueoDomiciliosfrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Bloqueo de Domicilios'"
+        @close="showDocModal = false"
+      />
     </div>
     <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <div class="toast-content">
-        <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" class="toast-duration-icon" />
-          {{ toast.duration }}
-        </span>
-      </div>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
   <!-- /module-view -->
 
@@ -586,14 +601,6 @@
       </button>
     </template>
   </Modal>
-
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'bloqueoDomiciliosfrm'"
-    :moduleName="'padron_licencias'"
-    @close="closeDocumentation"
-  />
 </template>
 
 <script setup>
@@ -606,10 +613,19 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
@@ -617,7 +633,8 @@ const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const bloqueos = ref([])
-const loading = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const guardando = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(10)
@@ -789,6 +806,8 @@ const guardarEdicion = async () => {
 
 const cargarBloqueos = async () => {
   showLoading('Cargando bloqueos...')
+  hasSearched.value = true
+  selectedRow.value = null
   showFilters.value = false
   const startTime = performance.now()
 
@@ -841,8 +860,10 @@ const limpiarFiltros = () => {
     estado: '',
     vigente: 'V'
   }
+  bloqueos.value = []
+  hasSearched.value = false
   currentPage.value = 1
-  cargarBloqueos()
+  selectedRow.value = null
 }
 
 const guardarNuevoBloqueo = async () => {
@@ -1001,12 +1022,14 @@ const confirmarCancelacion = async (bloqueo) => {
 const cambiarPagina = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    selectedRow.value = null
     cargarBloqueos()
   }
 }
 
 const cambiarTamañoPagina = () => {
   currentPage.value = 1
+  selectedRow.value = null
   cargarBloqueos()
 }
 

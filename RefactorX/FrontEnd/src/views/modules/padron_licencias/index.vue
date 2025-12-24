@@ -1,345 +1,246 @@
 <template>
   <div class="module-dashboard">
-        <!-- Header -->
-        <div class="dashboard-header">
-          <h1>
-            <font-awesome-icon icon="id-card" />
-            Padrón de Licencias
-          </h1>
-          <p>Sistema integral de gestión de licencias comerciales y anuncios publicitarios</p>
+    <div class="dashboard-content">
+      <div class="dashboard-header">
+        <div class="header-left">
+          <img src="/img/GDL_LACIUDAD.png" alt="Guadalajara" class="header-logo" />
+        </div>
+        <div class="header-center">
+          <h1>Padron de Licencias</h1>
+          <p>Gestion de licencias comerciales y anuncios</p>
+        </div>
+        <div class="header-right">
+          <img src="/img/Innovacion_Gubernamental.png" alt="Innovacion Gubernamental" class="header-logo-right" />
+        </div>
+      </div>
+
+      <div class="systems-section">
+        <div class="section-header">
+          <div class="section-icon"><font-awesome-icon icon="id-card" /></div>
+          <h2>Modulos Disponibles</h2>
         </div>
 
-        <!-- Accesos Rápidos -->
-        <div class="quick-access-grid">
-          <!-- Consultas -->
-          <div class="quick-access-card">
-            <div class="card-icon consultas">
-              <font-awesome-icon icon="search" />
+        <div class="dashboard-grid">
+          <div v-for="sec in sections" :key="sec.title" class="module-card">
+            <div class="card-content">
+              <div class="module-icon"><font-awesome-icon :icon="sec.icon" /></div>
+              <h3 class="module-title">{{ sec.title }}</h3>
+              <p class="module-description">{{ sec.desc }}</p>
             </div>
-            <h3>Consultas</h3>
-            <p>Búsqueda de usuarios, trámites y licencias</p>
             <div class="card-links">
-              <router-link to="/padron-licencias/consulta-usuarios">Usuarios</router-link>
-              <router-link to="/padron-licencias/consulta-tramites">Trámites</router-link>
-              <router-link to="/padron-licencias/consulta-licencias">Licencias</router-link>
-              <router-link to="/padron-licencias/consulta-anuncios">Anuncios</router-link>
-            </div>
-          </div>
-
-          <!-- Trámites ✅ COMPLETO -->
-          <div class="quick-access-card">
-            <div class="card-icon tramites">
-              <font-awesome-icon icon="file-signature" />
-            </div>
-            <h3>Trámites ✅</h3>
-            <p>Gestión completa de trámites</p>
-            <div class="card-links">
-              <router-link to="/padron-licencias/modificacion-tramites">Modificar</router-link>
-              <router-link to="/padron-licencias/cancelacion-tramites">Cancelar</router-link>
-              <router-link to="/padron-licencias/reactivar-tramite">Reactivar</router-link>
-              <router-link to="/padron-licencias/bloquear-tramite">Bloquear/Desbloquear</router-link>
-              <router-link to="/padron-licencias/documentos-tramite">Documentos</router-link>
-              <router-link to="/padron-licencias/tramite-baja-licencia">Baja Licencia</router-link>
-              <router-link to="/padron-licencias/tramite-baja-anuncio">Baja Anuncio</router-link>
-            </div>
-          </div>
-
-          <!-- Licencias -->
-          <div class="quick-access-card">
-            <div class="card-icon licencias">
-              <font-awesome-icon icon="id-card" />
-            </div>
-            <h3>Licencias</h3>
-            <p>Administración de licencias comerciales</p>
-            <div class="card-links">
-              <router-link to="/padron-licencias/modificacion-licencias">Modificar</router-link>
-              <router-link to="/padron-licencias/baja-licencia">Dar de Baja</router-link>
-              <router-link to="/padron-licencias/bloquear-licencia">Bloquear/Desbloquear</router-link>
-              <router-link to="/padron-licencias/licencias-vigentes">Vigentes</router-link>
-              <router-link to="/padron-licencias/licencias-adeudo">Con Adeudo</router-link>
-              <router-link to="/padron-licencias/grupos-licencias">Grupos</router-link>
-              <router-link to="/padron-licencias/zona-licencia">Zonificación</router-link>
-            </div>
-          </div>
-
-          <!-- Anuncios -->
-          <div class="quick-access-card">
-            <div class="card-icon anuncios">
-              <font-awesome-icon icon="bullhorn" />
-            </div>
-            <h3>Anuncios</h3>
-            <p>Gestión de anuncios publicitarios</p>
-            <div class="card-links">
-              <router-link to="/padron-licencias/baja-anuncio">Dar de Baja</router-link>
-              <router-link to="/padron-licencias/bloquear-anuncio">Bloquear/Desbloquear</router-link>
-              <router-link to="/padron-licencias/liga-anuncio">Ligar Anuncio</router-link>
-              <router-link to="/padron-licencias/grupos-anuncios">Grupos</router-link>
-              <router-link to="/padron-licencias/zona-anuncio">Zonificación</router-link>
-              <router-link to="/padron-licencias/reporte-anuncios-excel">Reporte Excel</router-link>
-            </div>
-          </div>
-
-          <!-- Servicios -->
-          <div class="quick-access-card">
-            <div class="card-icon servicios">
-              <font-awesome-icon icon="concierge-bell" />
-            </div>
-            <h3>Servicios</h3>
-            <p>Emisión de documentos y certificaciones</p>
-            <div class="card-links">
-              <router-link to="/padron-licencias/constancias">Constancias</router-link>
-              <router-link to="/padron-licencias/certificaciones">Certificaciones</router-link>
-              <router-link to="/padron-licencias/dictamen-uso-suelo">Dictámenes</router-link>
-              <router-link to="/padron-licencias/registro-solicitud">Registro Solicitud</router-link>
-            </div>
-          </div>
-
-          <!-- Catálogos -->
-          <div class="quick-access-card">
-            <div class="card-icon catalogos">
-              <font-awesome-icon icon="list" />
-            </div>
-            <h3>Catálogos</h3>
-            <p>Administración de catálogos del sistema</p>
-            <div class="card-links">
-              <router-link to="/padron-licencias/catalogo-giros">Giros</router-link>
-              <router-link to="/padron-licencias/catalogo-actividades">Actividades</router-link>
-              <router-link to="/padron-licencias/empresas">Empresas</router-link>
-              <router-link to="/padron-licencias/dependencias">Dependencias</router-link>
-              <router-link to="/padron-licencias/estatus">Estatus</router-link>
+              <router-link v-for="link in sec.links" :key="link.to" :to="link.to" class="quick-link">
+                {{ link.label }}
+                <font-awesome-icon icon="chevron-right" class="link-arrow" />
+              </router-link>
             </div>
           </div>
         </div>
-
-        <!-- Estadísticas Rápidas -->
-        <div class="stats-summary">
-          <div class="stat-item">
-            <font-awesome-icon icon="file-alt" />
-            <div>
-              <span class="stat-value">{{ stats.tramites }}</span>
-              <span class="stat-label">Trámites Activos</span>
-            </div>
-          </div>
-          <div class="stat-item">
-            <font-awesome-icon icon="id-badge" />
-            <div>
-              <span class="stat-value">{{ stats.licencias }}</span>
-              <span class="stat-label">Licencias Vigentes</span>
-            </div>
-          </div>
-          <div class="stat-item">
-            <font-awesome-icon icon="check-circle" />
-            <div>
-              <span class="stat-value">{{ stats.completados }}</span>
-              <span class="stat-label">Completados Hoy</span>
-            </div>
-          </div>
-          <div class="stat-item">
-            <font-awesome-icon icon="clock" />
-            <div>
-              <span class="stat-value">{{ stats.pendientes }}</span>
-              <span class="stat-label">Pendientes</span>
-            </div>
-          </div>
-        </div>
+      </div>
     </div>
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'index'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
+    <footer class="dashboard-footer">
+      <p>&copy; 2025 Ayuntamiento de Guadalajara. Todos los derechos reservados.</p>
+    </footer>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome"
 
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
-// Estadísticas de ejemplo (puedes conectar con API real)
-const stats = ref({
-  tramites: '1,245',
-  licencias: '3,892',
-  completados: '47',
-  pendientes: '123'
-})
+const sections = [
+  { icon: 'search', title: 'Consultas', desc: 'Busqueda de usuarios y licencias', links: [{ to: '/padron-licencias/consulta-usuarios', label: 'Usuarios' }, { to: '/padron-licencias/consulta-licencias', label: 'Licencias' }] },
+      { icon: 'file-signature', title: 'Tramites', desc: 'Gestion de tramites', links: [{ to: '/padron-licencias/modificacion-tramites', label: 'Modificar' }, { to: '/padron-licencias/cancelacion-tramites', label: 'Cancelar' }] },
+      { icon: 'id-card', title: 'Licencias', desc: 'Administracion de licencias', links: [{ to: '/padron-licencias/modificacion-licencias', label: 'Modificar' }, { to: '/padron-licencias/baja-licencia', label: 'Baja' }] },
+      { icon: 'bullhorn', title: 'Anuncios', desc: 'Gestion de anuncios', links: [{ to: '/padron-licencias/baja-anuncio', label: 'Baja' }, { to: '/padron-licencias/liga-anuncio', label: 'Ligar' }] },
+      { icon: 'concierge-bell', title: 'Servicios', desc: 'Constancias y certificaciones', links: [{ to: '/padron-licencias/constancias', label: 'Constancias' }, { to: '/padron-licencias/certificaciones', label: 'Certificaciones' }] },
+      { icon: 'list', title: 'Catalogos', desc: 'Giros y empresas', links: [{ to: '/padron-licencias/catalogo-giros', label: 'Giros' }, { to: '/padron-licencias/empresas', label: 'Empresas' }] }
+]
 </script>
 
 <style scoped>
 .module-dashboard {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f1f5f9;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 1.5rem 2rem;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
-  min-height: 100vh;
-  background: #f9fafb;
+  width: 100%;
 }
 
 .dashboard-header {
+  background: white;
+  border-radius: 1rem;
+  padding: 1rem 2rem;
   margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
 }
 
-.dashboard-header h1 {
-  font-size: 2rem;
-  color: #111827;
-  margin-bottom: 0.5rem;
+.header-left { flex-shrink: 0; }
+.header-logo { height: 70px; width: auto; }
+
+.header-center { flex: 1; text-align: center; padding: 0 2rem; }
+.header-center h1 { color: #ea8215; font-size: 1.5rem; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
+.header-center p { color: #64748b; font-size: 0.9rem; margin: 0.25rem 0 0 0; }
+
+.header-right { flex-shrink: 0; }
+.header-logo-right { height: 50px; width: auto; }
+.systems-section { margin-bottom: 2rem; }
+
+.section-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  margin-bottom: 1.5rem;
 }
 
-.dashboard-header p {
-  color: #6b7280;
-  font-size: 1rem;
-}
-
-.quick-access-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.quick-access-card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.quick-access-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.card-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+.section-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #ea8215, #f59e0b);
+  border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.75rem;
   color: white;
-  margin-bottom: 1rem;
+  font-size: 1rem;
 }
 
-.card-icon.consultas {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-}
-
-.card-icon.tramites {
-  background: linear-gradient(135deg, #9363CD 0%, #7B47B8 100%);
-}
-
-.card-icon.licencias {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.card-icon.servicios {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-
-.card-icon.anuncios {
-  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
-}
-
-.card-icon.catalogos {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-}
-
-.quick-access-card h3 {
-  font-size: 1.25rem;
-  color: #111827;
-  margin-bottom: 0.5rem;
-}
-
-.quick-access-card p {
-  color: #6b7280;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-}
-
-.card-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.card-links a {
-  color: #9363CD;
-  text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: color 0.2s;
-  padding: 0.375rem 0;
-}
-
-.card-links a:hover {
-  color: #7B47B8;
-  text-decoration: underline;
-}
-
-.stats-summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.stat-item svg {
-  font-size: 2rem;
-  color: #9363CD;
-}
-
-.stat-item div {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-value {
-  font-size: 1.5rem;
+.section-header h2 {
+  color: #1e293b;
+  font-size: 1.15rem;
   font-weight: 700;
-  color: #111827;
-}
-
-.stat-label {
-  font-size: 0.75rem;
-  color: #6b7280;
+  margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.module-card {
+  background: white;
+  border-radius: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.module-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(234, 130, 21, 0.15);
+  border-color: #f59e0b;
+}
+
+.card-content {
+  padding: 1.5rem 1.25rem 1rem;
+  text-align: center;
+}
+
+.module-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.875rem;
+  color: white;
+  font-size: 1.3rem;
+  background: linear-gradient(145deg, #f59e0b, #ea8215);
+  box-shadow: 0 4px 12px rgba(234, 130, 21, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.module-card:hover .module-icon {
+  transform: scale(1.08);
+}
+
+.module-title {
+  color: #1e293b;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem 0;
+}
+
+.module-description {
+  color: #64748b;
+  font-size: 0.8rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.card-links {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: #fafbfc;
+}
+
+.quick-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  color: #475569;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.quick-link:hover {
+  background: rgba(234, 130, 21, 0.1);
+  color: #ea8215;
+}
+
+.link-arrow {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  transition: all 0.2s ease;
+}
+
+.quick-link:hover .link-arrow {
+  color: #ea8215;
+  transform: translateX(3px);
+}
+
+.dashboard-footer {
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.dashboard-footer p {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+@media (max-width: 1200px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 768px) {
-  .module-dashboard {
-    padding: 1rem;
-  }
-
-  .dashboard-header h1 {
-    font-size: 1.5rem;
-  }
-
-  .quick-access-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-summary {
-    grid-template-columns: 1fr 1fr;
-  }
+  .dashboard-header { flex-direction: column; gap: 1rem; padding: 1.25rem; }
+  .header-center { padding: 0; }
+  .header-center h1 { font-size: 1.3rem; }
+  .header-logo { height: 50px; }
+  .dashboard-grid { grid-template-columns: 1fr; }
 }
 </style>
-

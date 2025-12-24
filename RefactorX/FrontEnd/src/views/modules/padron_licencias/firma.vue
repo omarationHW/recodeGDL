@@ -8,19 +8,21 @@
       <div class="module-view-info">
         <h1>Firma Digital</h1>
         <p>Padrón de Licencias - Captura de Firma Digital para Trámites</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button
           class="btn-municipal-secondary"
           @click="clearCanvas"
-          :disabled="loading || !hasSignature"
+          :disabled="!hasSignature"
         >
           <font-awesome-icon icon="eraser" />
           Limpiar
@@ -28,7 +30,7 @@
         <button
           class="btn-municipal-primary"
           @click="saveSignature"
-          :disabled="loading || !hasSignature"
+          :disabled="!hasSignature"
         >
           <font-awesome-icon icon="save" />
           Guardar Firma
@@ -170,7 +172,7 @@
           <button
             class="btn-municipal-primary"
             @click="validateSignature"
-            :disabled="loading || savedSignature.validada"
+            :disabled="savedSignature.validada"
           >
             <font-awesome-icon icon="check-double" />
             Validar Firma
@@ -178,7 +180,6 @@
           <button
             class="btn-municipal-secondary"
             @click="confirmReSign"
-            :disabled="loading"
           >
             <font-awesome-icon icon="redo" />
             Firmar Nuevamente
@@ -187,36 +188,31 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'firma'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Firma Digital'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -225,23 +221,33 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Referencias
 const signatureCanvas = ref(null)
@@ -252,8 +258,9 @@ const isDrawing = ref(false)
 const hasSignature = ref(false)
 const lineWidth = ref(2)
 const lineColor = ref('#000000')
-const loadingMessage = ref('')
 const savedSignature = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Posición del cursor/touch
 const lastX = ref(0)
@@ -361,6 +368,8 @@ const clearCanvas = () => {
 
   hasSignature.value = false
   isDrawing.value = false
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const saveSignature = async () => {
@@ -382,8 +391,8 @@ const saveSignature = async () => {
 
   if (!result.isConfirmed) return
 
-  setLoading(true, 'Guardando firma...')
-  loadingMessage.value = 'Guardando firma...'
+  showLoading('Guardando firma...')
+  hasSearched.value = true
 
   try {
     // Convertir canvas a base64
@@ -440,8 +449,7 @@ const saveSignature = async () => {
       confirmButtonColor: '#ea8215'
     })
   } finally {
-    setLoading(false)
-    loadingMessage.value = ''
+    hideLoading()
   }
 }
 
@@ -459,8 +467,8 @@ const validateSignature = async () => {
 
   if (!result.isConfirmed) return
 
-  setLoading(true, 'Validando firma...')
-  loadingMessage.value = 'Validando firma...'
+  showLoading('Validando firma...')
+  hasSearched.value = true
   const startTime = performance.now()
 
   try {
@@ -497,8 +505,7 @@ const validateSignature = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
-    loadingMessage.value = ''
+    hideLoading()
   }
 }
 
@@ -516,6 +523,8 @@ const confirmReSign = async () => {
 
   if (result.isConfirmed) {
     savedSignature.value = null
+    hasSearched.value = false
+    selectedRow.value = null
     clearCanvas()
     showToast('info', 'Puede dibujar una nueva firma')
   }

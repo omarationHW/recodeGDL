@@ -18,7 +18,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -154,7 +158,11 @@
             <font-awesome-icon icon="list" />
             Lista de Fechas de Seguimiento
           </h5>
-          <span class="badge-purple">{{ totalRegistros.toLocaleString() }} registros</span>
+          <div class="header-right">
+            <span class="badge-purple" v-if="fechas.length > 0">
+              {{ totalRegistros.toLocaleString() }} registros
+            </span>
+          </div>
         </div>
         <div class="municipal-card-body">
           <div class="table-responsive">
@@ -173,7 +181,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="fecha in fechas" :key="fecha.id" class="clickable-row">
+                <tr
+                  v-for="fecha in fechas"
+                  :key="fecha.id"
+                  @click="selectedRow = fecha"
+                  :class="{ 'table-row-selected': selectedRow === fecha }"
+                  class="row-hover"
+                >
                   <td style="text-align: center;">
                     <code class="text-primary"><strong>{{ fecha.id }}</strong></code>
                   </td>
@@ -200,13 +214,13 @@
                   </td>
                   <td style="text-align: center;">
                     <div class="btn-group-actions">
-                      <button class="btn-action btn-action-view" @click="verFecha(fecha)" title="Ver">
+                      <button class="btn-action btn-action-view" @click.stop="verFecha(fecha)" title="Ver">
                         <font-awesome-icon icon="eye" />
                       </button>
-                      <button class="btn-action btn-action-edit" @click="editarFecha(fecha)" title="Editar">
+                      <button class="btn-action btn-action-edit" @click.stop="editarFecha(fecha)" title="Editar">
                         <font-awesome-icon icon="edit" />
                       </button>
-                      <button class="btn-action btn-action-delete" @click="confirmarEliminar(fecha)" title="Eliminar">
+                      <button class="btn-action btn-action-delete" @click.stop="confirmarEliminar(fecha)" title="Eliminar">
                         <font-awesome-icon icon="trash" />
                       </button>
                     </div>
@@ -279,18 +293,53 @@
         </div>
       </div>
 
-      <!-- Estado vacío -->
-      <div v-if="fechas.length === 0 && !loading" class="municipal-card">
+      <!-- Estado vacío - Sin búsqueda -->
+      <div v-if="fechas.length === 0 && !hasSearched" class="municipal-card">
+        <div class="municipal-card-body">
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="calendar-check" size="3x" />
+            </div>
+            <h4>Fechas de Seguimiento</h4>
+            <p>Presiona "Actualizar" para cargar las fechas de seguimiento o "Nuevo" para crear una nueva</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado vacío - Sin resultados -->
+      <div v-else-if="fechas.length === 0 && hasSearched" class="municipal-card">
         <div class="municipal-card-body">
           <div class="empty-state">
             <div class="empty-state-icon">
               <font-awesome-icon icon="inbox" size="3x" />
             </div>
-            <h5>No hay fechas de seguimiento registradas</h5>
-            <p>Presiona "Actualizar" para cargar las fechas o "Nuevo" para crear una</p>
+            <h4>Sin resultados</h4>
+            <p>No se encontraron fechas de seguimiento con los criterios especificados</p>
           </div>
         </div>
       </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'fechasegfrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Fechas de Seguimiento'"
+        @close="showDocModal = false"
+      />
     </div>
 
     <!-- Modal Ver -->
@@ -558,25 +607,11 @@
         </button>
       </template>
     </Modal>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <div class="toast-content">
-        <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" class="toast-duration-icon" />
-          {{ toast.duration }}
-        </span>
-      </div>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
 </template>
 
 <script setup>
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
@@ -609,6 +644,8 @@ const obtenerFechaFinPorDefecto = () => {
   return '2021-12-31' // Fin del último año con datos
 }
 
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const loading = ref(false)
 const showFilters = ref(false)
 const todasFechas = ref([])
@@ -701,7 +738,10 @@ const limpiarFiltros = () => {
     t42_statusseg_id: null,
     observacion: ''
   }
+  todasFechas.value = []
+  hasSearched.value = false
   paginaActual.value = 1
+  selectedRow.value = null
 }
 
 const aplicarFiltrosYPaginacion = () => {
@@ -711,12 +751,15 @@ const aplicarFiltrosYPaginacion = () => {
 const cambiarPagina = (pagina) => {
   if (pagina >= 1 && pagina <= totalPaginas.value) {
     paginaActual.value = pagina
+    selectedRow.value = null
   }
 }
 
 const buscar = async () => {
   const startTime = performance.now()
   showLoading('Cargando fechas de seguimiento...', 'Consultando catálogo')
+  hasSearched.value = true
+  selectedRow.value = null
   loading.value = true
   showFilters.value = false
 
@@ -734,7 +777,7 @@ const buscar = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -828,7 +871,7 @@ const guardarEdicion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -913,7 +956,7 @@ const guardarNuevo = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -968,7 +1011,7 @@ const eliminarFecha = async (id) => {
       [{ nombre: 'p_id', valor: id, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -1036,8 +1079,18 @@ const formatearFechaISO = (fecha) => {
   }
 }
 
-const openDocumentation = () => {
-  window.open('/docs/padron_licencias/fechasegfrm.html', '_blank')
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
 }
 
 // Cargar datos al montar el componente

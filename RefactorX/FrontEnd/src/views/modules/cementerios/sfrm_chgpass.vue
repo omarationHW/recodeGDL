@@ -1,163 +1,167 @@
 <template>
-  <div class="chgpass-container">
-    <div class="chgpass-card">
-      <div class="chgpass-header">
-        <font-awesome-icon icon="key" />
-        <h2>Cambiar Contraseña</h2>
-        <p>Actualización de clave de acceso al sistema</p>
-      </div>
+  <div class="module-view-content">
+    <div class="chgpass-container">
+      <div class="chgpass-card">
+        <div class="chgpass-header">
+          <font-awesome-icon icon="key" />
+          <h2>Cambiar Contraseña</h2>
+          <p>Actualización de clave de acceso al sistema</p>
+        </div>
 
-      <div class="chgpass-body">
-        <!-- Paso 1: Contraseña Actual -->
-        <div v-if="paso === 1" class="step-container">
-          <div class="step-indicator">
-            <span class="step-number">1</span>
-            <span class="step-label">Verificar contraseña actual</span>
+        <div class="chgpass-body">
+          <!-- Paso 1: Contraseña Actual -->
+          <div v-if="paso === 1" class="step-container">
+            <div class="step-indicator">
+              <span class="step-number">1</span>
+              <span class="step-label">Verificar contraseña actual</span>
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="lock" />
+                Contraseña Actual
+              </label>
+              <input
+                v-model="formulario.password_actual"
+                type="password"
+                class="municipal-form-control"
+                placeholder="Ingrese su contraseña actual"
+                maxlength="20"
+                autocomplete="current-password"
+                @keyup.enter="validarPasswordActual"
+                autofocus
+                required
+              />
+            </div>
+
+            <button @click="validarPasswordActual" class="btn-municipal-primary btn-block">
+              <font-awesome-icon icon="check" />
+              Validar Contraseña
+            </button>
           </div>
 
-          <div class="form-group">
-            <label class="municipal-form-label">
-              <font-awesome-icon icon="lock" />
-              Contraseña Actual
-            </label>
-            <input
-              v-model="formulario.password_actual"
-              type="password"
-              class="municipal-form-control"
-              placeholder="Ingrese su contraseña actual"
-              maxlength="20"
-              autocomplete="current-password"
-              @keyup.enter="validarPasswordActual"
-              autofocus
-              required
-            />
+          <!-- Paso 2: Nueva Contraseña -->
+          <div v-if="paso === 2" class="step-container">
+            <div class="step-indicator">
+              <span class="step-number">2</span>
+              <span class="step-label">Ingresar nueva contraseña</span>
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="key" />
+                Nueva Contraseña
+              </label>
+              <input
+                v-model="formulario.password_nueva"
+                type="password"
+                class="municipal-form-control"
+                placeholder="Ingrese su nueva contraseña"
+                maxlength="20"
+                autocomplete="new-password"
+                @keyup.enter="validarPasswordNueva"
+                required
+              />
+            </div>
+
+            <div class="password-requirements">
+              <p class="requirements-title">
+                <font-awesome-icon icon="info-circle" />
+                Requisitos de la contraseña:
+              </p>
+              <ul>
+                <li :class="{ valid: cumpleRequisito('minLength') }">
+                  <i :class="cumpleRequisito('minLength') ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                  Mínimo 6 caracteres
+                </li>
+                <li :class="{ valid: cumpleRequisito('hasNumber') }">
+                  <i :class="cumpleRequisito('hasNumber') ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                  Contiene números
+                </li>
+                <li :class="{ valid: cumpleRequisito('hasLetter') }">
+                  <i :class="cumpleRequisito('hasLetter') ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                  Contiene letras
+                </li>
+                <li :class="{ valid: cumpleRequisito('different') }">
+                  <i :class="cumpleRequisito('different') ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                  Diferente a la actual
+                </li>
+              </ul>
+            </div>
+
+            <button @click="validarPasswordNueva" class="btn-municipal-primary btn-block">
+              <font-awesome-icon icon="arrow-right" />
+              Continuar
+            </button>
           </div>
 
-          <button @click="validarPasswordActual" class="btn-municipal-primary btn-block">
-            <font-awesome-icon icon="check" />
-            Validar Contraseña
+          <!-- Paso 3: Confirmar Contraseña -->
+          <div v-if="paso === 3" class="step-container">
+            <div class="step-indicator">
+              <span class="step-number">3</span>
+              <span class="step-label">Confirmar nueva contraseña</span>
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">
+                <font-awesome-icon icon="check-double" />
+                Confirmar Contraseña
+              </label>
+              <input
+                v-model="formulario.password_confirmar"
+                type="password"
+                class="municipal-form-control"
+                placeholder="Confirme su nueva contraseña"
+                maxlength="20"
+                autocomplete="new-password"
+                @keyup.enter="cambiarPassword"
+                required
+              />
+            </div>
+
+            <div v-if="formulario.password_confirmar && !passwordsCoinciden" class="alert-danger mb-3">
+              <font-awesome-icon icon="exclamation-triangle" />
+              Las contraseñas no coinciden
+            </div>
+
+            <div v-if="passwordsCoinciden" class="alert-success mb-3">
+              <font-awesome-icon icon="check-circle" />
+              Las contraseñas coinciden
+            </div>
+
+            <button @click="cambiarPassword" class="btn-municipal-primary btn-block" :disabled="!passwordsCoinciden">
+              <font-awesome-icon icon="save" />
+              Cambiar Contraseña
+            </button>
+          </div>
+
+          <!-- Mensajes de Retroalimentación -->
+          <div v-if="mensaje" class="mt-3">
+            <div :class="exito ? 'alert-success' : 'alert-danger'">
+              <i :class="exito ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+              {{ mensaje }}
+            </div>
+          </div>
+
+          <!-- Botón Cancelar -->
+          <button @click="cancelar" class="btn-municipal-secondary btn-block mt-3">
+            <font-awesome-icon icon="times" />
+            Cancelar
           </button>
         </div>
-
-        <!-- Paso 2: Nueva Contraseña -->
-        <div v-if="paso === 2" class="step-container">
-          <div class="step-indicator">
-            <span class="step-number">2</span>
-            <span class="step-label">Ingresar nueva contraseña</span>
-          </div>
-
-          <div class="form-group">
-            <label class="municipal-form-label">
-              <font-awesome-icon icon="key" />
-              Nueva Contraseña
-            </label>
-            <input
-              v-model="formulario.password_nueva"
-              type="password"
-              class="municipal-form-control"
-              placeholder="Ingrese su nueva contraseña"
-              maxlength="20"
-              autocomplete="new-password"
-              @keyup.enter="validarPasswordNueva"
-              required
-            />
-          </div>
-
-          <div class="password-requirements">
-            <p class="requirements-title">
-              <font-awesome-icon icon="info-circle" />
-              Requisitos de la contraseña:
-            </p>
-            <ul>
-              <li :class="{ valid: cumpleRequisito('minLength') }">
-                <i :class="cumpleRequisito('minLength') ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
-                Mínimo 6 caracteres
-              </li>
-              <li :class="{ valid: cumpleRequisito('hasNumber') }">
-                <i :class="cumpleRequisito('hasNumber') ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
-                Contiene números
-              </li>
-              <li :class="{ valid: cumpleRequisito('hasLetter') }">
-                <i :class="cumpleRequisito('hasLetter') ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
-                Contiene letras
-              </li>
-              <li :class="{ valid: cumpleRequisito('different') }">
-                <i :class="cumpleRequisito('different') ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
-                Diferente a la actual
-              </li>
-            </ul>
-          </div>
-
-          <button @click="validarPasswordNueva" class="btn-municipal-primary btn-block">
-            <font-awesome-icon icon="arrow-right" />
-            Continuar
-          </button>
-        </div>
-
-        <!-- Paso 3: Confirmar Contraseña -->
-        <div v-if="paso === 3" class="step-container">
-          <div class="step-indicator">
-            <span class="step-number">3</span>
-            <span class="step-label">Confirmar nueva contraseña</span>
-          </div>
-
-          <div class="form-group">
-            <label class="municipal-form-label">
-              <font-awesome-icon icon="check-double" />
-              Confirmar Contraseña
-            </label>
-            <input
-              v-model="formulario.password_confirmar"
-              type="password"
-              class="municipal-form-control"
-              placeholder="Confirme su nueva contraseña"
-              maxlength="20"
-              autocomplete="new-password"
-              @keyup.enter="cambiarPassword"
-              required
-            />
-          </div>
-
-          <div v-if="formulario.password_confirmar && !passwordsCoinciden" class="alert-danger mb-3">
-            <font-awesome-icon icon="exclamation-triangle" />
-            Las contraseñas no coinciden
-          </div>
-
-          <div v-if="passwordsCoinciden" class="alert-success mb-3">
-            <font-awesome-icon icon="check-circle" />
-            Las contraseñas coinciden
-          </div>
-
-          <button @click="cambiarPassword" class="btn-municipal-primary btn-block" :disabled="!passwordsCoinciden">
-            <font-awesome-icon icon="save" />
-            Cambiar Contraseña
-          </button>
-        </div>
-
-        <!-- Mensajes de Retroalimentación -->
-        <div v-if="mensaje" class="mt-3">
-          <div :class="exito ? 'alert-success' : 'alert-danger'">
-            <i :class="exito ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
-            {{ mensaje }}
-          </div>
-        </div>
-
-        <!-- Botón Cancelar -->
-        <button @click="cancelar" class="btn-municipal-secondary btn-block mt-3">
-          <font-awesome-icon icon="times" />
-          Cancelar
-        </button>
       </div>
     </div>
-  </div>
 
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'sfrm_chgpass'"
-    :moduleName="'cementerios'"
-    @close="closeDocumentation"
-  />
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'sfrm_chgpass'"
+      :moduleName="'cementerios'"
+      :docType="docType"
+      :title="'Cambiar Contraseña'"
+      @close="showDocModal = false"
+    />
+  </div>
 </template>
 
 <script setup>
@@ -166,16 +170,30 @@ import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
 const toast = useToast()
-
-// Modal de documentación
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
 const router = useRouter()
+
+// Estado de búsqueda y selección
+const selectedRow = ref(null)
+const hasSearched = ref(false)
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const paso = ref(1)
 const mensaje = ref('')
@@ -225,6 +243,7 @@ const validarPasswordActual = async () => {
   }
 
   mensaje.value = ''
+  showLoading('Validando contraseña', 'Verificando credenciales...')
 
   try {
     const params = [
@@ -239,7 +258,7 @@ const validarPasswordActual = async () => {
       'cementerios',
       null,
       'public'
-    , '', null, 'comun')
+    , '', null, 'publico')
 
     if (response.result && response.result.length > 0) {
       const result = response.result[0]
@@ -257,9 +276,12 @@ const validarPasswordActual = async () => {
       exito.value = false
     }
   } catch (error) {
+    console.error('Error al validar contraseña:', error)
     mensaje.value = 'Error de conexión con el servidor'
     exito.value = false
     toast.error('Error al validar contraseña')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -312,6 +334,7 @@ const cambiarPassword = async () => {
   }
 
   mensaje.value = ''
+  showLoading('Actualizando contraseña', 'Guardando cambios...')
 
   try {
     const params = [
@@ -331,7 +354,7 @@ const cambiarPassword = async () => {
       'cementerios',
       null,
       'public'
-    , '', null, 'comun')
+    , '', null, 'publico')
 
     if (response.result && response.result.length > 0) {
       const result = response.result[0]
@@ -354,9 +377,12 @@ const cambiarPassword = async () => {
       exito.value = false
     }
   } catch (error) {
+    console.error('Error al cambiar contraseña:', error)
     mensaje.value = 'Error de conexión con el servidor'
     exito.value = false
     toast.error('Error al cambiar contraseña')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -366,6 +392,8 @@ const cancelar = () => {
   formulario.password_confirmar = ''
   paso.value = 1
   mensaje.value = ''
+  selectedRow.value = null
+  hasSearched.value = false
   router.push({ path: '/' })
 }
 </script>

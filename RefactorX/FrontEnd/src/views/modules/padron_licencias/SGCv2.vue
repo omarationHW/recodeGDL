@@ -7,20 +7,22 @@
       </div>
       <div class="module-view-info">
         <h1>Sistema de Gestión de Calidad</h1>
-        <p>Padrón de Licencias - SGC v2.0 Indicadores y Procesos</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - SGC v2.0 Indicadores y Procesos</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button
           class="btn-municipal-primary"
           @click="openCreateModal"
-          :disabled="loading"
         >
           <font-awesome-icon icon="plus" />
           Nuevo Proceso
@@ -90,7 +92,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchProcesses"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -98,7 +99,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -106,7 +106,6 @@
           <button
             class="btn-municipal-secondary"
             @click="loadProcesses"
-            :disabled="loading"
           >
             <font-awesome-icon icon="sync-alt" />
             Actualizar
@@ -117,19 +116,38 @@
 
     <!-- Tabla de procesos -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Procesos de Calidad
-          <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords }} procesos</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="processes.length > 0">
+            {{ processes.length }} procesos
+          </span>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="processes.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="chart-line" size="3x" />
+          </div>
+          <h4>Sistema de Gestión de Calidad</h4>
+          <p>Utilice los filtros de búsqueda para consultar procesos o cree un nuevo proceso de calidad</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="processes.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron procesos con los criterios especificados</p>
+        </div>
+
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -144,7 +162,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="process in processes" :key="process.id" class="clickable-row">
+              <tr
+                v-for="process in processes"
+                :key="process.id"
+                @click="selectedRow = process"
+                :class="{ 'table-row-selected': selectedRow === process }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary">{{ process.id }}</strong></td>
                 <td>{{ process.nombre || 'N/A' }}</td>
                 <td>
@@ -182,25 +206,19 @@
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="viewProcess(process)"
+                      @click.stop="viewProcess(process)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
                     </button>
                     <button
                       class="btn-municipal-primary btn-sm"
-                      @click="editProcess(process)"
+                      @click.stop="editProcess(process)"
                       title="Editar"
                     >
                       <font-awesome-icon icon="edit" />
                     </button>
                   </div>
-                </td>
-              </tr>
-              <tr v-if="processes.length === 0 && !loading">
-                <td colspan="8" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron procesos con los criterios especificados</p>
                 </td>
               </tr>
             </tbody>
@@ -209,61 +227,54 @@
       </div>
 
       <!-- Paginación -->
-      <div class="pagination-container" v-if="totalRecords > 0 && !loading">
+      <div v-if="processes.length > 0" class="pagination-controls">
         <div class="pagination-info">
-          <font-awesome-icon icon="info-circle" />
-          Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-          a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
-          de {{ totalRecords }} registros
+          <span class="text-muted">
+            Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+            a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+            de {{ formatNumber(totalRecords) }} registros
+          </span>
         </div>
 
-        <div class="pagination-controls">
-          <div class="page-size-selector">
-            <label>Mostrar:</label>
-            <select v-model="itemsPerPage" @change="changePageSize">
-              <option :value="10">10</option>
-              <option :value="25">25</option>
-              <option :value="50">50</option>
-              <option :value="100">100</option>
-            </select>
-          </div>
-
-          <div class="pagination-nav">
-            <button
-              class="pagination-button"
-              @click="goToPage(currentPage - 1)"
-              :disabled="currentPage === 1"
-            >
-              <font-awesome-icon icon="chevron-left" />
-            </button>
-
-            <button
-              v-for="page in visiblePages"
-              :key="page"
-              class="pagination-button"
-              :class="{ active: page === currentPage }"
-              @click="goToPage(page)"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="pagination-button"
-              @click="goToPage(currentPage + 1)"
-              :disabled="currentPage === totalPages"
-            >
-              <font-awesome-icon icon="chevron-right" />
-            </button>
-          </div>
+        <div class="pagination-size">
+          <label class="municipal-form-label me-2">Registros por página:</label>
+          <select
+            class="municipal-form-control form-control-sm"
+            :value="itemsPerPage"
+            @change="changePageSize"
+            style="width: auto; display: inline-block;"
+          >
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
         </div>
-      </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading && processes.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando procesos de calidad...</p>
+        <div class="pagination-buttons">
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+            <font-awesome-icon icon="angle-double-left" />
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+            <font-awesome-icon icon="angle-left" />
+          </button>
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            class="btn-sm"
+            :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+            @click="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+            <font-awesome-icon icon="angle-right" />
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+            <font-awesome-icon icon="angle-double-right" />
+          </button>
+        </div>
       </div>
     </div>
 
@@ -444,28 +455,31 @@
       </div>
     </Modal>
 
-    <!-- Toast Notification -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'SGCv2'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Sistema de Gestión de Calidad'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -474,24 +488,34 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const processes = ref([])
@@ -500,6 +524,8 @@ const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const totalRecords = ref(0)
 const selectedProcess = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const showCreateModal = ref(false)
 const showViewModal = ref(false)
 const savingProcess = ref(false)
@@ -566,7 +592,9 @@ const loadIndicators = async () => {
 }
 
 const loadProcesses = async () => {
-  setLoading(true, 'Cargando procesos de calidad...')
+  showLoading('Cargando procesos de calidad...', 'Consultando base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const startTime = performance.now()
@@ -608,7 +636,7 @@ const loadProcesses = async () => {
     processes.value = []
     totalRecords.value = 0
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -623,19 +651,23 @@ const clearFilters = () => {
     categoria: '',
     estado: ''
   }
+  processes.value = []
+  hasSearched.value = false
   currentPage.value = 1
-  loadProcesses()
+  selectedRow.value = null
 }
 
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    selectedRow.value = null
     loadProcesses()
   }
 }
 
 const changePageSize = () => {
   currentPage.value = 1
+  selectedRow.value = null
   loadProcesses()
 }
 
@@ -827,6 +859,10 @@ const formatDate = (dateString) => {
   } catch (error) {
     return 'Fecha inválida'
   }
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
 }
 
 // Lifecycle

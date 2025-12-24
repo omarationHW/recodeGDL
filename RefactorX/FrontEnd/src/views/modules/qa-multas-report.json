@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-12-20T03:24:03.836Z",
+  "summary": {
+    "vueComponents": 106,
+    "ayudaFiles": 125,
+    "docFiles": 129,
+    "coverageAyuda": "100.0%",
+    "coverageDoc": "100.0%"
+  },
+  "missingAyuda": [],
+  "missingDoc": []
+}

@@ -14,11 +14,13 @@
         <p>Listado, filtros y detalles</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
       <div class="module-view-actions">
@@ -82,7 +84,7 @@
           <div class="section-icon"><font-awesome-icon icon="list" /></div>
           <div class="section-title-group">
             <h3>Resultados de Búsqueda</h3>
-            <span class="section-subtitle">
+            <span class="section-subtitle header-with-badge">
               <span v-if="totalRecords > 0" class="badge-purple">{{ totalRecords }} registros encontrados</span>
               <span v-else>Sin resultados</span>
             </span>
@@ -110,7 +112,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="item in items" :key="item.id" class="row-hover" :class="{ 'row-selected': selected?.id === item.id }" @click="selectRow(item)">
+                <tr v-for="item in items" :key="item.id" class="row-hover" :class="{ 'table-row-selected': selected?.id === item.id }" @click="selectRow(item)">
                   <td><strong class="text-primary">{{ item.numesta }}</strong></td>
                   <td class="text-center">{{ item.cupo }}</td>
                   <td><span class="badge-category">{{ item.categoria }}</span></td>
@@ -129,7 +131,7 @@
                 </tr>
                 <tr v-if="items.length === 0 && !loading">
                   <td colspan="11" class="empty-state">
-                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
+                    <font-awesome-icon icon="search" size="2x" class="empty-state-icon" />
                     <p>No se encontraron estacionamientos con los criterios especificados</p>
                   </td>
                 </tr>
@@ -176,17 +178,17 @@
     <Modal :show="showDetails" title="Detalles del Estacionamiento" size="xl" @close="showDetails = false" :showDefaultFooter="false">
       <div v-if="selected" class="details-container">
         <!-- Tabs de navegación -->
-        <div class="detail-tabs">
-          <button class="detail-tab" :class="{ active: detailTab === 'info' }" @click="detailTab = 'info'">
+        <div class="municipal-tabs">
+          <button class="municipal-tab" :class="{ active: detailTab === 'info' }" @click="detailTab = 'info'">
             <font-awesome-icon icon="info-circle" /> Información
           </button>
-          <button class="detail-tab" :class="{ active: detailTab === 'adeudos' }" @click="detailTab = 'adeudos'; loadAdeudos()">
+          <button class="municipal-tab" :class="{ active: detailTab === 'adeudos' }" @click="detailTab = 'adeudos'; loadAdeudos()">
             <font-awesome-icon icon="file-invoice-dollar" /> Adeudos
           </button>
-          <button class="detail-tab" :class="{ active: detailTab === 'multas' }" @click="detailTab = 'multas'; loadMultas()">
+          <button class="municipal-tab" :class="{ active: detailTab === 'multas' }" @click="detailTab = 'multas'; loadMultas()">
             <font-awesome-icon icon="gavel" /> Multas
           </button>
-          <button class="detail-tab" :class="{ active: detailTab === 'lic' }" @click="detailTab = 'lic'">
+          <button class="municipal-tab" :class="{ active: detailTab === 'lic' }" @click="detailTab = 'lic'">
             <font-awesome-icon icon="id-card" /> Licencia
           </button>
         </div>
@@ -251,7 +253,7 @@
                   </tr>
                   <tr v-if="adeudos.length === 0">
                     <td colspan="6" class="empty-state">
-                      <font-awesome-icon icon="check-circle" class="text-success" size="2x" />
+                      <font-awesome-icon icon="check-circle" class="text-success empty-state-icon" size="2x" />
                       <p>Sin adeudos pendientes</p>
                     </td>
                   </tr>
@@ -295,7 +297,7 @@
                   </tr>
                   <tr v-if="multas.length === 0">
                     <td colspan="4" class="empty-state">
-                      <font-awesome-icon icon="check-circle" class="text-success" size="2x" />
+                      <font-awesome-icon icon="check-circle" class="text-success empty-state-icon" size="2x" />
                       <p>Sin multas registradas</p>
                     </td>
                   </tr>
@@ -337,26 +339,26 @@
             </div>
           </div>
           <div v-else class="empty-state-panel">
-            <font-awesome-icon icon="file-alt" size="2x" class="text-muted" />
+            <font-awesome-icon icon="file-alt" size="2x" class="text-muted empty-state-icon" />
             <p>Ingrese la recaudadora y presione Consultar para ver los datos de licencia</p>
           </div>
         </div>
       </div>
     </Modal>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - ConsultaPublicos">
-      <h3>Consulta Públicos</h3>
-      <p>Documentación del módulo Estacionamiento Público.</p>
-    </DocumentationModal>
-
-    <!-- Modal de Documentación Técnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'ConsultaPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'ConsultaPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Consulta de Estacionamientos Públicos'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Modal from '@/components/common/Modal.vue'
 import { ref, computed, onMounted, watch } from 'vue'
@@ -365,7 +367,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -533,12 +535,18 @@ onMounted(loadData)
 watch([itemsPerPage], () => { /* handled by changePageSize */ })
 
 // Documentación y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>
@@ -584,6 +592,12 @@ const closeTechDocs = () => showTechDocs.value = false
 .section-subtitle {
   font-size: 0.85rem;
   opacity: 0.9;
+}
+
+.header-with-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .section-actions {
@@ -643,7 +657,7 @@ const closeTechDocs = () => showTechDocs.value = false
 }
 
 /* Table styling */
-.row-selected {
+.table-row-selected {
   background-color: #e3f2fd !important;
   border-left: 3px solid #2196f3;
 }
@@ -671,7 +685,7 @@ const closeTechDocs = () => showTechDocs.value = false
   color: #6c757d;
 }
 
-.empty-state .empty-icon {
+.empty-state .empty-state-icon {
   margin-bottom: 1rem;
   opacity: 0.5;
 }
@@ -744,7 +758,7 @@ const closeTechDocs = () => showTechDocs.value = false
   min-height: 400px;
 }
 
-.detail-tabs {
+.municipal-tabs {
   display: flex;
   gap: 0.5rem;
   padding-bottom: 1rem;
@@ -752,7 +766,7 @@ const closeTechDocs = () => showTechDocs.value = false
   margin-bottom: 1.5rem;
 }
 
-.detail-tab {
+.municipal-tab {
   padding: 0.75rem 1.25rem;
   border: none;
   background: #f8f9fa;
@@ -763,11 +777,11 @@ const closeTechDocs = () => showTechDocs.value = false
   transition: all 0.2s;
 }
 
-.detail-tab:hover {
+.municipal-tab:hover {
   background: #e9ecef;
 }
 
-.detail-tab.active {
+.municipal-tab.active {
   background: #667eea;
   color: white;
 }

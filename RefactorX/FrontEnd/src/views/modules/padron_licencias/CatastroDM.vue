@@ -7,55 +7,56 @@
       </div>
       <div class="module-view-info">
         <h1>Catastro para Desarrollo Municipal</h1>
-        <p>Padrón de Licencias - Sistema de Autorizaciones y Dictámenes</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Sistema de Autorizaciones y Dictámenes</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
 
     <!-- Pestañas de navegación -->
-    <div class="municipal-card">
-      <div class="tabs-container">
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'autorizaciones' }"
-          @click="activeTab = 'autorizaciones'"
-        >
-          <font-awesome-icon icon="check-circle" />
-          Autorizaciones
-        </button>
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'fechas' }"
-          @click="activeTab = 'fechas'"
-        >
-          <font-awesome-icon icon="calendar-alt" />
-          Cálculo de Fechas
-        </button>
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'dictamenes' }"
-          @click="activeTab = 'dictamenes'"
-        >
-          <font-awesome-icon icon="file-alt" />
-          Dictámenes
-        </button>
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'derechos' }"
-          @click="activeTab = 'derechos'"
-        >
-          <font-awesome-icon icon="dollar-sign" />
-          Derechos
-        </button>
-      </div>
+    <div class="municipal-tabs">
+      <button
+        class="municipal-tab"
+        :class="{ active: activeTab === 'autorizaciones' }"
+        @click="activeTab = 'autorizaciones'"
+      >
+        <font-awesome-icon icon="check-circle" />
+        Autorizaciones
+      </button>
+      <button
+        class="municipal-tab"
+        :class="{ active: activeTab === 'fechas' }"
+        @click="activeTab = 'fechas'"
+      >
+        <font-awesome-icon icon="calendar-alt" />
+        Cálculo de Fechas
+      </button>
+      <button
+        class="municipal-tab"
+        :class="{ active: activeTab === 'dictamenes' }"
+        @click="activeTab = 'dictamenes'"
+      >
+        <font-awesome-icon icon="file-alt" />
+        Dictámenes
+      </button>
+      <button
+        class="municipal-tab"
+        :class="{ active: activeTab === 'derechos' }"
+        @click="activeTab = 'derechos'"
+      >
+        <font-awesome-icon icon="dollar-sign" />
+        Derechos
+      </button>
     </div>
 
     <!-- Tab: Autorizaciones -->
@@ -373,8 +374,26 @@
           </button>
         </div>
 
+        <!-- Empty State - Sin consulta -->
+        <div v-if="derechosList.length === 0 && !hasSearchedDerechos" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="dollar-sign" size="3x" />
+          </div>
+          <h4>Consulta de Derechos</h4>
+          <p>Ingrese el número de empresa y presione Consultar Derechos</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="derechosList.length === 0 && hasSearchedDerechos" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron derechos para la empresa especificada</p>
+        </div>
+
         <!-- Tabla de derechos -->
-        <div v-if="derechosList.length > 0" class="table-responsive">
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -387,7 +406,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(derecho, index) in derechosList" :key="index" class="clickable-row">
+              <tr
+                v-for="(derecho, index) in derechosList"
+                :key="index"
+                @click="selectedDerecho = derecho"
+                :class="{ 'table-row-selected': selectedDerecho === derecho }"
+                class="row-hover"
+              >
                 <td>{{ derecho.concepto }}</td>
                 <td>${{ formatCurrency(derecho.base) }}</td>
                 <td>{{ derecho.tasa }}%</td>
@@ -407,36 +432,32 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando...</p>
-      </div>
-    </div>
-
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'CatastroDM'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Catastro para Desarrollo Municipal'"
+      @close="showDocModal = false"
     />
-  </template>
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -444,23 +465,33 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const activeTab = ref('autorizaciones')
@@ -469,6 +500,8 @@ const fechasResult = ref(null)
 const dictamenResult = ref(null)
 const dictamenGenerado = ref(false)
 const derechosList = ref([])
+const selectedDerecho = ref(null)
+const hasSearchedDerechos = ref(false)
 
 // Formularios
 const autorizacionForm = ref({
@@ -516,7 +549,7 @@ const autorizarDocumento = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Autorizando documento...', 'Por favor espere')
   try {
     const spName = autorizacionForm.value.tipo === 'licencia'
       ? 'sp_autoriza_licencia'
@@ -544,7 +577,7 @@ const autorizarDocumento = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -571,7 +604,7 @@ const calcularFecha = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Calculando fecha...', 'Por favor espere')
   try {
     let spName = ''
     switch (fechasForm.value.tipoCalculo) {
@@ -606,7 +639,7 @@ const calcularFecha = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -621,7 +654,7 @@ const verificarInhabil = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Verificando día inhábil...', 'Por favor espere')
   try {
     const response = await execute(
       'sp_checa_inhabil',
@@ -642,7 +675,7 @@ const verificarInhabil = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -658,7 +691,7 @@ const generarDictamen = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Generando dictamen...', 'Por favor espere')
   try {
     const response = await execute(
       'sp_generar_dictamen_microgeneradores',
@@ -685,7 +718,7 @@ const generarDictamen = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -695,7 +728,7 @@ const imprimirDictamen = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Imprimiendo dictamen...', 'Por favor espere')
   try {
     const response = await execute(
       'sp_imprimir_dictamen_microgeneradores',
@@ -712,7 +745,7 @@ const imprimirDictamen = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -740,7 +773,10 @@ const consultarDerechos = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Consultando derechos...', 'Por favor espere')
+  hasSearchedDerechos.value = true
+  selectedDerecho.value = null
+
   try {
     const response = await execute(
       'sp_get_derechos2',
@@ -763,16 +799,19 @@ const consultarDerechos = async () => {
         total: parseFloat(item.total) || 0
       }))
       showToast('success', 'Derechos consultados correctamente')
+    } else {
+      derechosList.value = []
     }
   } catch (error) {
     handleApiError(error)
+    derechosList.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const actualizarConsulta = async () => {
-  setLoading(true)
+  showLoading('Actualizando consulta...', 'Por favor espere')
   try {
     await execute(
       'sp_refresh_query',
@@ -787,7 +826,7 @@ const actualizarConsulta = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 

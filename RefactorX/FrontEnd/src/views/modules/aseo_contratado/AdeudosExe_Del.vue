@@ -8,25 +8,6 @@
         <h1>Eliminación de Adeudos por Ejecución</h1>
         <p>Aseo Contratado - Eliminar adeudos generados por procesos masivos o ejecuciones específicas</p>
       </div>
-      <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
-        </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
-      </div>
-    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -128,7 +109,7 @@
           <!-- Eliminación por Ejercicio -->
           <div v-if="tipoEliminacion === 'por_ejercicio'" class="mt-3">
             <h6 class="text-danger">⚠️ Eliminar Ejercicio Completo (Acción Crítica)</h6>
-            <div class="municipal-alert municipal-alert-danger">
+            <div class="alert alert-danger">
               <font-awesome-icon icon="exclamation-triangle" />
               <strong>ADVERTENCIA:</strong> Esta acción eliminará TODOS los adeudos del ejercicio seleccionado. Solo debe usarse en casos excepcionales.
             </div>
@@ -174,7 +155,7 @@
           <h5><font-awesome-icon icon="list" /> Adeudos Encontrados ({{ adeudosEncontrados.length }})</h5>
         </div>
         <div class="municipal-card-body">
-          <div class="municipal-alert municipal-alert-warning">
+          <div class="alert alert-warning">
             <font-awesome-icon icon="exclamation-triangle" />
             Se encontraron <strong>{{ adeudosEncontrados.length }}</strong> adeudos que cumplen con los criterios.
             Total a eliminar: <strong>{{ formatCurrency(totalAdeudos) }}</strong>
@@ -233,7 +214,7 @@
           <h5><font-awesome-icon icon="check-circle" /> Resultado de la Eliminación</h5>
         </div>
         <div class="municipal-card-body">
-          <div class="municipal-alert municipal-alert-success">
+          <div class="alert alert-success">
             <font-awesome-icon icon="check-circle" />
             <strong>Eliminación completada:</strong> {{ resultadoEliminacion.eliminados }} adeudos eliminados correctamente.
           </div>
@@ -289,31 +270,20 @@
         Asegúrese de verificar cuidadosamente los adeudos antes de confirmar.
       </p>
     </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'AdeudosExe_Del'"
-      :moduleName="'aseo_contratado'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import Swal from 'sweetalert2'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 
-const { showLoading, hideLoading } = useGlobalLoading()
-
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
+const loading = ref(false)
 const showDocumentation = ref(false)
 const tipoEliminacion = ref('')
 const adeudosEncontrados = ref([])
@@ -345,15 +315,14 @@ const buscarContrato = async () => {
       parVigencia: 'T'
     })
 
-    if (response && response.length > 0) {
-      contratoInfo.value = response[0]
+    if (response && response.data && response.data.length > 0) {
+      contratoInfo.value = response.data[0]
     } else {
       contratoInfo.value = null
       showToast('Contrato no encontrado', 'warning')
     }
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
+    console.error('Error al buscar contrato:', error)
   }
 }
 
@@ -379,18 +348,17 @@ const buscarAdeudos = async () => {
     return
   }
 
-  showLoading()
+  loading.value = true
   try {
     // Simular búsqueda de adeudos - En producción llamar a SP específico
     // SP propuesto: SP_ASEO_ADEUDOS_BUSCAR_PARA_ELIMINAR
     adeudosEncontrados.value = []
     showToast('Búsqueda de adeudos en desarrollo - Funcionalidad simulada', 'info')
   } catch (error) {
-    hideLoading()
     showToast('Error al buscar adeudos', 'error')
-    handleApiError(error)
+    console.error('Error:', error)
   } finally {
-    hideLoading()
+    loading.value = false
   }
 }
 
@@ -420,7 +388,7 @@ const confirmarEliminacion = async () => {
 }
 
 const eliminarAdeudos = async () => {
-  showLoading()
+  loading.value = true
   try {
     // Llamar al SP de eliminación - En producción
     // SP propuesto: SP_ASEO_ADEUDOS_ELIMINAR_POR_EJECUCION
@@ -433,11 +401,10 @@ const eliminarAdeudos = async () => {
     showToast(`${adeudosEncontrados.value.length} adeudos eliminados correctamente`, 'success')
     adeudosEncontrados.value = []
   } catch (error) {
-    hideLoading()
     showToast('Error al eliminar adeudos', 'error')
-    handleApiError(error)
+    console.error('Error:', error)
   } finally {
-    hideLoading()
+    loading.value = false
   }
 }
 

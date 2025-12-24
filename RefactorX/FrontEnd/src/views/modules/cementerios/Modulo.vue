@@ -7,10 +7,6 @@
       <div class="module-view-info">
         <h1>Módulo General del Sistema</h1>
       </div>
-      <DocumentationModal
-        title="Ayuda - Módulo General"
-        :sections="helpSections"
-      />
     </div>
 
     <div class="module-view-content">
@@ -165,27 +161,45 @@
           </div>
         </div>
       </div>
-    </div>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'Modulo'"
-      :moduleName="'cementerios'"
-      @close="closeTechDocs"
-    />
 
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        title="Ayuda - Módulo General"
+        :sections="helpSections"
+      />
+    </div>
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive } from 'vue'
 import { useApi } from '@/composables/useApi'
-import { useToast } from '@/composables/useToast'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const api = useApi()
-const toast = useToast()
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const formUsuario = reactive({
   usuario: '',
@@ -200,6 +214,8 @@ const formVersion = reactive({
 const resultadoUsuario = ref(null)
 const horaServidor = ref('')
 const resultadoVersion = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 const helpSections = [
   {
@@ -218,10 +234,11 @@ const helpSections = [
 
 const validarUsuario = async () => {
   if (!formUsuario.usuario || !formUsuario.clave) {
-    toast.warning('Complete todos los campos')
+    showToast('Complete todos los campos', 'warning')
     return
   }
 
+  showLoading('Validando usuario...', 'Verificando credenciales')
   try {
     const response = await api.callStoredProcedure('SP_VALIDAR_USUARIO', {
       p_usuario: formUsuario.usuario,
@@ -236,13 +253,13 @@ const validarUsuario = async () => {
           success: true,
           mensaje: `Usuario válido. ID: ${result.id_usuario} - ${result.nombre || formUsuario.usuario}`
         }
-        toast.success('Usuario válido')
+        showToast('Usuario válido', 'success')
       } else {
         resultadoUsuario.value = {
           success: false,
           mensaje: result.mensaje || 'Usuario o contraseña incorrectos'
         }
-        toast.error('Credenciales inválidas')
+        showToast('Credenciales inválidas', 'error')
       }
     } else {
       resultadoUsuario.value = {
@@ -251,15 +268,19 @@ const validarUsuario = async () => {
       }
     }
   } catch (error) {
+    console.error('Error al validar usuario:', error)
     resultadoUsuario.value = {
       success: false,
       mensaje: 'Error de conexión con el servidor'
     }
-    toast.error('Error al validar usuario')
+    handleApiError(error, 'Error al validar usuario')
+  } finally {
+    hideLoading()
   }
 }
 
 const consultarHora = async () => {
+  showLoading('Consultando hora del servidor...', 'Obteniendo información')
   try {
     const response = await api.callStoredProcedure('SP_OBTENER_HORA_SERVIDOR', {})
 
@@ -269,7 +290,7 @@ const consultarHora = async () => {
         dateStyle: 'full',
         timeStyle: 'long'
       })
-      toast.success('Hora del servidor obtenida')
+      showToast('Hora del servidor obtenida', 'success')
     } else {
       // Fallback a hora local
       horaServidor.value = new Date().toLocaleString('es-MX', {
@@ -278,21 +299,25 @@ const consultarHora = async () => {
       })
     }
   } catch (error) {
+    console.error('Error al obtener hora:', error)
     // Fallback a hora local
     horaServidor.value = new Date().toLocaleString('es-MX', {
       dateStyle: 'full',
       timeStyle: 'long'
     }) + ' (hora local)'
-    toast.warning('Usando hora local del navegador')
+    showToast('Usando hora local del navegador', 'warning')
+  } finally {
+    hideLoading()
   }
 }
 
 const verificarVersion = async () => {
   if (!formVersion.proyecto || !formVersion.version) {
-    toast.warning('Complete todos los campos')
+    showToast('Complete todos los campos', 'warning')
     return
   }
 
+  showLoading('Verificando versión...', 'Comprobando actualizaciones')
   try {
     const response = await api.callStoredProcedure('SP_VERIFICAR_VERSION', {
       p_proyecto: formVersion.proyecto,
@@ -315,24 +340,18 @@ const verificarVersion = async () => {
       }
     }
 
-    toast.info(resultadoVersion.value.mensaje)
+    showToast(resultadoVersion.value.mensaje, 'info')
   } catch (error) {
+    console.error('Error al verificar versión:', error)
     resultadoVersion.value = {
       hayNueva: false,
       mensaje: 'No se pudo verificar la versión'
     }
-    toast.error('Error al verificar versión')
+    handleApiError(error, 'Error al verificar versión')
+  } finally {
+    hideLoading()
   }
 }
-
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
-
 </script>
 
 <style scoped>

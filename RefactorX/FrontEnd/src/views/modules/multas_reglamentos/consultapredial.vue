@@ -6,6 +6,16 @@
         <h1>Consulta Predial</h1>
         <p>Consulta información de propiedades por clave catastral</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -14,12 +24,31 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Clave Catastral</label>
-              <input class="municipal-form-control" v-model="filters.cvecat" placeholder="Ej: D65I3950016" @keyup.enter="consultar"/>
+              <input
+                class="municipal-form-control"
+                v-model="filters.cvecat"
+                placeholder="Ej: D65I3950016"
+                @keyup.enter="filters.cvecat.trim() && consultar()"
+              />
             </div>
           </div>
           <div class="button-group">
-            <button class="btn-municipal-primary" :disabled="loading" @click="consultar">
-              <font-awesome-icon icon="search"/> Buscar
+            <button
+              class="btn-municipal-primary"
+              :disabled="loading || !filters.cvecat.trim()"
+              @click="consultar"
+            >
+              <font-awesome-icon icon="search" v-if="!loading"/>
+              <font-awesome-icon icon="spinner" spin v-if="loading"/>
+              {{ loading ? 'Buscando...' : 'Buscar' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              :disabled="loading"
+              @click="limpiar"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
             </button>
           </div>
         </div>
@@ -122,37 +151,76 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'consultapredial'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Consulta Predial'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'consultapredial'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Consulta Predial'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_CONSULTAPREDIAL'
-const SCHEMA = 'multas_reglamentos'
 
 const filters = ref({ cvecat: '' })
 const data = ref(null)
 
 async function consultar() {
+  const params = [
+    { nombre: 'p_cvecat', tipo: 'string', valor: String(filters.value.cvecat || '') }
+  ]
+
+  showLoading('Consultando...', 'Por favor espere')
   try {
-    const result = await execute(OP, BASE_DB, [
-      { nombre: 'p_cvecat', tipo: 'string', valor: String(filters.value.cvecat || '') }
-    ], '', null, SCHEMA)
-    data.value = Array.isArray(result?.result) ? result.result[0] :
-                  Array.isArray(result?.rows) ? result.rows[0] :
-                  Array.isArray(result) ? result[0] : result
+    const response = await execute(OP, BASE_DB, params, '', null, 'publico')
+    console.log('Respuesta completa:', response)
+
+    // Extraer datos con fallbacks
+    const responseData = response?.eResponse?.data || response?.data || response
+    const arr = Array.isArray(responseData?.result) ? responseData.result :
+                 Array.isArray(responseData?.rows) ? responseData.rows :
+                 Array.isArray(responseData) ? responseData : []
+
+    console.log('Datos extraídos:', arr.length, arr)
+    data.value = arr.length > 0 ? arr[0] : null
   } catch (e) {
+    console.error('Error al consultar predio:', e)
     data.value = null
+  } finally {
+    hideLoading()
   }
+}
+
+function limpiar() {
+  filters.value = { cvecat: '' }
+  data.value = null
 }
 
 function formatCurrency(value) {
@@ -161,120 +229,4 @@ function formatCurrency(value) {
 }
 </script>
 
-<style scoped>
-.predial-content {
-  padding: 0.5rem 0;
-}
-
-.predial-section {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.predial-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.predial-section-title {
-  color: #2c5282;
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #3b82f6;
-}
-
-.predial-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 0.75rem;
-}
-
-.predial-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.predial-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.predial-value {
-  font-size: 0.95rem;
-  color: #1e293b;
-  font-weight: 500;
-  padding: 0.4rem 0.6rem;
-  background-color: #f8fafc;
-  border-radius: 4px;
-  border-left: 3px solid #cbd5e1;
-}
-
-.predial-value.highlight {
-  background-color: #eff6ff;
-  border-left-color: #3b82f6;
-  color: #1e40af;
-  font-weight: 600;
-}
-
-.predial-value.currency {
-  font-family: 'Courier New', monospace;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.badge-activo {
-  background-color: #10b981;
-  color: white;
-  padding: 0.4rem 0.8rem;
-  border-radius: 4px;
-  font-weight: 600;
-  text-align: center;
-  border-left: none;
-}
-
-.badge-inactivo {
-  background-color: #ef4444;
-  color: white;
-  padding: 0.4rem 0.8rem;
-  border-radius: 4px;
-  font-weight: 600;
-  text-align: center;
-  border-left: none;
-}
-
-.text-danger {
-  color: #dc2626 !important;
-  font-weight: 700;
-}
-
-.text-success {
-  color: #059669 !important;
-}
-
-.predial-alert {
-  background-color: #fef3c7;
-  border-left: 4px solid #f59e0b;
-  padding: 1rem;
-  border-radius: 4px;
-  color: #92400e;
-  font-size: 0.95rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-@media (max-width: 768px) {
-  .predial-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
 

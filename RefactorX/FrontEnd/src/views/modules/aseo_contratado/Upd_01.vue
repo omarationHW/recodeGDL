@@ -1,6 +1,6 @@
-<template>
+﻿<template>
   <div class="module-view">
-    <!-- Header del módulo -->
+        <!-- Header del módulo -->
     <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="wrench" />
@@ -9,127 +9,109 @@
         <h1>Actualización General de Contratos</h1>
         <p>Aseo Contratado - Modificación masiva de datos de contratos</p>
       </div>
-      <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+      <button
+        type="button"
+        class="btn-help-icon"
+        @click="mostrarAyuda = true"
+        title="Ayuda"
+      >
+        <font-awesome-icon icon="question-circle" />
+      </button>
+    </div>
+<div class="municipal-card shadow-sm mb-4">
+      <div class="municipal-card-header">
+        <h5>Paso 1: Selección de Contratos</h5>
+      </div>
+      <div class="municipal-card-body">
+        <div class="row mb-3">
+          <div class="col-md-2">
+            <label class="municipal-form-label">Zona</label>
+            <select class="municipal-form-control" v-model="filtros.zona">
+              <option value="">Todas</option>
+              <option v-for="z in zonas" :key="z.ctrol_zona" :value="z.zona">
+                Zona {{ z.zona }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="municipal-form-label">Tipo de Aseo</label>
+            <select class="municipal-form-control" v-model="filtros.tipoAseo">
+              <option value="">Todos</option>
+              <option value="D">Doméstico</option>
+              <option value="C">Comercial</option>
+              <option value="I">Industrial</option>
+              <option value="S">Servicios</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="municipal-form-label">Empresa</label>
+            <select class="municipal-form-control" v-model="filtros.empresa">
+              <option value="">Todas</option>
+              <option v-for="emp in empresas" :key="emp.num_empresa" :value="emp.num_empresa">
+                {{ emp.nombre_empresa }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="municipal-form-label">Rango de Contratos</label>
+            <div class="input-group">
+              <input type="text" class="municipal-form-control" v-model="filtros.contratoDesde" placeholder="Desde" />
+              <input type="text" class="municipal-form-control" v-model="filtros.contratoHasta" placeholder="Hasta" />
+            </div>
+          </div>
+          <div class="col-md-3">
+            <label class="municipal-form-label">&nbsp;</label>
+            <button class="btn-municipal-info w-100" @click="buscarContratos" :disabled="cargando">
+              <font-awesome-icon icon="search" /> Buscar Contratos
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="module-view-content">
-      <!-- Paso 1: Filtros de búsqueda -->
-      <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="filter" />
-            Paso 1: Selección de Contratos
-          </h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Zona</label>
-              <select class="municipal-form-control" v-model="filtros.zona">
-                <option value="">Todas</option>
-                <option v-for="z in zonas" :key="z.ctrol_zona" :value="z.zona">
-                  Zona {{ z.zona }} - {{ z.descripcion || '' }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Tipo de Aseo</label>
-              <select class="municipal-form-control" v-model="filtros.tipoAseo">
-                <option value="">Todos</option>
-                <option v-for="t in tiposAseo" :key="t.ctrol_aseo" :value="t.ctrol_aseo">
-                  {{ t.descripcion }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Empresa</label>
-              <select class="municipal-form-control" v-model="filtros.empresa">
-                <option value="">Todas</option>
-                <option v-for="emp in empresas" :key="emp.num_empresa" :value="emp.num_empresa">
-                  {{ emp.descripcion }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Contrato Desde</label>
-              <input type="number" class="municipal-form-control" v-model="filtros.contratoDesde" placeholder="Desde" />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Contrato Hasta</label>
-              <input type="number" class="municipal-form-control" v-model="filtros.contratoHasta" placeholder="Hasta" />
-            </div>
-          </div>
-          <div class="button-group">
-            <button class="btn-municipal-primary" @click="buscarContratos" :disabled="loading">
-              <font-awesome-icon icon="search" />
-              Buscar
-            </button>
-            <button class="btn-municipal-secondary" @click="limpiarFiltros" :disabled="loading">
-              <font-awesome-icon icon="times" />
-              Limpiar
-            </button>
-            <button class="btn-municipal-secondary" @click="buscarContratos" :disabled="loading">
-              <font-awesome-icon icon="sync-alt" />
-              Actualizar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tabla de contratos -->
-      <div class="municipal-card" v-if="contratos.length > 0">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="list" />
-            Contratos para Actualizar
-            <span class="badge-info">{{ contratos.length }} registros</span>
-          </h5>
-          <div class="button-group">
-            <button class="btn-municipal-primary btn-sm" @click="seleccionarTodos">
+    <div v-if="contratos.length > 0">
+      <div class="municipal-card shadow-sm mb-4">
+        <div class="municipal-card-header bg-light d-flex justify-content-between">
+          <h6 class="mb-0">Contratos para Actualizar ({{ contratos.length }})</h6>
+          <div>
+            <button class="btn btn-sm btn-success" @click="seleccionarTodos">
               <font-awesome-icon icon="check-double" /> Todos
             </button>
-            <button class="btn-municipal-secondary btn-sm" @click="limpiarSeleccion">
+            <button class="btn btn-sm btn-secondary ms-2" @click="limpiarSeleccion">
               <font-awesome-icon icon="eraser" /> Limpiar
             </button>
           </div>
         </div>
-        <div class="municipal-card-body table-container">
+        <div class="municipal-card-body">
           <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
             <table class="municipal-table">
-              <thead class="municipal-table-header">
+              <thead class="table-light" style="position: sticky; top: 0;">
                 <tr>
                   <th style="width: 40px;">
-                    <input type="checkbox" v-model="seleccionarTodo" @change="toggleSeleccionTodos" />
+                    <input type="checkbox" class="form-check-input" v-model="seleccionarTodo"
+                      @change="toggleSeleccionTodos" />
                   </th>
                   <th>Contrato</th>
-                  <th>Empresa</th>
+                  <th>Contribuyente</th>
                   <th>Zona</th>
-                  <th>Tipo Aseo</th>
-                  <th class="text-end">Monto</th>
-                  <th>Status</th>
+                  <th>Tipo</th>
+                  <th>Empresa</th>
+                  <th class="text-end">Cuota Actual</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="contrato in contratos" :key="contrato.control_contrato"
-                    :class="{ 'row-selected': contratosSeleccionados.includes(contrato.control_contrato) }">
+                    :class="{ 'table-warning': contratosSeleccionados.includes(contrato.control_contrato) }">
                   <td>
-                    <input type="checkbox" :value="contrato.control_contrato" v-model="contratosSeleccionados" />
+                    <input type="checkbox" class="form-check-input"
+                      :value="contrato.control_contrato" v-model="contratosSeleccionados" />
                   </td>
-                  <td><code>{{ contrato.num_contrato }}</code></td>
-                  <td>{{ contrato.empresa_descripcion }}</td>
-                  <td class="text-center">{{ contrato.zona_id }}</td>
-                  <td>{{ contrato.tipo_aseo_descripcion }}</td>
-                  <td class="text-end">${{ formatCurrency(contrato.monto_mensual) }}</td>
-                  <td class="text-center">
-                    <span class="badge" :class="contrato.status_vigencia === 'V' ? 'badge-success' : 'badge-secondary'">
-                      {{ contrato.status_vigencia === 'V' ? 'Vigente' : 'Cancelado' }}
-                    </span>
-                  </td>
+                  <td>{{ contrato.num_contrato }}</td>
+                  <td>{{ contrato.contribuyente }}</td>
+                  <td class="text-center">{{ contrato.zona }}</td>
+                  <td class="text-center">{{ formatTipoAseo(contrato.tipo_aseo) }}</td>
+                  <td>{{ contrato.nombre_empresa }}</td>
+                  <td class="text-end">${{ formatCurrency(contrato.cuota_mensual) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -137,74 +119,64 @@
         </div>
       </div>
 
-      <!-- Mensaje cuando no hay contratos -->
-      <div class="municipal-card" v-if="buscado && contratos.length === 0">
-        <div class="municipal-card-body text-center">
-          <font-awesome-icon icon="inbox" size="3x" class="text-muted mb-3" />
-          <p class="text-muted">No se encontraron contratos con los filtros seleccionados</p>
-        </div>
-      </div>
-
-      <!-- Paso 2: Configurar actualizaciones -->
-      <div class="municipal-card" v-if="contratosSeleccionados.length > 0">
+      <div v-if="contratosSeleccionados.length > 0" class="municipal-card">
         <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="edit" />
-            Paso 2: Configurar Actualizaciones
-            <span class="badge-warning">{{ contratosSeleccionados.length }} seleccionados</span>
-          </h5>
-        </div>
+        <h5>Paso 2: Configurar Actualizaciones ({{ contratosSeleccionados.length }} seleccionados)</h5>
+      </div>
         <div class="municipal-card-body">
-          <div class="municipal-alert municipal-alert-warning mb-3">
-            <font-awesome-icon icon="exclamation-triangle" />
+          <div class="alert alert-warning">
+            <font-awesome-icon icon="exclamation-triangle" class="me-2" />
             <strong>Importante:</strong> Solo se aplicarán los campos que tengan valor. Deje en blanco los que no desea modificar.
           </div>
 
-          <!-- Cambios de Empresa y Zona -->
-          <h6 class="section-title">Cambios de Empresa y Zona</h6>
-          <div class="form-row">
-            <div class="form-group">
+          <div class="row mb-3">
+            <div class="col-md-12">
+              <h6 class="border-bottom pb-2">Cambios de Empresa y Zona</h6>
+            </div>
+            <div class="col-md-3">
               <label class="municipal-form-label">Nueva Empresa</label>
               <select class="municipal-form-control" v-model="actualizaciones.empresa">
                 <option value="">No modificar</option>
                 <option v-for="emp in empresas" :key="emp.num_empresa" :value="emp.num_empresa">
-                  {{ emp.descripcion }}
+                  {{ emp.nombre_empresa }}
                 </option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="col-md-3">
               <label class="municipal-form-label">Nueva Zona</label>
               <select class="municipal-form-control" v-model="actualizaciones.zona">
                 <option value="">No modificar</option>
-                <option v-for="z in zonas" :key="z.ctrol_zona" :value="z.ctrol_zona">
+                <option v-for="z in zonas" :key="z.ctrol_zona" :value="z.zona">
                   Zona {{ z.zona }}
                 </option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="col-md-3">
               <label class="municipal-form-label">Nueva Unidad Recolectora</label>
               <select class="municipal-form-control" v-model="actualizaciones.unidad">
                 <option value="">No modificar</option>
-                <option v-for="u in unidades" :key="u.control_contrato" :value="u.control_contrato">
-                  {{ u.descripcion }}
+                <option v-for="u in unidades" :key="u.num_unidad" :value="u.num_unidad">
+                  {{ u.nombre_unidad }}
                 </option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="col-md-3">
               <label class="municipal-form-label">Nuevo Tipo de Aseo</label>
               <select class="municipal-form-control" v-model="actualizaciones.tipoAseo">
                 <option value="">No modificar</option>
-                <option v-for="t in tiposAseo" :key="t.ctrol_aseo" :value="t.ctrol_aseo">
-                  {{ t.descripcion }}
-                </option>
+                <option value="D">Doméstico</option>
+                <option value="C">Comercial</option>
+                <option value="I">Industrial</option>
+                <option value="S">Servicios</option>
               </select>
             </div>
           </div>
 
-          <!-- Ajustes de Cuota -->
-          <h6 class="section-title">Ajustes de Cuota</h6>
-          <div class="form-row">
-            <div class="form-group">
+          <div class="row mb-3">
+            <div class="col-md-12">
+              <h6 class="border-bottom pb-2">Ajustes de Cuota</h6>
+            </div>
+            <div class="col-md-3">
               <label class="municipal-form-label">Tipo de Ajuste</label>
               <select class="municipal-form-control" v-model="actualizaciones.tipoAjusteCuota">
                 <option value="">No ajustar cuota</option>
@@ -213,121 +185,112 @@
                 <option value="MONTO">Incremento por monto</option>
               </select>
             </div>
-            <div class="form-group" v-if="actualizaciones.tipoAjusteCuota === 'FIJA'">
+            <div class="col-md-3" v-if="actualizaciones.tipoAjusteCuota === 'FIJA'">
               <label class="municipal-form-label">Nueva Cuota Mensual</label>
               <input type="number" class="municipal-form-control" v-model.number="actualizaciones.cuotaFija"
                 step="0.01" min="0" placeholder="0.00" />
             </div>
-            <div class="form-group" v-if="actualizaciones.tipoAjusteCuota === 'PORCENTAJE'">
-              <label class="municipal-form-label">Porcentaje (%)</label>
+            <div class="col-md-3" v-if="actualizaciones.tipoAjusteCuota === 'PORCENTAJE'">
+              <label class="municipal-form-label">Porcentaje de Incremento (%)</label>
               <input type="number" class="municipal-form-control" v-model.number="actualizaciones.porcentajeIncremento"
                 step="0.01" min="0" max="100" placeholder="0.00" />
             </div>
-            <div class="form-group" v-if="actualizaciones.tipoAjusteCuota === 'MONTO'">
+            <div class="col-md-3" v-if="actualizaciones.tipoAjusteCuota === 'MONTO'">
               <label class="municipal-form-label">Monto a Incrementar</label>
               <input type="number" class="municipal-form-control" v-model.number="actualizaciones.montoIncremento"
                 step="0.01" min="0" placeholder="0.00" />
             </div>
           </div>
 
-          <!-- Información Adicional -->
-          <h6 class="section-title">Información Adicional</h6>
-          <div class="form-row">
-            <div class="form-group" style="flex: 2;">
-              <label class="municipal-form-label">Motivo de la Actualización <span class="required">*</span></label>
+          <div class="row mb-3">
+            <div class="col-md-12">
+              <h6 class="border-bottom pb-2">Información Adicional</h6>
+            </div>
+            <div class="col-md-6">
+              <label class="municipal-form-label">Motivo de la Actualización *</label>
               <input type="text" class="municipal-form-control" v-model="actualizaciones.motivo"
                 placeholder="Ej: Reorganización de zonas y ajuste de tarifas 2024" />
             </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Fecha de Aplicación <span class="required">*</span></label>
+            <div class="col-md-3">
+              <label class="municipal-form-label">Fecha de Aplicación *</label>
               <input type="date" class="municipal-form-control" v-model="actualizaciones.fechaAplicacion" />
             </div>
           </div>
 
-          <!-- Previsualización -->
-          <div v-if="previsualizacion && tieneAlgunCambio" class="municipal-alert municipal-alert-info">
+          <div v-if="previsualizacion" class="alert alert-info">
             <h6><font-awesome-icon icon="eye" /> Previsualización de Cambios:</h6>
             <ul class="mb-0">
               <li v-if="actualizaciones.empresa">Empresa cambiará a: <strong>{{ obtenerNombreEmpresa(actualizaciones.empresa) }}</strong></li>
-              <li v-if="actualizaciones.zona">Zona cambiará a: <strong>{{ obtenerNombreZona(actualizaciones.zona) }}</strong></li>
+              <li v-if="actualizaciones.zona">Zona cambiará a: <strong>{{ actualizaciones.zona }}</strong></li>
               <li v-if="actualizaciones.unidad">Unidad cambiará a: <strong>{{ obtenerNombreUnidad(actualizaciones.unidad) }}</strong></li>
-              <li v-if="actualizaciones.tipoAseo">Tipo de aseo cambiará a: <strong>{{ obtenerNombreTipoAseo(actualizaciones.tipoAseo) }}</strong></li>
+              <li v-if="actualizaciones.tipoAseo">Tipo de aseo cambiará a: <strong>{{ formatTipoAseoCompleto(actualizaciones.tipoAseo) }}</strong></li>
               <li v-if="actualizaciones.tipoAjusteCuota === 'FIJA'">Cuota se establecerá en: <strong>${{ formatCurrency(actualizaciones.cuotaFija) }}</strong></li>
               <li v-if="actualizaciones.tipoAjusteCuota === 'PORCENTAJE'">Cuota se incrementará en: <strong>{{ actualizaciones.porcentajeIncremento }}%</strong></li>
               <li v-if="actualizaciones.tipoAjusteCuota === 'MONTO'">Cuota se incrementará en: <strong>${{ formatCurrency(actualizaciones.montoIncremento) }}</strong></li>
             </ul>
           </div>
 
-          <div class="button-group mt-3">
+          <div class="d-flex justify-content-between">
             <button class="btn-municipal-secondary" @click="cancelar">
               <font-awesome-icon icon="times" /> Cancelar
             </button>
-            <button class="btn-municipal-info" @click="previsualizacion = !previsualizacion">
-              <font-awesome-icon icon="eye" /> {{ previsualizacion ? 'Ocultar' : 'Ver' }} Previsualización
-            </button>
-            <button class="btn-municipal-primary" @click="aplicarActualizaciones"
-              :disabled="!validarActualizacion()">
-              <font-awesome-icon icon="save" /> Aplicar Actualizaciones
-            </button>
+            <div>
+              <button class="btn-municipal-info me-2" @click="previsualizacion = !previsualizacion">
+                <font-awesome-icon icon="eye" /> {{ previsualizacion ? 'Ocultar' : 'Ver' }} Previsualización
+              </button>
+              <button class="btn-municipal-info" @click="aplicarActualizaciones"
+                :disabled="!validarActualizacion()">
+                <font-awesome-icon icon="save" /> Aplicar Actualizaciones
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
+    <DocumentationModal v-if="mostrarAyuda" :show="mostrarAyuda" @close="mostrarAyuda = false"
+      title="Actualización General de Contratos">
+      <h6>Descripción</h6>
+      <p>Permite realizar modificaciones masivas en múltiples contratos simultáneamente.</p>
+      <h6>Campos que se Pueden Actualizar</h6>
+      <ul>
+        <li>Empresa prestadora del servicio</li>
+        <li>Zona de recolección</li>
+        <li>Unidad recolectora asignada</li>
+        <li>Tipo de aseo (Doméstico, Comercial, Industrial, Servicios)</li>
+        <li>Cuota mensual (fija, por porcentaje o por monto)</li>
+      </ul>
+      <h6>Tipos de Ajuste de Cuota</h6>
+      <ul>
+        <li><strong>Fija:</strong> Establece la misma cuota para todos los contratos seleccionados</li>
+        <li><strong>Porcentaje:</strong> Incrementa la cuota actual por un porcentaje</li>
+        <li><strong>Monto:</strong> Incrementa la cuota actual por un monto fijo</li>
+      </ul>
+      <h6>Importante</h6>
+      <p>Solo se modificarán los campos que tengan valor asignado. Los campos vacíos no se actualizarán.</p>
+    </DocumentationModal>
   </div>
-
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'Upd_01'"
-    :moduleName="'aseo_contratado'"
-    @close="closeDocumentation"
-  />
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 
-// Constantes
-const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
-
-// Composables
 const { execute } = useApi()
-const { showLoading, hideLoading } = useGlobalLoading()
-const {
-  loading,
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const { handleError } = useLicenciasErrorHandler()
+const { showToast } = useToast()
 
-// Estado
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
-const buscado = ref(false)
+const cargando = ref(false)
+const mostrarAyuda = ref(false)
 const contratos = ref([])
 const zonas = ref([])
 const empresas = ref([])
 const unidades = ref([])
-const tiposAseo = ref([])
 const contratosSeleccionados = ref([])
 const seleccionarTodo = ref(false)
 const previsualizacion = ref(false)
@@ -353,102 +316,38 @@ const actualizaciones = ref({
   fechaAplicacion: new Date().toISOString().split('T')[0]
 })
 
-// Computed
-const tieneAlgunCambio = computed(() => {
-  return actualizaciones.value.empresa ||
-         actualizaciones.value.zona ||
-         actualizaciones.value.unidad ||
-         actualizaciones.value.tipoAseo ||
-         actualizaciones.value.tipoAjusteCuota
-})
-
-// Métodos
-async function loadCatalogos() {
+const buscarContratos = async () => {
+  cargando.value = true
   try {
-    const [respZonas, respEmpresas, respUnidades, respTipos] = await Promise.all([
-      execute('sp_zonas_list', BASE_DB, [], '', null, SCHEMA),
-      execute('sp_aseo_empresas_list', BASE_DB, [], '', null, SCHEMA),
-      execute('sp_aseo_unidades_list', BASE_DB, [], '', null, SCHEMA),
-      execute('sp_tipos_aseo_list', BASE_DB, [], '', null, SCHEMA)
-    ])
-    zonas.value = respZonas?.result || []
-    empresas.value = respEmpresas?.result || []
-    unidades.value = respUnidades?.result || []
-    tiposAseo.value = respTipos?.result || []
-  } catch (error) {
-    hideLoading()
-    handleApiError(error)
-  }
-}
-
-async function buscarContratos() {
-  showLoading('Buscando contratos...', 'Consultando base de datos')
-  buscado.value = true
-
-  try {
-    const params = [
-      { nombre: 'p_limit', valor: 500, tipo: 'integer' },
-      { nombre: 'p_offset', valor: 0, tipo: 'integer' }
-    ]
-    const response = await execute('sp_aseo_contratos_list', BASE_DB, params, '', null, SCHEMA)
-
-    let data = response?.result || []
-
-    // Filtrar en cliente
-    if (filtros.value.zona) {
-      data = data.filter(c => c.zona_id == filtros.value.zona)
+    const params = {
+      p_zona: filtros.value.zona || null,
+      p_tipo_aseo: filtros.value.tipoAseo || null,
+      p_empresa: filtros.value.empresa || null,
+      p_contrato_desde: filtros.value.contratoDesde || null,
+      p_contrato_hasta: filtros.value.contratoHasta || null
     }
-    if (filtros.value.tipoAseo) {
-      data = data.filter(c => c.tipo_aseo_id == filtros.value.tipoAseo)
-    }
-    if (filtros.value.empresa) {
-      data = data.filter(c => c.num_empresa == filtros.value.empresa)
-    }
-    if (filtros.value.contratoDesde) {
-      data = data.filter(c => c.num_contrato >= parseInt(filtros.value.contratoDesde))
-    }
-    if (filtros.value.contratoHasta) {
-      data = data.filter(c => c.num_contrato <= parseInt(filtros.value.contratoHasta))
-    }
-
-    contratos.value = data
+    const response = await execute('SP_ASEO_CONTRATOS_PARA_ACTUALIZAR', 'aseo_contratado', params)
+    contratos.value = response || []
     contratosSeleccionados.value = []
-    seleccionarTodo.value = false
-
-    showToast(`${contratos.value.length} contrato(s, 'success') encontrado(s)`)
+    showToast(`${contratos.value.length} contrato(s) encontrado(s)`, 'success')
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
-    contratos.value = []
+    handleError(error, 'Error al buscar contratos')
   } finally {
-    hideLoading()
+    cargando.value = false
   }
 }
 
-function limpiarFiltros() {
-  filtros.value = {
-    zona: '',
-    tipoAseo: '',
-    empresa: '',
-    contratoDesde: '',
-    contratoHasta: ''
-  }
-  contratos.value = []
-  contratosSeleccionados.value = []
-  buscado.value = false
-}
-
-function seleccionarTodos() {
+const seleccionarTodos = () => {
   contratosSeleccionados.value = contratos.value.map(c => c.control_contrato)
   seleccionarTodo.value = true
 }
 
-function limpiarSeleccion() {
+const limpiarSeleccion = () => {
   contratosSeleccionados.value = []
   seleccionarTodo.value = false
 }
 
-function toggleSeleccionTodos() {
+const toggleSeleccionTodos = () => {
   if (seleccionarTodo.value) {
     seleccionarTodos()
   } else {
@@ -456,41 +355,38 @@ function toggleSeleccionTodos() {
   }
 }
 
-function validarActualizacion() {
+const validarActualizacion = () => {
   if (contratosSeleccionados.value.length === 0) return false
   if (!actualizaciones.value.motivo.trim()) return false
   if (!actualizaciones.value.fechaAplicacion) return false
-  return tieneAlgunCambio.value
+
+  const tieneAlgunCambio = actualizaciones.value.empresa ||
+                          actualizaciones.value.zona ||
+                          actualizaciones.value.unidad ||
+                          actualizaciones.value.tipoAseo ||
+                          actualizaciones.value.tipoAjusteCuota
+
+  return tieneAlgunCambio
 }
 
-function obtenerNombreEmpresa(numEmpresa) {
+const obtenerNombreEmpresa = (numEmpresa) => {
   const emp = empresas.value.find(e => e.num_empresa === numEmpresa)
-  return emp ? emp.descripcion : ''
+  return emp ? emp.nombre_empresa : ''
 }
 
-function obtenerNombreZona(ctrolZona) {
-  const zona = zonas.value.find(z => z.ctrol_zona === ctrolZona)
-  return zona ? `Zona ${zona.zona}` : ''
+const obtenerNombreUnidad = (numUnidad) => {
+  const unidad = unidades.value.find(u => u.num_unidad === numUnidad)
+  return unidad ? unidad.nombre_unidad : ''
 }
 
-function obtenerNombreUnidad(controlContrato) {
-  const unidad = unidades.value.find(u => u.control_contrato === controlContrato)
-  return unidad ? unidad.descripcion : ''
-}
-
-function obtenerNombreTipoAseo(ctrolAseo) {
-  const tipo = tiposAseo.value.find(t => t.ctrol_aseo === ctrolAseo)
-  return tipo ? tipo.descripcion : ''
-}
-
-async function aplicarActualizaciones() {
+const aplicarActualizaciones = async () => {
   const result = await Swal.fire({
     title: '¿Aplicar Actualizaciones?',
     html: `Se actualizarán <strong>${contratosSeleccionados.value.length}</strong> contrato(s).<br>
            Esta operación no se puede deshacer.`,
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#667eea',
+    confirmButtonColor: '#ffc107',
     cancelButtonColor: '#6c757d',
     confirmButtonText: 'Sí, actualizar',
     cancelButtonText: 'Cancelar'
@@ -498,69 +394,36 @@ async function aplicarActualizaciones() {
 
   if (!result.isConfirmed) return
 
-  showLoading('Aplicando actualizaciones...', 'Procesando contratos')
-
+  cargando.value = true
   try {
-    let actualizados = 0
-    let errores = 0
-
-    for (const controlContrato of contratosSeleccionados.value) {
-      try {
-        const params = [
-          { nombre: 'p_control_contrato', valor: controlContrato, tipo: 'integer' },
-          { nombre: 'p_num_empresa', valor: actualizaciones.value.empresa || null, tipo: 'integer' },
-          { nombre: 'p_tipo_aseo_id', valor: actualizaciones.value.tipoAseo || null, tipo: 'integer' },
-          { nombre: 'p_zona_id', valor: actualizaciones.value.zona || null, tipo: 'integer' },
-          { nombre: 'p_unidades_recoleccion', valor: actualizaciones.value.unidad || null, tipo: 'integer' },
-          { nombre: 'p_monto_mensual', valor: calcularNuevaCuota(controlContrato), tipo: 'numeric' },
-          { nombre: 'p_observaciones', valor: `Actualización masiva: ${actualizaciones.value.motivo}`, tipo: 'string' }
-        ]
-        await execute('sp_aseo_contratos_update', BASE_DB, params, '', null, SCHEMA)
-        actualizados++
-      } catch (e) {
-        hideLoading()
-        errores++
-      }
+    const params = {
+      p_contratos: contratosSeleccionados.value.join(','),
+      p_nueva_empresa: actualizaciones.value.empresa || null,
+      p_nueva_zona: actualizaciones.value.zona || null,
+      p_nueva_unidad: actualizaciones.value.unidad || null,
+      p_nuevo_tipo_aseo: actualizaciones.value.tipoAseo || null,
+      p_tipo_ajuste_cuota: actualizaciones.value.tipoAjusteCuota || null,
+      p_cuota_fija: actualizaciones.value.cuotaFija || null,
+      p_porcentaje_incremento: actualizaciones.value.porcentajeIncremento || null,
+      p_monto_incremento: actualizaciones.value.montoIncremento || null,
+      p_motivo: actualizaciones.value.motivo,
+      p_fecha_aplicacion: actualizaciones.value.fechaAplicacion
     }
 
-    hideLoading()
+    await execute('SP_ASEO_APLICAR_ACTUALIZACIONES_MASIVAS', 'aseo_contratado', params)
 
-    await Swal.fire(
-      '¡Proceso completado!',
-      `Actualizados: ${actualizados}, Errores: ${errores}`,
-      errores === 0 ? 'success' : 'warning'
-    )
+    await Swal.fire('¡Actualizado!', 'Los contratos han sido actualizados correctamente', 'success')
 
     await buscarContratos()
     cancelar()
   } catch (error) {
-    hideLoading()
-    hideLoading()
-    handleApiError(error)
+    handleError(error, 'Error al aplicar actualizaciones')
+  } finally {
+    cargando.value = false
   }
 }
 
-function calcularNuevaCuota(controlContrato) {
-  if (!actualizaciones.value.tipoAjusteCuota) return null
-
-  const contrato = contratos.value.find(c => c.control_contrato === controlContrato)
-  if (!contrato) return null
-
-  const cuotaActual = contrato.monto_mensual || 0
-
-  switch (actualizaciones.value.tipoAjusteCuota) {
-    case 'FIJA':
-      return actualizaciones.value.cuotaFija
-    case 'PORCENTAJE':
-      return cuotaActual * (1 + actualizaciones.value.porcentajeIncremento / 100)
-    case 'MONTO':
-      return cuotaActual + actualizaciones.value.montoIncremento
-    default:
-      return null
-  }
-}
-
-function cancelar() {
+const cancelar = () => {
   contratosSeleccionados.value = []
   seleccionarTodo.value = false
   previsualizacion.value = false
@@ -578,15 +441,32 @@ function cancelar() {
   }
 }
 
-function formatCurrency(value) {
+const formatCurrency = (value) => {
   return new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2 }).format(value || 0)
 }
 
-// Lifecycle
+const formatTipoAseo = (tipo) => {
+  const tipos = { 'D': 'Dom', 'C': 'Com', 'I': 'Ind', 'S': 'Ser' }
+  return tipos[tipo] || tipo
+}
+
+const formatTipoAseoCompleto = (tipo) => {
+  const tipos = { 'D': 'Doméstico', 'C': 'Comercial', 'I': 'Industrial', 'S': 'Servicios' }
+  return tipos[tipo] || tipo
+}
+
 onMounted(async () => {
-  showLoading('Cargando módulo...', 'Iniciando')
-  await loadCatalogos()
-  hideLoading()
+  try {
+    const [respZonas, respEmpresas, respUnidades] = await Promise.all([
+      execute('SP_ASEO_ZONAS_LIST', 'aseo_contratado', {}),
+      execute('SP_ASEO_EMPRESAS_LIST', 'aseo_contratado', {}),
+      execute('SP_ASEO_UNIDADES_LIST', 'aseo_contratado', {})
+    ])
+    zonas.value = respZonas || []
+    empresas.value = respEmpresas || []
+    unidades.value = respUnidades || []
+  } catch (error) {
+    console.error('Error al cargar catálogos:', error)
+  }
 })
 </script>
-

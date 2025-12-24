@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Reporte de Estado de Trámites</h1>
-        <p>Padrón de Licencias - Seguimiento y Estado de Trámites</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Seguimiento y Estado de Trámites</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -36,7 +39,6 @@
                 class="municipal-form-control"
                 v-model="filters.idTramite"
                 placeholder="Ingrese el ID del trámite"
-                :disabled="loading"
                 @keyup.enter="consultarTramite"
               >
             </div>
@@ -45,7 +47,7 @@
             <button
               class="btn-municipal-primary"
               @click="consultarTramite"
-              :disabled="loading || !filters.idTramite"
+              :disabled="!filters.idTramite"
             >
               <font-awesome-icon icon="search" />
               Consultar Estado
@@ -53,7 +55,6 @@
             <button
               class="btn-municipal-secondary"
               @click="clearFilters"
-              :disabled="loading"
             >
               <font-awesome-icon icon="times" />
               Limpiar
@@ -62,7 +63,6 @@
               v-if="tramite"
               class="btn-municipal-info"
               @click="exportarReporte"
-              :disabled="loading"
             >
               <font-awesome-icon icon="file-pdf" />
               Generar PDF
@@ -219,20 +219,23 @@
 
       <!-- Historial de revisiones -->
       <div class="municipal-card" v-if="revisiones.length > 0">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header header-with-badge">
           <h5>
             <font-awesome-icon icon="history" />
             Historial de Revisiones
-            <span class="badge-purple" v-if="revisiones.length > 0">{{ revisiones.length }} revisiones</span>
           </h5>
-          <button
-            class="btn-municipal-primary"
-            @click="exportarExcel"
-            :disabled="loading"
-          >
-            <font-awesome-icon icon="file-excel" />
-            Exportar a Excel
-          </button>
+          <div class="header-right">
+            <span class="badge-purple" v-if="revisiones.length > 0">
+              {{ revisiones.length }} revisiones
+            </span>
+            <button
+              class="btn-municipal-primary ms-2"
+              @click="exportarExcel"
+            >
+              <font-awesome-icon icon="file-excel" />
+              Exportar a Excel
+            </button>
+          </div>
         </div>
         <div class="municipal-card-body">
           <div class="timeline">
@@ -270,40 +273,47 @@
         </div>
       </div>
 
-      <!-- Mensaje cuando no hay datos -->
-      <div class="municipal-card" v-if="!loading && !tramite && filters.idTramite">
-        <div class="municipal-card-body text-center text-muted">
-          <font-awesome-icon icon="search" size="3x" class="empty-icon" />
-          <p>No se encontró el trámite con ID: {{ filters.idTramite }}</p>
+      <!-- Empty State - Sin búsqueda -->
+      <div v-if="!tramite && !hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="clipboard-list" size="3x" />
         </div>
+        <h4>Reporte de Estado de Trámites</h4>
+        <p>Ingrese el ID del trámite para consultar su estado y revisiones</p>
       </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Consultando estado del trámite...</p>
+      <!-- Empty State - Sin resultados -->
+      <div v-else-if="!tramite && hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="inbox" size="3x" />
+        </div>
+        <h4>Sin resultados</h4>
+        <p>No se encontró el trámite con ID: {{ filters.idTramite }}</p>
       </div>
-    </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'repestado'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Reporte de Estado de Trámites'"
+        @close="showDocModal = false"
+      />
     </div>
   </div>
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'repestado'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
   </template>
 
 <script setup>
@@ -312,23 +322,33 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useExcelExport } from '@/composables/useExcelExport'
 import Swal from 'sweetalert2'
 
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { exportToExcel } = useExcelExport()
 
 // Estado
@@ -337,6 +357,8 @@ const revisiones = ref([])
 const filters = ref({
   idTramite: ''
 })
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Métodos
 const consultarTramite = async () => {
@@ -350,7 +372,9 @@ const consultarTramite = async () => {
     return
   }
 
-  setLoading(true, 'Consultando trámite...')
+  showLoading('Consultando trámite...', 'Por favor espere')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     // Obtener datos del trámite
@@ -379,7 +403,7 @@ const consultarTramite = async () => {
     tramite.value = null
     revisiones.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -456,6 +480,8 @@ const clearFilters = () => {
   filters.value.idTramite = ''
   tramite.value = null
   revisiones.value = []
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const formatDate = (dateString) => {

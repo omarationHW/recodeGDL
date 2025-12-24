@@ -26,11 +26,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button
-          type="button"
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -109,7 +109,26 @@
       </div>
 
       <div class="municipal-card-body table-container">
-        <div class="table-responsive">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="visitas.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="calendar-check" size="3x" />
+          </div>
+          <h4>Agenda de Visitas</h4>
+          <p>Seleccione una dependencia y rango de fechas, luego presione Buscar para ver las visitas programadas</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="visitas.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron visitas agendadas en el rango de fechas seleccionado</p>
+        </div>
+
+        <!-- Tabla con datos -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -152,7 +171,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(visita, index) in visitas" :key="index" class="clickable-row" @click="viewVisita(visita)">
+              <tr
+                v-for="(visita, index) in visitas"
+                :key="index"
+                @click="selectedRow = visita"
+                :class="{ 'table-row-selected': selectedRow === visita }"
+                class="row-hover"
+              >
                 <td>
                   <div class="giro-name">
                     <font-awesome-icon icon="calendar-check" class="giro-icon text-primary" />
@@ -190,17 +215,6 @@
                 </td>
                 <td>
                   <span class="giro-text">{{ visita.actividad?.trim() || 'N/A' }}</span>
-                </td>
-              </tr>
-              <tr v-if="visitas.length === 0">
-                <td colspan="9" class="text-center">
-                  <div class="empty-state-content">
-                    <div class="empty-state-icon">
-                      <font-awesome-icon icon="calendar-times" />
-                    </div>
-                    <p class="empty-state-text">No hay visitas agendadas</p>
-                    <p class="empty-state-hint">Seleccione una dependencia y rango de fechas, luego presione Buscar</p>
-                  </div>
                 </td>
               </tr>
             </tbody>
@@ -322,51 +336,43 @@
       </div>
     </Modal>
 
-    <!-- Toast Notification -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
       <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
         <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" />
-          {{ toast.duration }}
-        </span>
       </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'Agendavisitasfrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Agenda de Visitas'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Modal from '@/components/common/Modal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
 // Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
 const {
@@ -377,10 +383,26 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
+
 // Estado
 const visitas = ref([])
 const dependencias = ref([])
 const selectedVisita = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const showViewModal = ref(false)
 const showFilters = ref(true)
 
@@ -403,7 +425,7 @@ const loadDependencias = async () => {
       'SP_GET_DEPENDENCIAS',
       'padron_licencias',
       [],
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -424,6 +446,8 @@ const loadVisitas = async () => {
   }
 
   showLoading('Cargando agenda de visitas...')
+  hasSearched.value = true
+  selectedRow.value = null
   const startTime = performance.now()
 
   try {
@@ -435,7 +459,7 @@ const loadVisitas = async () => {
         { nombre: 'p_fechaini', valor: filters.value.fechaini, tipo: 'string' },
         { nombre: 'p_fechafin', valor: filters.value.fechafin, tipo: 'string' }
       ],
-      'comun'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -468,6 +492,8 @@ const clearFilters = () => {
     fechafin: ''
   }
   visitas.value = []
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const viewVisita = (visita) => {

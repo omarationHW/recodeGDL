@@ -6,7 +6,17 @@
       </div>
       <div class="module-view-info">
         <h1>Derechos Otras Obligaciones</h1>
-        <p>Consulta de otras obligaciones fiscales</p>
+        <p>Consulta y gestión de otras obligaciones fiscales por número de cuenta</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
       </div>
     </div>
 
@@ -20,14 +30,27 @@
               <input
                 class="municipal-form-control"
                 v-model="filters.cuenta"
-                @keyup.enter="reload"
-                placeholder="Ingrese número de cuenta"
+                @keyup.enter="filters.cuenta.trim() && reload()"
               />
             </div>
           </div>
           <div class="button-group">
-            <button class="btn-municipal-primary" :disabled="loading" @click="reload">
-              <font-awesome-icon icon="search" /> Buscar
+            <button
+              class="btn-municipal-primary"
+              :disabled="loading || !filters.cuenta.trim()"
+              @click="reload"
+            >
+              <font-awesome-icon icon="search" v-if="!loading" />
+              <font-awesome-icon icon="spinner" spin v-if="loading" />
+              {{ loading ? 'Buscando...' : 'Buscar' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              :disabled="loading"
+              @click="limpiar"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
             </button>
           </div>
         </div>
@@ -63,42 +86,38 @@
           </div>
 
           <!-- Pagination Controls -->
-          <div v-if="rows.length > 0" class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid #dee2e6;">
+          <div v-if="rows.length > 0" class="pagination-controls">
             <div class="pagination-info">
               <span class="text-muted">
                 Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ rows.length }} registros
               </span>
             </div>
-            <div class="pagination-controls" style="display: flex; gap: 0.5rem;">
+            <div class="pagination-buttons">
               <button
                 class="btn-municipal-secondary"
                 :disabled="currentPage === 1"
-                @click="goToPage(1)"
-                style="padding: 0.5rem 0.75rem;">
+                @click="goToPage(1)">
                 <font-awesome-icon icon="angles-left" />
               </button>
               <button
                 class="btn-municipal-secondary"
                 :disabled="currentPage === 1"
-                @click="prevPage"
-                style="padding: 0.5rem 0.75rem;">
+                @click="prevPage">
                 <font-awesome-icon icon="chevron-left" />
               </button>
-              <span style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500;">
+              <span class="pagination-page-indicator">
                 Página {{ currentPage }} de {{ totalPages }}
               </span>
               <button
                 class="btn-municipal-secondary"
                 :disabled="currentPage === totalPages"
-                @click="nextPage"
-                style="padding: 0.5rem 0.75rem;">
+                @click="nextPage">
                 <font-awesome-icon icon="chevron-right" />
               </button>
               <button
                 class="btn-municipal-secondary"
                 :disabled="currentPage === totalPages"
-                @click="goToPage(totalPages)"
-                style="padding: 0.5rem 0.75rem;">
+                @click="goToPage(totalPages)">
                 <font-awesome-icon icon="angles-right" />
               </button>
             </div>
@@ -107,24 +126,44 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'drecgoOtrasObligaciones'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Derechos Otras Obligaciones'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'drecgoOtrasObligaciones'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Derechos Otras Obligaciones'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_DRECGOOTRASOBLIGACIONES'
-const SCHEMA = 'multas_reglamentos'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({ cuenta: '' })
 const rows = ref([])
@@ -167,31 +206,36 @@ function goToPage(page) {
 
 async function reload() {
   currentPage.value = 1 // Reset a la primera página al buscar
-
+  const params = [
+    { nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') }
+  ]
   try {
-    const data = await execute(
-      OP,
-      BASE_DB,
-      [{ nombre: 'clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') }],
-      '',
-      null,
-      SCHEMA
-    )
+    showLoading('Consultando...', 'Por favor espere')
+    const response = await execute(OP, BASE_DB, params, '', null, 'publico')
+    console.log('Respuesta completa:', response)
 
-    const arr = Array.isArray(data?.result)
-      ? data.result
-      : Array.isArray(data?.rows)
-      ? data.rows
-      : Array.isArray(data)
-      ? data
-      : []
+    // Extraer datos con fallbacks
+    const responseData = response?.eResponse?.data || response?.data || response
+    const arr = Array.isArray(responseData?.result) ? responseData.result :
+                 Array.isArray(responseData?.rows) ? responseData.rows :
+                 Array.isArray(responseData) ? responseData : []
 
+    console.log('Registros extraídos:', arr.length, arr)
     rows.value = arr
     cols.value = arr.length ? Object.keys(arr[0]) : []
   } catch (e) {
+    console.error('Error al consultar otras obligaciones:', e)
     rows.value = []
     cols.value = []
-    console.error('Error al cargar datos:', e)
+  } finally {
+    hideLoading()
   }
+}
+
+function limpiar() {
+  filters.value = { cuenta: '' }
+  rows.value = []
+  cols.value = []
+  currentPage.value = 1
 }
 </script>

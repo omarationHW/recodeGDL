@@ -14,11 +14,13 @@
         <p>Búsqueda por número de estacionamiento</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -138,25 +140,19 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - EdoCtaPublicos">
-      <h3>Estado de Cuenta Públicos</h3>
-      <p>Este módulo permite consultar el estado de cuenta de estacionamientos públicos.</p>
-      <h4>Instrucciones:</h4>
-      <ol>
-        <li>Ingrese el número de estacionamiento</li>
-        <li>Presione el botón Consultar o Enter</li>
-        <li>Se mostrarán los datos del estacionamiento</li>
-      </ol>
-    </DocumentationModal>
-
-    <!-- Modal de Documentación Técnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'EdoCtaPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'EdoCtaPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Estado de Cuenta — Estacionamientos Públicos'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
@@ -164,7 +160,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -200,12 +196,18 @@ async function consultar() {
 }
 
 // Documentación y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>
@@ -360,6 +362,7 @@ const closeTechDocs = () => showTechDocs.value = false
   color: #6c757d;
 }
 
+.empty-state-icon,
 .empty-icon-container {
   width: 80px;
   height: 80px;
@@ -412,5 +415,57 @@ const closeTechDocs = () => showTechDocs.value = false
   padding: 0.125rem 0.375rem;
   border-radius: 4px;
   font-weight: 600;
+}
+
+/* Clases municipales adicionales */
+.municipal-tabs {
+  display: flex;
+  border-bottom: 2px solid #e9ecef;
+  margin-bottom: 1rem;
+}
+
+.municipal-tab {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: transparent;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+}
+
+.municipal-tab:hover {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.municipal-tab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+  font-weight: 600;
+}
+
+.row-hover {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.row-hover:hover {
+  background-color: #f8f9fa;
+}
+
+.table-row-selected {
+  background-color: #e3f2fd !important;
+}
+
+.header-with-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-with-badge .badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
 }
 </style>

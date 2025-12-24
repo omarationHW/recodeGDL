@@ -13,6 +13,16 @@
         <h1>Aplicar Pago — Diversos Admin</h1>
         <p>Búsqueda y aplicación de pagos administrativos</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -77,13 +87,13 @@
 
       <!-- Resultados -->
       <div class="municipal-card mb-3">
-        <div class="municipal-card-header d-flex justify-content-between">
+        <div class="municipal-card-header header-with-badge d-flex justify-content-between">
           <span><font-awesome-icon icon="list" /> Resultados</span>
           <span class="badge bg-secondary">{{ resultados.length }} registros</span>
         </div>
         <div class="municipal-card-body">
           <div v-if="resultados.length === 0" class="text-center py-4 text-muted">
-            <font-awesome-icon icon="inbox" size="2x" class="mb-2" />
+            <font-awesome-icon icon="inbox" size="2x" class="mb-2 empty-state-icon" />
             <p>Realice una búsqueda para ver resultados</p>
           </div>
 
@@ -101,7 +111,12 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="r in paginatedResultados" :key="`${r.axo}-${r.folio}`">
+                <tr
+                  v-for="r in paginatedResultados"
+                  :key="`${r.axo}-${r.folio}`"
+                  class="row-hover"
+                  :class="{ 'table-row-selected': folioSeleccionado && folioSeleccionado.axo === r.axo && folioSeleccionado.folio === r.folio }"
+                >
                   <td>{{ r.axo }}</td>
                   <td>{{ r.folio }}</td>
                   <td>{{ r.placa }}</td>
@@ -191,6 +206,16 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'AplicaPagoDivAdminPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Aplicar Pago - Diversos Admin'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
@@ -200,9 +225,10 @@ import Swal from 'sweetalert2'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -382,5 +408,19 @@ async function aplicarPago() {
     await nextTick()
     handleApiError(e)
   }
+}
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
 }
 </script>

@@ -10,14 +10,20 @@
         <p>Inicio > Mercados > Listados</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || !hayResultados">
           <font-awesome-icon icon="file-excel" />
           Excel
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -75,7 +81,7 @@
               <select class="municipal-form-control" v-model.number="selectedRec" @change="onRecChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -105,7 +111,7 @@
               <select class="municipal-form-control" v-model.number="selectedRec" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -193,7 +199,7 @@
                     <p>No se encontraron locales</p>
                   </td>
                 </tr>
-                <tr v-else v-for="loc in locales" :key="loc.id_local" class="row-hover">
+                <tr v-else v-for="loc in paginatedData" :key="loc.id_local" class="row-hover">
                   <td>{{ loc.oficina }}</td>
                   <td>{{ loc.num_mercado }}</td>
                   <td>{{ loc.categoria }}</td>
@@ -242,7 +248,7 @@
                     <p>No se encontraron movimientos</p>
                   </td>
                 </tr>
-                <tr v-else v-for="mov in movimientos" :key="mov.id_movimiento" class="row-hover">
+                <tr v-else v-for="mov in paginatedData" :key="mov.id_movimiento" class="row-hover">
                   <td>{{ formatDate(mov.fecha) }}</td>
                   <td>{{ mov.oficina }}</td>
                   <td>{{ mov.num_mercado }}</td>
@@ -279,7 +285,7 @@
                     <p>No se encontraron ingresos</p>
                   </td>
                 </tr>
-                <tr v-else v-for="ing in ingresos" :key="ing.id_zona" class="row-hover">
+                <tr v-else v-for="ing in paginatedData" :key="ing.id_zona" class="row-hover">
                   <td><strong>{{ ing.id_zona }}</strong></td>
                   <td>{{ ing.zona }}</td>
                   <td class="text-end"><strong class="text-success">{{ formatCurrency(ing.pagado) }}</strong></td>
@@ -290,6 +296,80 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Controles de paginación -->
+          <div v-if="hayResultados" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, totalRegistros) }}
+                de {{ totalRegistros }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -304,12 +384,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'ListadosLocales'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - ListadosLocales'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'ListadosLocales'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - ListadosLocales'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -329,6 +418,10 @@ const movimientos = ref([])
 const ingresos = ref([])
 const loading = ref(false)
 const searchPerformed = ref(false)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 // Toast
 const toast = ref({
@@ -356,16 +449,46 @@ const totalRegistros = computed(() => {
   return 0
 })
 
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  if (tipoListado.value === 'padron') return locales.value.slice(start, end)
+  if (tipoListado.value === 'movimientos') return movimientos.value.slice(start, end)
+  if (tipoListado.value === 'ingresozonas') return ingresos.value.slice(start, end)
+  return []
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(totalRegistros.value / itemsPerPage.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
 // Métodos
 const toggleFilters = () => {
   showFilters.value = !showFilters.value
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione el tipo de listado y los filtros correspondientes para generar el reporte')
+  showToast('Ayuda: Seleccione el tipo de listado y los filtros correspondientes para generar el reporte', 'info')
 }
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = { show: true, type, message }
   setTimeout(() => hideToast(), 5000)
 }
@@ -398,18 +521,19 @@ const formatNumber = (number) => {
 const fetchRecaudadoras = async () => {
   showLoading('Cargando Listados de Locales', 'Preparando oficinas recaudadoras...')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse?.success === true) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success === true) {
+      recaudadoras.value = res.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar recaudadoras')
+    showToast('Error al cargar recaudadoras', 'error')
   } finally {
     hideLoading()
   }
@@ -421,21 +545,22 @@ const onRecChange = async () => {
   if (!selectedRec.value) return
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_catalogo_mercados',
-        Base: 'padron_licencias',
-        Parametros: [
+    const res = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
           { nombre: 'p_oficina', tipo: 'integer', valor: selectedRec.value },
           { nombre: 'p_nivel_usuario', tipo: 'integer', valor: 1 }
-        ]
-      }
-    })
-    if (res.data.eResponse?.success) {
-      mercados.value = res.data.eResponse.data.result || []
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success) {
+      mercados.value = res.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar mercados')
+    showToast('Error al cargar mercados', 'error')
   }
 }
 
@@ -451,7 +576,7 @@ const buscar = () => {
 
 const buscarPadron = async () => {
   if (!selectedRec.value || !selectedMercado.value) {
-    showToast('warning', 'Seleccione recaudadora y mercado')
+    showToast('Seleccione recaudadora y mercado', 'warning')
     return
   }
 
@@ -460,27 +585,28 @@ const buscarPadron = async () => {
   searchPerformed.value = true
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_listado_padron_locales',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: selectedRec.value },
-          { Nombre: 'p_mercado', Valor: selectedMercado.value }
-        ]
-      }
-    })
-    if (res.data.eResponse?.success) {
-      locales.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_listado_padron_locales',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: selectedRec.value },
+          { nombre: 'p_mercado', valor: selectedMercado.value }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success) {
+      locales.value = res.data.result || []
       if (locales.value.length > 0) {
-        showToast('success', `Se encontraron ${locales.value.length} locales`)
+        showToast(`Se encontraron ${locales.value.length} locales`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No hay locales para el mercado seleccionado')
+        showToast('No hay locales para el mercado seleccionado', 'info')
       }
     }
   } catch (err) {
-    showToast('error', 'Error al buscar padrón')
+    showToast('Error al buscar padrón', 'error')
   } finally {
     loading.value = false
   }
@@ -488,7 +614,7 @@ const buscarPadron = async () => {
 
 const buscarMovimientos = async () => {
   if (!selectedRec.value || !fechaDesde.value || !fechaHasta.value) {
-    showToast('warning', 'Complete todos los filtros requeridos')
+    showToast('Complete todos los filtros requeridos', 'warning')
     return
   }
 
@@ -497,28 +623,29 @@ const buscarMovimientos = async () => {
   searchPerformed.value = true
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_listado_movimientos_locales',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: selectedRec.value },
-          { Nombre: 'p_fecha_desde', Valor: fechaDesde.value },
-          { Nombre: 'p_fecha_hasta', Valor: fechaHasta.value }
-        ]
-      }
-    })
-    if (res.data.eResponse?.success) {
-      movimientos.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_listado_movimientos_locales',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: selectedRec.value },
+          { nombre: 'p_fecha_desde', valor: fechaDesde.value },
+          { nombre: 'p_fecha_hasta', valor: fechaHasta.value }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success) {
+      movimientos.value = res.data.result || []
       if (movimientos.value.length > 0) {
-        showToast('success', `Se encontraron ${movimientos.value.length} movimientos`)
+        showToast(`Se encontraron ${movimientos.value.length} movimientos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No hay movimientos para los filtros seleccionados')
+        showToast('No hay movimientos para los filtros seleccionados', 'info')
       }
     }
   } catch (err) {
-    showToast('error', 'Error al buscar movimientos')
+    showToast('Error al buscar movimientos', 'error')
   } finally {
     loading.value = false
   }
@@ -526,7 +653,7 @@ const buscarMovimientos = async () => {
 
 const buscarIngresoZonas = async () => {
   if (!fechaDesde.value || !fechaHasta.value) {
-    showToast('warning', 'Seleccione el rango de fechas')
+    showToast('Seleccione el rango de fechas', 'warning')
     return
   }
 
@@ -535,27 +662,28 @@ const buscarIngresoZonas = async () => {
   searchPerformed.value = true
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_listado_ingreso_zonas',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_fecha_desde', Valor: fechaDesde.value },
-          { Nombre: 'p_fecha_hasta', Valor: fechaHasta.value }
-        ]
-      }
-    })
-    if (res.data.eResponse?.success) {
-      ingresos.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_listado_ingreso_zonas',
+          'mercados',
+          [
+          { nombre: 'p_fecha_desde', valor: fechaDesde.value },
+          { nombre: 'p_fecha_hasta', valor: fechaHasta.value }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success) {
+      ingresos.value = res.data.result || []
       if (ingresos.value.length > 0) {
-        showToast('success', `Se encontraron ${ingresos.value.length} zonas con ingresos`)
+        showToast(`Se encontraron ${ingresos.value.length} zonas con ingresos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No hay ingresos para el rango seleccionado')
+        showToast('No hay ingresos para el rango seleccionado', 'info')
       }
     }
   } catch (err) {
-    showToast('error', 'Error al buscar ingresos por zonas')
+    showToast('Error al buscar ingresos por zonas', 'error')
   } finally {
     loading.value = false
   }
@@ -575,97 +703,30 @@ const limpiarFiltros = () => {
   fechaDesde.value = new Date().toISOString().split('T')[0]
   fechaHasta.value = new Date().toISOString().split('T')[0]
   limpiarResultados()
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (!hayResultados.value) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
-  showToast('info', 'Funcionalidad de exportación Excel en desarrollo')
+  showToast('Funcionalidad de exportación Excel en desarrollo', 'info')
+}
+
+// Paginación - Métodos
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
 }
 
 onMounted(() => {
   fetchRecaudadoras()
 })
 </script>
-
-<style scoped>
-.empty-icon { color: #ccc; margin-bottom: 1rem; }
-.text-end { text-align: right; }
-.spinner-border { width: 3rem; height: 3rem; }
-.row-hover:hover { background-color: #f8f9fa; }
-.required { color: #dc3545; }
-
-.listado-options {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.listado-option {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 1rem 1.5rem;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  flex: 1;
-  min-width: 200px;
-}
-
-.listado-option:hover {
-  border-color: #6f42c1;
-  background-color: #f8f9fa;
-}
-
-.listado-option.active {
-  border-color: #6f42c1;
-  background-color: #6f42c1;
-  color: white;
-}
-
-.listado-option input {
-  display: none;
-}
-
-.option-content {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-}
-
-.badge-success {
-  background-color: #28a745;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-}
-
-.badge-danger {
-  background-color: #dc3545;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-}
-
-.badge-info {
-  background-color: #17a2b8;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-}
-
-.total-row {
-  background-color: #f8f9fa;
-  font-weight: bold;
-}
-
-.municipal-table td.text-end, .municipal-table th.text-end { text-align: right; }
-</style>

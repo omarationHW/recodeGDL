@@ -9,19 +9,11 @@
         <p>Otras Obligaciones - Historial de pagos por local</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
           Documentacion
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -104,25 +96,19 @@
 
     </div>
 
+    <!-- Modal de Ayuda y Documentacion -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'RPagados'"
       :moduleName="'otras_obligaciones'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Reporte de Pagados'"
+      @close="showDocModal = false"
     />
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'RPagados'"
-      :moduleName="'otras_obligaciones'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
@@ -139,8 +125,19 @@ const { showLoading, hideLoading } = useGlobalLoading()
 const { handleApiError, showToast } = useLicenciasErrorHandler()
 const { exportToPdf } = usePdfExport()
 
-const showDocumentation = ref(false)
-const showTechDocs = ref(false)
+// Documentacion y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 const pagos = ref([])
 const datosLocal = ref({})
 
@@ -273,22 +270,6 @@ const handleImprimir = () => {
     subtitle: `Control: ${control} - Total: ${formatCurrency(totalPagado.value)}`,
     orientation: 'landscape'
   })
-}
-
-const openDocumentation = () => {
-  showDocumentation.value = true
-}
-
-const closeDocumentation = () => {
-  showDocumentation.value = false
-}
-
-const mostrarDocumentacion = () => {
-  showTechDocs.value = true
-}
-
-const closeTechDocs = () => {
-  showTechDocs.value = false
 }
 
 const goBack = () => {

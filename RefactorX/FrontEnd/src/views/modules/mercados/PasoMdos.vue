@@ -9,15 +9,22 @@
         <p>Inicio > Operaciones > Paso de Mercados (Tianguis)</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="triggerFileInput" :disabled="loading">
           <font-awesome-icon icon="folder-open" /> Seleccionar Archivo
         </button>
-        <button class="btn-municipal-success" @click="ejecutarCarga" :disabled="loading || rows.length === 0">
+        <button class="btn-municipal-primary" @click="ejecutarCarga" :disabled="loading || rows.length === 0">
           <font-awesome-icon icon="play" /> Ejecutar Carga
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -160,11 +167,50 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'PasoMdos'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - PasoMdos'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'PasoMdos'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - PasoMdos'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import Swal from 'sweetalert2'
+
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const fileInput = ref(null)
 const fileName = ref('')
@@ -201,7 +247,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione un archivo .txt con datos de Tianguis. El formato debe ser: FOLIO|NOMBRE|DOMICILIO|SUPERFICIE|DESCUENTO|MOTIVO_DESCUENTO|VIGENCIA (Vigencia: A=Activo, B=Baja)')
+  showToast('Seleccione un archivo .txt con datos de Tianguis. El formato debe ser: FOLIO|NOMBRE|DOMICILIO|SUPERFICIE|DESCUENTO|MOTIVO_DESCUENTO|VIGENCIA (Vigencia: A=Activo, B=Baja)', 'info')
 }
 
 const triggerFileInput = () => {
@@ -216,7 +262,7 @@ const handleDrop = (e) => {
   if (file && file.name.endsWith('.txt')) {
     processFile(file)
   } else {
-    showToast('error', 'Por favor seleccione un archivo .txt')
+    showToast('Por favor seleccione un archivo .txt', 'error')
   }
 }
 
@@ -302,16 +348,16 @@ const parseFileContent = (content) => {
   parseErrors.value = errors
 
   if (parsed.length > 0) {
-    showToast('success', `${parsed.length} registros cargados correctamente`)
+    showToast(`${parsed.length} registros cargados correctamente`, 'success')
   }
   if (errors.length > 0) {
-    showToast('warning', `${errors.length} líneas con errores fueron omitidas`)
+    showToast(`${errors.length} líneas con errores fueron omitidas`, 'warning')
   }
 }
 
 const ejecutarCarga = async () => {
   if (rows.value.length === 0) {
-    showToast('warning', 'No hay registros para procesar')
+    showToast('No hay registros para procesar', 'warning')
     return
   }
 
@@ -327,32 +373,33 @@ const ejecutarCarga = async () => {
   for (let i = 0; i < rows.value.length; i++) {
     const row = rows.value[i]
     try {
-      const res = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_pasomdos_insert_tianguis',
-          Base: 'padron_licencias',
-          Parametros: [
-            { Nombre: 'p_folio', Valor: parseInt(row.folio) },
-            { Nombre: 'p_nombre', Valor: row.nombre },
-            { Nombre: 'p_domicilio', Valor: row.domicilio },
-            { Nombre: 'p_superficie', Valor: parseFloat(row.superficie) },
-            { Nombre: 'p_descuento', Valor: parseFloat(row.descuento) },
-            { Nombre: 'p_motivo_descuento', Valor: row.motivo_descuento },
-            { Nombre: 'p_vigencia', Valor: row.vigencia },
-            { Nombre: 'p_id_usuario', Valor: 1 }
-          ]
-        }
-      })
+      const res = await apiService.execute(
+          'sp_pasomdos_insert_tianguis',
+          'mercados',
+          [
+            { nombre: 'p_folio', valor: parseInt(row.folio) },
+            { nombre: 'p_nombre', valor: row.nombre },
+            { nombre: 'p_domicilio', valor: row.domicilio },
+            { nombre: 'p_superficie', valor: parseFloat(row.superficie) },
+            { nombre: 'p_descuento', valor: parseFloat(row.descuento) },
+            { nombre: 'p_motivo_descuento', valor: row.motivo_descuento },
+            { nombre: 'p_vigencia', valor: row.vigencia },
+            { nombre: 'p_id_usuario', valor: 1 }
+          ],
+          '',
+          null,
+          'publico'
+        )
 
-      if (res.data.eResponse.success) {
-        const result = res.data.eResponse.data.result[0]
+      if (res.success) {
+        const result = res.data.result[0]
         if (result.success) {
           insertedIds.push(result.id_local)
         } else {
           errors.push(`Folio ${row.folio}: ${result.message}`)
         }
       } else {
-        errors.push(`Folio ${row.folio}: ${res.data.eResponse.message}`)
+        errors.push(`Folio ${row.folio}: ${res.message}`)
       }
     } catch (err) {
       errors.push(`Folio ${row.folio}: Error de conexión - ${err.message}`)
@@ -369,7 +416,7 @@ const ejecutarCarga = async () => {
   }
 
   if (insertedIds.length === rows.value.length) {
-    showToast('success', `¡Proceso completado! ${insertedIds.length} locales insertados`)
+    showToast(`¡Proceso completado! ${insertedIds.length} locales insertados`, 'success')
     // Limpiar después de inserción exitosa completa
     setTimeout(() => {
       rows.value = []
@@ -378,9 +425,9 @@ const ejecutarCarga = async () => {
       fileInput.value.value = ''
     }, 3000)
   } else if (insertedIds.length > 0) {
-    showToast('warning', `Proceso completado con errores: ${insertedIds.length} insertados, ${errors.length} fallidos`)
+    showToast(`Proceso completado con errores: ${insertedIds.length} insertados, ${errors.length} fallidos`, 'warning')
   } else {
-    showToast('error', 'No se pudieron insertar registros')
+    showToast('No se pudieron insertar registros', 'error')
   }
 }
 
@@ -402,118 +449,3 @@ const formatFileSize = (bytes) => {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
 </script>
-
-<style scoped>
-.file-upload-area {
-  border: 2px dashed #ccc;
-  border-radius: 8px;
-  padding: 3rem 2rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: #fafafa;
-}
-
-.file-upload-area:hover {
-  border-color: var(--municipal-blue);
-  background: #f0f7ff;
-}
-
-.file-upload-icon {
-  color: #6c757d;
-  margin-bottom: 1rem;
-}
-
-.file-upload-text {
-  margin: 0;
-  color: #495057;
-}
-
-.file-selected {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-  border-radius: 4px;
-  color: #155724;
-}
-
-.sticky-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--municipal-blue);
-}
-
-.progress-modal {
-  max-width: 500px;
-}
-
-.progress-bar-container {
-  width: 100%;
-  height: 30px;
-  background: #e9ecef;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--municipal-blue) 0%, #0056b3 100%);
-  transition: width 0.3s ease;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-}
-
-.bg-success {
-  background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
-}
-
-.bg-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1050;
-}
-
-.municipal-modal {
-  background: white;
-  border-radius: 8px;
-  max-width: 600px;
-  width: 90%;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-}
-
-.municipal-modal-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #e0e0e0;
-  background: linear-gradient(135deg, var(--municipal-blue) 0%, var(--municipal-blue-dark) 100%);
-  color: white;
-  border-radius: 8px 8px 0 0;
-}
-
-.municipal-modal-header h5 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.municipal-modal-body {
-  padding: 1.5rem;
-}
-</style>

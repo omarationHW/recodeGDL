@@ -10,25 +10,6 @@
         <h1>Relación entre Contratos</h1>
         <p>Aseo Contratado - Vinculación de contratos relacionados y gestión de grupos</p>
       </div>
-      <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
-        </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
-      </div>
-    
       <button
         type="button"
         class="btn-help-icon"
@@ -93,7 +74,7 @@
                 </div>
               </div>
 
-              <div v-if="contratoPrincipal" class="municipal-alert municipal-alert-success">
+              <div v-if="contratoPrincipal" class="alert alert-success">
                 <h6 class="alert-heading">
                   <font-awesome-icon icon="check-circle" class="me-2" />
                   Contrato Seleccionado
@@ -158,7 +139,7 @@
                 </div>
               </div>
 
-              <div v-if="contratoVincular" class="municipal-alert municipal-alert-info">
+              <div v-if="contratoVincular" class="alert alert-info">
                 <h6 class="alert-heading">
                   <font-awesome-icon icon="check-circle" class="me-2" />
                   Contrato a Vincular
@@ -359,7 +340,7 @@
                 <h6>Contratos en el Grupo ({{ contratosGrupo.length }})</h6>
                 <div class="table-responsive">
                   <table class="municipal-table">
-                    <thead class="municipal-table-header">
+                    <thead>
                       <tr>
                         <th>Contrato</th>
                         <th>Contribuyente</th>
@@ -490,7 +471,7 @@
           <div v-if="relacionesEncontradas.length > 0">
             <div class="table-responsive">
               <table class="municipal-table">
-                <thead class="municipal-table-header">
+                <thead>
                   <tr>
                     <th>Contrato Principal</th>
                     <th>Contribuyente</th>
@@ -525,7 +506,7 @@
             </div>
           </div>
 
-          <div v-else-if="!cargando" class="municipal-alert municipal-alert-warning">
+          <div v-else-if="!cargando" class="alert alert-warning">
             <font-awesome-icon icon="info-circle" class="me-2" />
             No se encontraron relaciones con los criterios especificados.
           </div>
@@ -575,20 +556,10 @@
         <li>Los grupos pueden tener facturación consolidada</li>
       </ul>
     </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'RelacionContratos'"
-      :moduleName="'aseo_contratado'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import Swal from 'sweetalert2'
@@ -597,10 +568,8 @@ import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useToast } from '@/composables/useToast'
 
-const { showLoading, hideLoading } = useGlobalLoading()
-
 const { execute } = useApi()
-const { handleApiError } = useLicenciasErrorHandler()
+const { handleError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
 
 // Estado
@@ -685,8 +654,7 @@ const buscarContratoPrincipal = async () => {
       contratosRelacionados.value = []
     }
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al buscar contrato')
+    handleError(error, 'Error al buscar contrato')
     contratoPrincipal.value = null
     contratosRelacionados.value = []
   } finally {
@@ -703,8 +671,7 @@ const cargarContratosRelacionados = async () => {
     })
     contratosRelacionados.value = response || []
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
+    console.error('Error al cargar contratos relacionados:', error)
     contratosRelacionados.value = []
   }
 }
@@ -734,8 +701,7 @@ const buscarContratoVincular = async () => {
       contratoVincular.value = null
     }
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al buscar contrato')
+    handleError(error, 'Error al buscar contrato')
     contratoVincular.value = null
   } finally {
     cargando.value = false
@@ -768,8 +734,7 @@ const vincularContratos = async () => {
     await cargarContratosRelacionados()
 
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al vincular contratos')
+    handleError(error, 'Error al vincular contratos')
   } finally {
     vinculando.value = false
   }
@@ -795,8 +760,7 @@ const desvincularContrato = async (relacion) => {
       showToast('Contrato desvinculado exitosamente', 'success')
       await cargarContratosRelacionados()
     } catch (error) {
-      hideLoading()
-      handleApiError(error, 'Error al desvincular contrato')
+      handleError(error, 'Error al desvincular contrato')
     }
   }
 }
@@ -807,8 +771,7 @@ const cargarGrupos = async () => {
     const response = await execute('SP_ASEO_GRUPOS_LISTAR', 'aseo_contratado', {})
     grupos.value = response || []
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al cargar grupos')
+    handleError(error, 'Error al cargar grupos')
     grupos.value = []
   }
 }
@@ -825,8 +788,7 @@ const seleccionarGrupo = async (grupo) => {
     })
     contratosGrupo.value = response || []
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
+    console.error('Error al cargar contratos del grupo:', error)
     contratosGrupo.value = []
   }
 }
@@ -865,8 +827,7 @@ const guardarGrupo = async () => {
     await cargarGrupos()
     nuevoGrupo()
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al guardar grupo')
+    handleError(error, 'Error al guardar grupo')
   } finally {
     guardando.value = false
   }
@@ -892,8 +853,7 @@ const agregarContratoGrupo = async () => {
     contratoAgregar.value = ''
     await seleccionarGrupo(grupoSeleccionado.value)
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al agregar contrato al grupo')
+    handleError(error, 'Error al agregar contrato al grupo')
   }
 }
 
@@ -918,8 +878,7 @@ const quitarContratoGrupo = async (contrato) => {
       showToast('Contrato quitado del grupo', 'success')
       await seleccionarGrupo(grupoSeleccionado.value)
     } catch (error) {
-      hideLoading()
-      handleApiError(error, 'Error al quitar contrato del grupo')
+      handleError(error, 'Error al quitar contrato del grupo')
     }
   }
 }
@@ -936,8 +895,7 @@ const consultarRelaciones = async () => {
     relacionesEncontradas.value = response || []
     showToast(`${relacionesEncontradas.value.length} relación(es) encontrada(s)`, 'success')
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al consultar relaciones')
+    handleError(error, 'Error al consultar relaciones')
     relacionesEncontradas.value = []
   } finally {
     cargando.value = false
@@ -978,14 +936,5 @@ const formatFecha = (fecha) => {
 onMounted(() => {
   cargarGrupos()
 })
-
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
-
 </script>
 

@@ -1,777 +1,673 @@
-<template>
+﻿<template>
   <div class="module-view">
-    <!-- Header del módulo -->
     <div class="module-view-header">
-      <div class="module-view-icon">
-        <font-awesome-icon icon="file-contract" />
+      <div>
+        <h4 >
+          <font-awesome-icon icon="file-contract" class="me-2 text-primary" />
+          Administración de Contratos
+        </h4>
+        <p >Alta, Baja y Modificación de Contratos de Aseo</p>
       </div>
-      <div class="module-view-info">
-        <h1>Administración de Contratos</h1>
-        <p>Aseo Contratado - Alta, Baja y Modificación de Contratos</p>
-      </div>
-      <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
+      <div>
+        <button class="btn-municipal-secondary btn-sm me-2" @click="mostrarAyuda = true">
+          <font-awesome-icon icon="circle-question" />
         </button>
-      </div>
-      <div class="module-view-actions">
-        <button class="btn-municipal-primary" @click="nuevoContrato" :disabled="loading">
-          <font-awesome-icon icon="plus" />
-          Nuevo Contrato
+        <button class="btn-municipal-primary btn-sm" @click="nuevoContrato">
+          <font-awesome-icon icon="plus" /> Nuevo Contrato
         </button>
       </div>
     </div>
 
-    <div class="module-view-content">
-      <!-- Filtros de búsqueda -->
-      <div class="municipal-card">
-        <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Buscar</label>
-              <input
-                type="text"
-                class="municipal-form-control"
-                v-model="filters.search"
-                placeholder="Contrato, cuenta o contribuyente..."
-                @keyup.enter="applyFilter"
-              />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Zona</label>
-              <select class="municipal-form-control" v-model="filters.zona" @change="applyFilter">
-                <option value="">Todas</option>
-                <option v-for="z in zonas" :key="z.ctrol_zona" :value="z.zona">
-                  Zona {{ z.zona }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Tipo Aseo</label>
-              <select class="municipal-form-control" v-model="filters.tipo" @change="applyFilter">
-                <option value="">Todos</option>
-                <option v-for="t in tiposAseo" :key="t.ctrol_aseo" :value="t.tipo_aseo">
-                  {{ t.descripcion }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Status</label>
-              <select class="municipal-form-control" v-model="filters.status" @change="applyFilter">
-                <option value="">Todos</option>
-                <option value="V">Vigentes</option>
-                <option value="C">Cancelados</option>
-              </select>
-            </div>
-          </div>
-          <div class="button-group">
-            <button class="btn-municipal-primary" @click="applyFilter" :disabled="loading">
-              <font-awesome-icon icon="search" />
-              Buscar
-            </button>
-            <button class="btn-municipal-secondary" @click="clearFilters" :disabled="loading">
-              <font-awesome-icon icon="times" />
-              Limpiar
-            </button>
-            <button class="btn-municipal-secondary" @click="loadContratos" :disabled="loading">
-              <font-awesome-icon icon="sync-alt" />
-              Actualizar
-            </button>
-            <button
-              class="btn-municipal-primary"
-              @click="exportarCSV"
-              :disabled="loading || filteredData.length === 0"
-            >
-              <font-awesome-icon icon="file-excel" />
-              Exportar
-            </button>
-          </div>
-        </div>
+    <!-- Barra de búsqueda -->
+    <div class="municipal-card shadow-sm mb-4">
+      <div class="municipal-card-header">
+        <h5>Búsqueda y Filtros</h5>
       </div>
-
-      <!-- Tabla de resultados -->
-      <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="list" />
-            Contratos Registrados
-            <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
-          </h5>
-        </div>
-
-        <div class="municipal-card-body table-container" v-if="!loading">
-          <div class="table-responsive">
-            <table class="municipal-table">
-              <thead class="municipal-table-header">
-                <tr>
-                  <th>Contrato</th>
-                  <th>Empresa</th>
-                  <th>Zona</th>
-                  <th>Tipo Aseo</th>
-                  <th class="text-end">Monto</th>
-                  <th>Status</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-if="paginatedData.length === 0">
-                  <td colspan="7" class="text-center text-muted">
-                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                    <p>No se encontraron contratos</p>
-                  </td>
-                </tr>
-                <tr v-else v-for="contrato in paginatedData" :key="contrato.control_contrato" class="row-hover">
-                  <td><code>{{ contrato.num_contrato }}</code></td>
-                  <td>{{ contrato.empresa_descripcion || contrato.num_empresa }}</td>
-                  <td class="text-center"><span class="badge badge-info">{{ contrato.zona_id }}</span></td>
-                  <td>{{ contrato.tipo_aseo_descripcion || contrato.tipo_aseo_id }}</td>
-                  <td class="text-end">${{ formatCurrency(contrato.monto_mensual) }}</td>
-                  <td class="text-center">
-                    <span class="badge" :class="contrato.status_vigencia === 'V' ? 'badge-success' : 'badge-secondary'">
-                      {{ contrato.status_vigencia === 'V' ? 'Vigente' : 'Cancelado' }}
-                    </span>
-                  </td>
-                  <td>
-                    <div class="button-group button-group-sm">
-                      <button
-                        class="btn-municipal-info btn-sm"
-                        @click="viewContrato(contrato)"
-                        title="Ver detalles"
-                      >
-                        <font-awesome-icon icon="eye" />
-                      </button>
-                      <button
-                        class="btn-municipal-primary btn-sm"
-                        @click="editContrato(contrato)"
-                        :disabled="contrato.status_vigencia !== 'V'"
-                        title="Editar"
-                      >
-                        <font-awesome-icon icon="edit" />
-                      </button>
-                      <button
-                        class="btn-municipal-secondary btn-sm"
-                        @click="confirmDelete(contrato)"
-                        :disabled="contrato.status_vigencia !== 'V'"
-                        title="Cancelar"
-                      >
-                        <font-awesome-icon icon="ban" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+<div class="municipal-card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <input type="text" class="municipal-form-control" v-model="busqueda"
+              placeholder="Buscar por contrato, cuenta o contribuyente..." @input="filtrar" />
           </div>
-        </div>
-
-        <!-- Paginación -->
-        <div class="pagination-container" v-if="totalRecords > 0 && !loading">
-          <div class="pagination-info">
-            <font-awesome-icon icon="info-circle" />
-            Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-            a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
-            de {{ totalRecords }} registros
+          <div class="col-md-2">
+            <select class="municipal-form-control" v-model="filtroZona" @change="filtrar">
+              <option value="">Todas las zonas</option>
+              <option v-for="z in zonas" :key="z.ctrol_zona" :value="z.zona">
+                Zona {{ z.zona }}
+              </option>
+            </select>
           </div>
-
-          <div class="pagination-controls">
-            <div class="page-size-selector">
-              <label>Mostrar:</label>
-              <select v-model="itemsPerPage" @change="changePageSize">
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
-              </select>
-            </div>
-
-            <div class="pagination-nav">
-              <button
-                class="pagination-button"
-                @click="goToPage(currentPage - 1)"
-                :disabled="currentPage === 1"
-              >
-                <font-awesome-icon icon="chevron-left" />
-              </button>
-
-              <button
-                v-for="page in visiblePages"
-                :key="page"
-                class="pagination-button"
-                :class="{ active: page === currentPage }"
-                @click="goToPage(page)"
-              >
-                {{ page }}
-              </button>
-
-              <button
-                class="pagination-button"
-                @click="goToPage(currentPage + 1)"
-                :disabled="currentPage === totalPages"
-              >
-                <font-awesome-icon icon="chevron-right" />
-              </button>
-            </div>
+          <div class="col-md-2">
+            <select class="municipal-form-control" v-model="filtroTipo" @change="filtrar">
+              <option value="">Todos los tipos</option>
+              <option value="D">Doméstico</option>
+              <option value="C">Comercial</option>
+              <option value="I">Industrial</option>
+              <option value="S">Servicios</option>
+            </select>
           </div>
-        </div>
-
-        <div class="municipal-card-body" v-if="loading">
-          <div class="loading-state">
-            <div class="spinner"></div>
-            <p>Cargando contratos...</p>
+          <div class="col-md-2">
+            <select class="municipal-form-control" v-model="filtroStatus" @change="filtrar">
+              <option value="">Todos</option>
+              <option value="A">Activos</option>
+              <option value="I">Cancelados</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <button class="btn-municipal-secondary w-100" @click="limpiarFiltros">
+              <font-awesome-icon icon="eraser" /> Limpiar Filtros
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal Crear/Editar -->
-    <Modal
-      :show="showModal"
-      @close="closeModal"
-      :title="modoEdicion === 'nuevo' ? 'Nuevo Contrato' : 'Editar Contrato'"
-      size="xl"
-      :showDefaultFooter="false"
-    >
-      <form @submit.prevent="guardarContrato" class="modal-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="municipal-form-label">Número Contrato</label>
-            <input
-              type="number"
-              v-model.number="formData.num_contrato"
-              class="municipal-form-control"
-              :disabled="modoEdicion === 'editar'"
-            />
-          </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Empresa <span class="required">*</span></label>
-            <select v-model.number="formData.num_empresa" class="municipal-form-control" required>
-              <option value="">Seleccione...</option>
-              <option v-for="emp in empresas" :key="emp.num_empresa" :value="emp.num_empresa">
-                {{ emp.descripcion }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="municipal-form-label">Tipo de Aseo <span class="required">*</span></label>
-            <select v-model.number="formData.tipo_aseo_id" class="municipal-form-control" required>
-              <option value="">Seleccione...</option>
-              <option v-for="t in tiposAseo" :key="t.ctrol_aseo" :value="t.ctrol_aseo">
-                {{ t.descripcion }}
-              </option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Zona <span class="required">*</span></label>
-            <select v-model.number="formData.zona_id" class="municipal-form-control" required>
-              <option value="">Seleccione...</option>
-              <option v-for="z in zonas" :key="z.ctrol_zona" :value="z.ctrol_zona">
-                Zona {{ z.zona }} - {{ z.descripcion || 'Sin descripción' }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="municipal-form-label">Monto Mensual <span class="required">*</span></label>
-            <input
-              type="number"
-              v-model.number="formData.monto_mensual"
-              class="municipal-form-control"
-              step="0.01"
-              min="0"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Unidades Recolección</label>
-            <input
-              type="number"
-              v-model.number="formData.unidades_recoleccion"
-              class="municipal-form-control"
-              min="1"
-            />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="municipal-form-label">Observaciones</label>
-          <textarea
-            v-model="formData.observaciones"
-            class="municipal-form-control"
-            rows="3"
-          ></textarea>
-        </div>
-
-        <div class="modal-actions">
-          <button type="button" @click="closeModal" class="btn-municipal-secondary" :disabled="guardando">
-            <font-awesome-icon icon="times" />
-            Cancelar
-          </button>
-          <button type="submit" class="btn-municipal-primary" :disabled="guardando">
-            <font-awesome-icon icon="save" />
-            {{ modoEdicion === 'nuevo' ? 'Crear' : 'Guardar' }}
+    <!-- Listado de contratos -->
+    <div class="municipal-card">
+      <div class="municipal-card-header bg-light d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+          Contratos
+          <span class="badge bg-primary ms-2">{{ contratosFiltrados.length }}</span>
+        </h6>
+        <div>
+          <button class="btn btn-sm btn-success" @click="exportar">
+            <font-awesome-icon icon="file-excel" /> Exportar
           </button>
         </div>
-      </form>
-    </Modal>
-
-    <!-- Modal Ver Detalle -->
-    <Modal
-      :show="showViewModal"
-      @close="showViewModal = false"
-      title="Detalle del Contrato"
-      size="lg"
-      :showDefaultFooter="false"
-    >
-      <div class="detail-grid" v-if="selectedContrato">
-        <div class="detail-item">
-          <label class="detail-label">Número Contrato</label>
-          <p class="detail-value"><code>{{ selectedContrato.num_contrato }}</code></p>
-        </div>
-        <div class="detail-item">
-          <label class="detail-label">Empresa</label>
-          <p class="detail-value">{{ selectedContrato.empresa_descripcion || selectedContrato.num_empresa }}</p>
-        </div>
-        <div class="detail-item">
-          <label class="detail-label">Tipo Aseo</label>
-          <p class="detail-value">{{ selectedContrato.tipo_aseo_descripcion || selectedContrato.tipo_aseo_id }}</p>
-        </div>
-        <div class="detail-item">
-          <label class="detail-label">Zona</label>
-          <p class="detail-value">{{ selectedContrato.zona_id }}</p>
-        </div>
-        <div class="detail-item">
-          <label class="detail-label">Monto Mensual</label>
-          <p class="detail-value">${{ formatCurrency(selectedContrato.monto_mensual) }}</p>
-        </div>
-        <div class="detail-item">
-          <label class="detail-label">Status</label>
-          <p class="detail-value">
-            <span class="badge" :class="selectedContrato.status_vigencia === 'V' ? 'badge-success' : 'badge-secondary'">
-              {{ selectedContrato.status_vigencia === 'V' ? 'Vigente' : 'Cancelado' }}
-            </span>
-          </p>
-        </div>
-        <div class="detail-item full-width" v-if="selectedContrato.observaciones">
-          <label class="detail-label">Observaciones</label>
-          <p class="detail-value">{{ selectedContrato.observaciones }}</p>
+      </div>
+      <div class="municipal-card-body p-0">
+        <div class="table-responsive">
+          <table class="municipal-table-hover table-sm mb-0">
+            <thead>
+              <tr>
+                <th>Contrato</th>
+                <th>Cuenta</th>
+                <th>Contribuyente</th>
+                <th>Domicilio</th>
+                <th>Zona</th>
+                <th>Tipo</th>
+                <th class="text-end">Cuota</th>
+                <th>Status</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="contrato in paginados" :key="contrato.control_contrato">
+                <td><strong>{{ contrato.num_contrato }}</strong></td>
+                <td>{{ contrato.cuenta_catastral }}</td>
+                <td>{{ contrato.contribuyente }}</td>
+                <td>{{ contrato.domicilio_corto }}</td>
+                <td class="text-center">{{ contrato.zona }}</td>
+                <td class="text-center">
+                  <span class="badge" :class="getBadgeTipo(contrato.tipo_aseo)">
+                    {{ formatTipoAseo(contrato.tipo_aseo) }}
+                  </span>
+                </td>
+                <td class="text-end">${{ formatCurrency(contrato.cuota_mensual) }}</td>
+                <td class="text-center">
+                  <span class="badge" :class="contrato.status === 'A' ? 'bg-success' : 'bg-secondary'">
+                    {{ contrato.status === 'A' ? 'Activo' : 'Cancelado' }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn-municipal-primary" @click="verDetalle(contrato)" title="Ver detalle">
+                      <font-awesome-icon icon="eye" />
+                    </button>
+                    <button class="btn-municipal-info" @click="editarContrato(contrato)"
+                      :disabled="contrato.status === 'I'" title="Editar">
+                      <font-awesome-icon icon="edit" />
+                    </button>
+                    <button class="btn-municipal-secondary" @click="cancelarContrato(contrato)"
+                      :disabled="contrato.status === 'I'" title="Cancelar">
+                      <font-awesome-icon icon="ban" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-      <div class="modal-actions">
-        <button type="button" @click="showViewModal = false" class="btn-municipal-secondary">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-        <button
-          type="button"
-          @click="editContrato(selectedContrato); showViewModal = false"
-          class="btn-municipal-primary"
-          :disabled="selectedContrato?.status_vigencia !== 'V'"
-        >
-          <font-awesome-icon icon="edit" />
-          Editar
-        </button>
+      <div v-if="totalPaginas > 1" class="municipal-card-footer">
+        <nav>
+          <ul class="pagination pagination-sm mb-0 justify-content-center">
+            <li class="page-item" :class="{ disabled: paginaActual === 1 }">
+              <a class="page-link" @click.prevent="cambiarPagina(paginaActual - 1)">Anterior</a>
+            </li>
+            <li v-for="p in paginasVisibles" :key="p" class="page-item" :class="{ active: p === paginaActual }">
+              <a class="page-link" @click.prevent="cambiarPagina(p)">{{ p }}</a>
+            </li>
+            <li class="page-item" :class="{ disabled: paginaActual === totalPaginas }">
+              <a class="page-link" @click.prevent="cambiarPagina(paginaActual + 1)">Siguiente</a>
+            </li>
+          </ul>
+        </nav>
       </div>
-    </Modal>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
     </div>
+
+    <!-- Modal Formulario ABM -->
+    <div v-if="mostrarModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header" :class="modoEdicion === 'nuevo' ? 'bg-success text-white' : 'bg-warning text-dark'">
+            <h5 class="modal-title">
+              <font-awesome-icon :icon="modoEdicion === 'nuevo' ? 'plus' : 'edit'" class="me-2" />
+              {{ modoEdicion === 'nuevo' ? 'Nuevo Contrato' : 'Editar Contrato #' + formulario.num_contrato }}
+            </h5>
+            <button type="button" class="btn-close" @click="cerrarModal"></button>
+          </div>
+          <div class="modal-body">
+            <ul class="nav nav-tabs mb-3">
+              <li class="municipal-tab-item">
+                <a class="municipal-tab-link" :class="{ active: tabActiva === 'general' }"
+                  @click.prevent="tabActiva = 'general'" href="#">General</a>
+              </li>
+              <li class="municipal-tab-item">
+                <a class="municipal-tab-link" :class="{ active: tabActiva === 'servicio' }"
+                  @click.prevent="tabActiva = 'servicio'" href="#">Servicio</a>
+              </li>
+              <li class="municipal-tab-item">
+                <a class="municipal-tab-link" :class="{ active: tabActiva === 'domicilio' }"
+                  @click.prevent="tabActiva = 'domicilio'" href="#">Domicilio</a>
+              </li>
+              <li class="municipal-tab-item">
+                <a class="municipal-tab-link" :class="{ active: tabActiva === 'adicional' }"
+                  @click.prevent="tabActiva = 'adicional'" href="#">Adicional</a>
+              </li>
+            </ul>
+
+            <!-- Tab General -->
+            <div v-show="tabActiva === 'general'">
+              <div class="row mb-3">
+                <div class="col-md-4">
+                  <label class="municipal-form-label">Cuenta Catastral *</label>
+                  <input type="text" class="municipal-form-control" v-model="formulario.cuenta_catastral"
+                    maxlength="12" :disabled="modoEdicion === 'editar'" />
+                </div>
+                <div class="col-md-8">
+                  <label class="municipal-form-label">Nombre del Contribuyente *</label>
+                  <input type="text" class="municipal-form-control" v-model="formulario.contribuyente" />
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-4">
+                  <label class="municipal-form-label">RFC</label>
+                  <input type="text" class="municipal-form-control" v-model="formulario.rfc"
+                    maxlength="13" style="text-transform: uppercase;" />
+                </div>
+                <div class="col-md-4">
+                  <label class="municipal-form-label">CURP</label>
+                  <input type="text" class="municipal-form-control" v-model="formulario.curp"
+                    maxlength="18" style="text-transform: uppercase;" />
+                </div>
+                <div class="col-md-4">
+                  <label class="municipal-form-label">Teléfono</label>
+                  <input type="text" class="municipal-form-control" v-model="formulario.telefono" />
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="municipal-form-label">Email</label>
+                  <input type="email" class="municipal-form-control" v-model="formulario.email" />
+                </div>
+                <div class="col-md-3">
+                  <label class="municipal-form-label">Fecha de Alta *</label>
+                  <input type="date" class="municipal-form-control" v-model="formulario.fecha_alta" />
+                </div>
+                <div class="col-md-3">
+                  <label class="municipal-form-label">Status</label>
+                  <select class="municipal-form-control" v-model="formulario.status" :disabled="modoEdicion === 'nuevo'">
+                    <option value="A">Activo</option>
+                    <option value="I">Cancelado</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Servicio -->
+            <div v-show="tabActiva === 'servicio'">
+              <div class="row mb-3">
+                <div class="col-md-3">
+                  <label class="municipal-form-label">Tipo de Aseo *</label>
+                  <select class="municipal-form-control" v-model="formulario.tipo_aseo">
+                    <option value="">Seleccione...</option>
+                    <option value="D">Doméstico</option>
+                    <option value="C">Comercial</option>
+                    <option value="I">Industrial</option>
+                    <option value="S">Servicios</option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label class="municipal-form-label">Empresa *</label>
+                  <select class="municipal-form-control" v-model="formulario.num_empresa">
+                    <option value="">Seleccione...</option>
+                    <option v-for="emp in empresas" :key="emp.num_empresa" :value="emp.num_empresa">
+                      {{ emp.nombre_empresa }}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label class="municipal-form-label">Unidad Recolectora</label>
+                  <select class="municipal-form-control" v-model="formulario.num_unidad">
+                    <option value="">Sin asignar</option>
+                    <option v-for="u in unidades" :key="u.num_unidad" :value="u.num_unidad">
+                      {{ u.nombre_unidad }}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label class="municipal-form-label">Periodo Inicial</label>
+                  <input type="text" class="municipal-form-control" v-model="formulario.periodo_inicial"
+                    placeholder="YYYYMM" maxlength="6" />
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-3">
+                  <label class="municipal-form-label">Cuota Mensual *</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" class="municipal-form-control" v-model.number="formulario.cuota_mensual"
+                      step="0.01" min="0" />
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label class="municipal-form-label">Descuento (%)</label>
+                  <input type="number" class="municipal-form-control" v-model.number="formulario.descuento"
+                    step="0.01" min="0" max="100" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Domicilio -->
+            <div v-show="tabActiva === 'domicilio'">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="municipal-form-label">Calle</label>
+                  <input type="text" class="municipal-form-control" v-model="formulario.calle" />
+                </div>
+                <div class="col-md-3">
+                  <label class="municipal-form-label">Número Exterior</label>
+                  <input type="text" class="municipal-form-control" v-model="formulario.num_exterior" />
+                </div>
+                <div class="col-md-3">
+                  <label class="municipal-form-label">Número Interior</label>
+                  <input type="text" class="municipal-form-control" v-model="formulario.num_interior" />
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-4">
+                  <label class="municipal-form-label">Colonia</label>
+                  <input type="text" class="municipal-form-control" v-model="formulario.colonia" />
+                </div>
+                <div class="col-md-2">
+                  <label class="municipal-form-label">Zona *</label>
+                  <select class="municipal-form-control" v-model="formulario.zona">
+                    <option value="">Seleccione...</option>
+                    <option v-for="z in zonas" :key="z.ctrol_zona" :value="z.zona">
+                      Zona {{ z.zona }}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="municipal-form-label">Referencias</label>
+                  <input type="text" class="municipal-form-control" v-model="formulario.referencias" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Adicional -->
+            <div v-show="tabActiva === 'adicional'">
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <label class="municipal-form-label">Observaciones</label>
+                  <textarea class="municipal-form-control" v-model="formulario.observaciones" rows="4"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-municipal-secondary" @click="cerrarModal">Cancelar</button>
+            <button type="button" class="btn-municipal-primary" @click="guardarContrato"
+              :disabled="!validarFormulario()">
+              <font-awesome-icon icon="save" /> Guardar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <DocumentationModal v-if="mostrarAyuda" :show="mostrarAyuda" @close="mostrarAyuda = false"
+      title="Administración de Contratos">
+      <h6>Descripción</h6>
+      <p>Módulo principal para la gestión completa de contratos de aseo contratado (Alta, Baja, Modificación).</p>
+      <h6>Operaciones</h6>
+      <ul>
+        <li><strong>Nuevo:</strong> Crear nuevo contrato</li>
+        <li><strong>Editar:</strong> Modificar datos de contrato activo</li>
+        <li><strong>Cancelar:</strong> Dar de baja un contrato</li>
+        <li><strong>Ver:</strong> Consultar detalle completo</li>
+      </ul>
+      <h6>Datos Requeridos</h6>
+      <ul>
+        <li>Cuenta catastral (12 dígitos)</li>
+        <li>Nombre del contribuyente</li>
+        <li>Tipo de aseo</li>
+        <li>Empresa prestadora</li>
+        <li>Zona de servicio</li>
+        <li>Cuota mensual</li>
+      </ul>
+    </DocumentationModal>
   </div>
-
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'Contratos'"
-    :moduleName="'aseo_contratado'"
-    @close="closeDocumentation"
-  />
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-import Modal from '@/components/common/Modal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 
-// Constantes
-const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
-
-// Composables
 const { execute } = useApi()
-const { showLoading, hideLoading } = useGlobalLoading()
-const {
-  loading,
-  setLoading,
-  toast,
-  showToast,
-  hideToast,
-  getToastIcon,
-  handleApiError
-} = useLicenciasErrorHandler()
+const { handleError } = useLicenciasErrorHandler()
+const { showToast } = useToast()
 
-// Estado
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
+const cargando = ref(false)
+const mostrarAyuda = ref(false)
+const mostrarModal = ref(false)
+const modoEdicion = ref('nuevo')
+const tabActiva = ref('general')
 const contratos = ref([])
 const zonas = ref([])
 const empresas = ref([])
-const tiposAseo = ref([])
-const currentPage = ref(1)
-const itemsPerPage = ref(25)
-const selectedContrato = ref(null)
-const showModal = ref(false)
-const showViewModal = ref(false)
-const modoEdicion = ref('nuevo')
-const guardando = ref(false)
+const unidades = ref([])
+const busqueda = ref('')
+const filtroZona = ref('')
+const filtroTipo = ref('')
+const filtroStatus = ref('A')
+const paginaActual = ref(1)
+const registrosPorPagina = 20
 
-// Filtros
-const filters = ref({
-  search: '',
-  zona: '',
-  tipo: '',
-  status: 'V'
-})
-
-// Formulario
-const formData = ref({
+const formulario = ref({
   control_contrato: null,
-  num_contrato: null,
+  num_contrato: '',
+  cuenta_catastral: '',
+  contribuyente: '',
+  rfc: '',
+  curp: '',
+  telefono: '',
+  email: '',
+  tipo_aseo: '',
   num_empresa: '',
-  tipo_aseo_id: '',
-  zona_id: '',
-  monto_mensual: 0,
-  unidades_recoleccion: 1,
+  num_unidad: '',
+  zona: '',
+  colonia: '',
+  calle: '',
+  num_exterior: '',
+  num_interior: '',
+  referencias: '',
+  cuota_mensual: 0,
+  descuento: 0,
+  periodo_inicial: '',
+  fecha_alta: new Date().toISOString().split('T')[0],
+  status: 'A',
   observaciones: ''
 })
 
-// Computed - Filtrado cliente
-const filteredData = computed(() => {
-  let data = [...contratos.value]
+const contratosFiltrados = computed(() => {
+  let resultado = contratos.value
 
-  if (filters.value.search) {
-    const searchLower = filters.value.search.toLowerCase()
-    data = data.filter(item =>
-      String(item.num_contrato).includes(searchLower) ||
-      item.empresa_descripcion?.toLowerCase().includes(searchLower)
+  if (busqueda.value) {
+    const busq = busqueda.value.toLowerCase()
+    resultado = resultado.filter(c =>
+      c.num_contrato?.toLowerCase().includes(busq) ||
+      c.cuenta_catastral?.toLowerCase().includes(busq) ||
+      c.contribuyente?.toLowerCase().includes(busq)
     )
   }
 
-  if (filters.value.zona) {
-    data = data.filter(item => item.zona_id == filters.value.zona)
+  if (filtroZona.value) {
+    resultado = resultado.filter(c => c.zona === filtroZona.value)
   }
 
-  if (filters.value.tipo) {
-    data = data.filter(item => item.tipo_aseo_id == filters.value.tipo)
+  if (filtroTipo.value) {
+    resultado = resultado.filter(c => c.tipo_aseo === filtroTipo.value)
   }
 
-  if (filters.value.status) {
-    data = data.filter(item => item.status_vigencia === filters.value.status)
+  if (filtroStatus.value) {
+    resultado = resultado.filter(c => c.status === filtroStatus.value)
   }
 
-  return data
+  return resultado
 })
 
-const totalRecords = computed(() => filteredData.value.length)
-
-const totalPages = computed(() => Math.ceil(totalRecords.value / itemsPerPage.value))
-
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredData.value.slice(start, end)
+const totalPaginas = computed(() => {
+  return Math.ceil(contratosFiltrados.value.length / registrosPorPagina)
 })
 
-const visiblePages = computed(() => {
-  const pages = []
-  const start = Math.max(1, currentPage.value - 2)
-  const end = Math.min(totalPages.value, currentPage.value + 2)
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
+const paginados = computed(() => {
+  const inicio = (paginaActual.value - 1) * registrosPorPagina
+  const fin = inicio + registrosPorPagina
+  return contratosFiltrados.value.slice(inicio, fin)
+})
+
+const paginasVisibles = computed(() => {
+  const maxVisible = 5
+  let inicio = Math.max(1, paginaActual.value - Math.floor(maxVisible / 2))
+  let fin = Math.min(totalPaginas.value, inicio + maxVisible - 1)
+
+  if (fin - inicio < maxVisible - 1) {
+    inicio = Math.max(1, fin - maxVisible + 1)
   }
-  return pages
+
+  const paginas = []
+  for (let i = inicio; i <= fin; i++) {
+    paginas.push(i)
+  }
+  return paginas
 })
 
-// Métodos
-async function loadContratos() {
-  showLoading('Cargando contratos...', 'Consultando base de datos')
-
+const cargarContratos = async () => {
+  cargando.value = true
   try {
-    const params = [
-      { nombre: 'p_limit', valor: 500, tipo: 'integer' },
-      { nombre: 'p_offset', valor: 0, tipo: 'integer' }
-    ]
-    const response = await execute('sp_aseo_contratos_list', BASE_DB, params, '', null, SCHEMA)
-
-    if (response?.result) {
-      contratos.value = response.result
-      currentPage.value = 1
-    } else {
-      contratos.value = []
-    }
+    const response = await execute('SP_ASEO_CONTRATOS_LIST', 'aseo_contratado', {})
+    contratos.value = response || []
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
-    contratos.value = []
+    handleError(error, 'Error al cargar contratos')
   } finally {
-    hideLoading()
+    cargando.value = false
   }
 }
 
-async function loadCatalogos() {
-  try {
-    const [respZonas, respEmpresas, respTipos] = await Promise.all([
-      execute('sp_zonas_list', BASE_DB, [], '', null, SCHEMA),
-      execute('sp_aseo_empresas_list', BASE_DB, [], '', null, SCHEMA),
-      execute('sp_tipos_aseo_list', BASE_DB, [], '', null, SCHEMA)
-    ])
-    zonas.value = respZonas?.result || []
-    empresas.value = respEmpresas?.result || []
-    tiposAseo.value = respTipos?.result || []
-  } catch (error) {
-    hideLoading()
-    handleApiError(error)
-  }
-}
-
-function applyFilter() {
-  currentPage.value = 1
-}
-
-function clearFilters() {
-  filters.value = { search: '', zona: '', tipo: '', status: 'V' }
-  currentPage.value = 1
-}
-
-function goToPage(page) {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-  }
-}
-
-function changePageSize() {
-  currentPage.value = 1
-}
-
-function nuevoContrato() {
+const nuevoContrato = () => {
   modoEdicion.value = 'nuevo'
-  formData.value = {
+  formulario.value = {
     control_contrato: null,
-    num_contrato: null,
+    num_contrato: '',
+    cuenta_catastral: '',
+    contribuyente: '',
+    rfc: '',
+    curp: '',
+    telefono: '',
+    email: '',
+    tipo_aseo: '',
     num_empresa: '',
-    tipo_aseo_id: '',
-    zona_id: '',
-    monto_mensual: 0,
-    unidades_recoleccion: 1,
+    num_unidad: '',
+    zona: '',
+    colonia: '',
+    calle: '',
+    num_exterior: '',
+    num_interior: '',
+    referencias: '',
+    cuota_mensual: 0,
+    descuento: 0,
+    periodo_inicial: '',
+    fecha_alta: new Date().toISOString().split('T')[0],
+    status: 'A',
     observaciones: ''
   }
-  showModal.value = true
+  tabActiva.value = 'general'
+  mostrarModal.value = true
 }
 
-function closeModal() {
-  showModal.value = false
-}
-
-function editContrato(contrato) {
+const editarContrato = (contrato) => {
   modoEdicion.value = 'editar'
-  selectedContrato.value = contrato
-  formData.value = {
-    control_contrato: contrato.control_contrato,
-    num_contrato: contrato.num_contrato,
-    num_empresa: contrato.num_empresa,
-    tipo_aseo_id: contrato.tipo_aseo_id,
-    zona_id: contrato.zona_id,
-    monto_mensual: contrato.monto_mensual || 0,
-    unidades_recoleccion: contrato.unidades_recoleccion || 1,
-    observaciones: contrato.observaciones || ''
-  }
-  showModal.value = true
+  formulario.value = { ...contrato }
+  tabActiva.value = 'general'
+  mostrarModal.value = true
 }
 
-function viewContrato(contrato) {
-  selectedContrato.value = contrato
-  showViewModal.value = true
+const verDetalle = (contrato) => {
+  // Implementar vista de detalle si se requiere
+  showToast('Vista de detalle (por implementar)', 'info')
 }
 
-async function guardarContrato() {
-  if (!formData.value.num_empresa || !formData.value.tipo_aseo_id || !formData.value.zona_id) {
-    showToast('Complete los campos requeridos', 'warning')
-    return
-  }
-
-  const confirmResult = await Swal.fire({
-    title: modoEdicion.value === 'nuevo' ? 'Crear Contrato' : 'Actualizar Contrato',
-    text: '¿Confirma la operación?',
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, confirmar',
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#667eea',
-    cancelButtonColor: '#6c757d'
-  })
-
-  if (!confirmResult.isConfirmed) return
-
-  showLoading('Guardando contrato...', 'Procesando')
-  guardando.value = true
-
-  try {
-    if (modoEdicion.value === 'nuevo') {
-      // sp_aseo_contratos_create(p_num_empresa, p_tipo_aseo_id, p_zona_id, p_unidades_recoleccion, p_monto_mensual, p_usuario_id, p_observaciones)
-      const params = [
-        { nombre: 'p_num_empresa', valor: formData.value.num_empresa, tipo: 'integer' },
-        { nombre: 'p_tipo_aseo_id', valor: formData.value.tipo_aseo_id, tipo: 'integer' },
-        { nombre: 'p_zona_id', valor: formData.value.zona_id, tipo: 'integer' },
-        { nombre: 'p_unidades_recoleccion', valor: formData.value.unidades_recoleccion || 1, tipo: 'integer' },
-        { nombre: 'p_monto_mensual', valor: formData.value.monto_mensual || 0, tipo: 'numeric' },
-        { nombre: 'p_usuario_id', valor: 1, tipo: 'integer' },
-        { nombre: 'p_observaciones', valor: formData.value.observaciones || '', tipo: 'string' }
-      ]
-      const response = await execute('sp_aseo_contratos_create', BASE_DB, params, '', null, SCHEMA)
-      if (response?.result?.[0]?.r_success === false) {
-        showToast(response.result[0].r_message || 'Error al crear contrato', 'error')
-        return
-      }
-    } else {
-      // sp_aseo_contratos_update(p_control_contrato, p_num_empresa, p_tipo_aseo_id, p_zona_id, p_unidades_recoleccion, p_monto_mensual, p_observaciones)
-      const params = [
-        { nombre: 'p_control_contrato', valor: formData.value.control_contrato, tipo: 'integer' },
-        { nombre: 'p_num_empresa', valor: formData.value.num_empresa, tipo: 'integer' },
-        { nombre: 'p_tipo_aseo_id', valor: formData.value.tipo_aseo_id, tipo: 'integer' },
-        { nombre: 'p_zona_id', valor: formData.value.zona_id, tipo: 'integer' },
-        { nombre: 'p_unidades_recoleccion', valor: formData.value.unidades_recoleccion || 1, tipo: 'integer' },
-        { nombre: 'p_monto_mensual', valor: formData.value.monto_mensual || 0, tipo: 'numeric' },
-        { nombre: 'p_observaciones', valor: formData.value.observaciones || '', tipo: 'string' }
-      ]
-      const response = await execute('sp_aseo_contratos_update', BASE_DB, params, '', null, SCHEMA)
-      if (response?.result?.[0]?.success === false) {
-        showToast(response.result[0].message || 'Error al actualizar contrato', 'error')
-        return
-      }
-    }
-
-    showToast('Contrato guardado correctamente', 'success')
-    closeModal()
-    await loadContratos()
-  } catch (e) {
-    hideLoading()
-    handleApiError(e)
-  } finally {
-    hideLoading()
-    guardando.value = false
-  }
-}
-
-async function confirmDelete(contrato) {
+const cancelarContrato = async (contrato) => {
   const result = await Swal.fire({
-    title: '¿Cancelar contrato?',
-    html: `<p>¿Está seguro de cancelar el contrato <strong>#${contrato.num_contrato}</strong>?</p>`,
+    title: '¿Cancelar Contrato?',
+    html: `Se cancelará el contrato <strong>#${contrato.num_contrato}</strong><br>
+           de <strong>${contrato.contribuyente}</strong>`,
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#dc3545',
     cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, cancelar',
+    confirmButtonText: 'Sí, cancelar contrato',
     cancelButtonText: 'No'
   })
 
-  if (result.isConfirmed) {
-    const { value: motivo } = await Swal.fire({
-      title: 'Motivo de Cancelación',
-      input: 'textarea',
-      inputLabel: 'Ingrese el motivo',
-      inputPlaceholder: 'Ej: Solicitud del cliente...',
-      showCancelButton: true,
-      confirmButtonText: 'Confirmar',
-      cancelButtonText: 'Cancelar'
-    })
+  if (!result.isConfirmed) return
 
-    if (motivo) {
-      await cancelarContrato(contrato, motivo)
-    }
-  }
-}
+  const { value: motivo } = await Swal.fire({
+    title: 'Motivo de Cancelación',
+    input: 'textarea',
+    inputLabel: 'Ingrese el motivo',
+    inputPlaceholder: 'Ej: Solicitud del cliente, cambio de domicilio...',
+    inputAttributes: {
+      'aria-label': 'Motivo de cancelación'
+    },
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar',
+    cancelButtonText: 'Cancelar'
+  })
 
-async function cancelarContrato(contrato, motivo) {
-  showLoading('Cancelando contrato...', 'Procesando')
+  if (!motivo) return
 
+  cargando.value = true
   try {
-    const params = [
-      { nombre: 'p_control_contrato', valor: contrato.control_contrato, tipo: 'integer' },
-      { nombre: 'p_motivo_baja', valor: motivo, tipo: 'string' },
-      { nombre: 'p_usuario_id', valor: 1, tipo: 'integer' }
-    ]
-    await execute('sp_aseo_cancelar_contrato', BASE_DB, params, '', null, SCHEMA)
-    showToast('Contrato cancelado correctamente', 'success')
-    await loadContratos()
+    const params = {
+      p_control_contrato: contrato.control_contrato,
+      p_motivo_cancelacion: motivo,
+      p_fecha_cancelacion: new Date().toISOString().split('T')[0]
+    }
+    await execute('SP_ASEO_CANCELAR_CONTRATO', 'aseo_contratado', params)
+
+    await Swal.fire('¡Cancelado!', 'El contrato ha sido cancelado correctamente', 'success')
+    await cargarContratos()
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
+    handleError(error, 'Error al cancelar contrato')
   } finally {
-    hideLoading()
+    cargando.value = false
   }
 }
 
-function formatCurrency(value) {
+const guardarContrato = async () => {
+  if (!validarFormulario()) return
+
+  const result = await Swal.fire({
+    title: modoEdicion.value === 'nuevo' ? '¿Crear Contrato?' : '¿Guardar Cambios?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, guardar',
+    cancelButtonText: 'Cancelar'
+  })
+
+  if (!result.isConfirmed) return
+
+  cargando.value = true
+  try {
+    const sp = modoEdicion.value === 'nuevo' ? 'SP_ASEO_INSERTAR_CONTRATO' : 'SP_ASEO_ACTUALIZAR_CONTRATO'
+    await execute(sp, 'aseo_contratado', formulario.value)
+
+    await Swal.fire('¡Guardado!', 'El contrato ha sido guardado correctamente', 'success')
+    cerrarModal()
+    await cargarContratos()
+  } catch (error) {
+    handleError(error, 'Error al guardar contrato')
+  } finally {
+    cargando.value = false
+  }
+}
+
+const validarFormulario = () => {
+  if (!formulario.value.cuenta_catastral || formulario.value.cuenta_catastral.length !== 12) return false
+  if (!formulario.value.contribuyente) return false
+  if (!formulario.value.tipo_aseo) return false
+  if (!formulario.value.num_empresa) return false
+  if (!formulario.value.zona) return false
+  if (!formulario.value.cuota_mensual || formulario.value.cuota_mensual <= 0) return false
+  if (!formulario.value.fecha_alta) return false
+  return true
+}
+
+const cerrarModal = () => {
+  mostrarModal.value = false
+}
+
+const filtrar = () => {
+  paginaActual.value = 1
+}
+
+const limpiarFiltros = () => {
+  busqueda.value = ''
+  filtroZona.value = ''
+  filtroTipo.value = ''
+  filtroStatus.value = 'A'
+  paginaActual.value = 1
+}
+
+const cambiarPagina = (pagina) => {
+  if (pagina >= 1 && pagina <= totalPaginas.value) {
+    paginaActual.value = pagina
+  }
+}
+
+const exportar = () => showToast('Exportando contratos...', 'info')
+
+const formatCurrency = (value) => {
   return new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2 }).format(value || 0)
 }
 
-function exportarCSV() {
-  if (filteredData.value.length === 0) {
-    showToast('No hay datos para exportar', 'warning')
-    return
-  }
-
-  const headers = ['Contrato', 'Empresa', 'Zona', 'Tipo Aseo', 'Monto', 'Status']
-  const rows = filteredData.value.map(item => [
-    item.num_contrato,
-    item.empresa_descripcion || item.num_empresa,
-    item.zona_id,
-    item.tipo_aseo_descripcion || item.tipo_aseo_id,
-    item.monto_mensual,
-    item.status_vigencia === 'V' ? 'Vigente' : 'Cancelado'
-  ])
-
-  const csvContent = '\ufeff' + [headers.join(','), ...rows.map(r => r.map(c => `"${c || ''}"`).join(','))].join('\n')
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  const url = URL.createObjectURL(blob)
-  link.setAttribute('href', url)
-  link.setAttribute('download', `contratos_${new Date().toISOString().split('T')[0]}.csv`)
-  link.style.visibility = 'hidden'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-
-  showToast(`Exportados ${filteredData.value.length} registros`, 'success')
+const formatTipoAseo = (tipo) => {
+  const tipos = { 'D': 'Dom', 'C': 'Com', 'I': 'Ind', 'S': 'Ser' }
+  return tipos[tipo] || tipo
 }
 
-// Lifecycle
-onMounted(async () => {
-  showLoading('Cargando módulo...', 'Iniciando')
-  await loadCatalogos()
-  hideLoading()
-  await loadContratos()
-})
+const getBadgeTipo = (tipo) => {
+  const colores = {
+    'D': 'bg-success',
+    'C': 'bg-primary',
+    'I': 'bg-warning',
+    'S': 'bg-info'
+  }
+  return colores[tipo] || 'bg-secondary'
+}
 
-onBeforeUnmount(() => {
-  showModal.value = false
-  showViewModal.value = false
+onMounted(async () => {
+  try {
+    const [respZonas, respEmpresas, respUnidades] = await Promise.all([
+      execute('SP_ASEO_ZONAS_LIST', 'aseo_contratado', {}),
+      execute('SP_ASEO_EMPRESAS_LIST', 'aseo_contratado', {}),
+      execute('SP_ASEO_UNIDADES_LIST', 'aseo_contratado', {})
+    ])
+    zonas.value = respZonas || []
+    empresas.value = respEmpresas || []
+    unidades.value = respUnidades || []
+    await cargarContratos()
+  } catch (error) {
+    console.error('Error al cargar datos iniciales:', error)
+  }
 })
 </script>
+

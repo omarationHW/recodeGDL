@@ -8,6 +8,16 @@
         <h1>Pagos Múltiples</h1>
         <p>Aplicar múltiples pagos en lote</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -92,22 +102,44 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'pagosmultfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Pagos Múltiples'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'pagosmultfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Pagos Múltiples'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_PAGOSMULTFRM'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const jsonPayload = ref('')
 const resultado = ref(null)
@@ -130,7 +162,8 @@ async function pagar() {
   ]
 
   try {
-    const data = await execute(OP, BASE_DB, params)
+    showLoading('Consultando...', 'Por favor espere')
+    const data = await execute(OP, BASE_DB, params, '', null, SCHEMA)
 
     if (data?.result && Array.isArray(data.result) && data.result.length > 0) {
       const res = data.result[0]
@@ -171,6 +204,8 @@ async function pagar() {
       errores: 0,
       detalles: []
     }
+  } finally {
+    hideLoading()
   }
 }
 
@@ -185,54 +220,3 @@ function limpiar() {
 }
 </script>
 
-<style scoped>
-.full-width {
-  width: 100%;
-}
-
-.json-example {
-  background: #2d2d2d;
-  color: #f8f8f2;
-  padding: 1rem;
-  border-radius: 4px;
-  overflow-x: auto;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-  margin: 0.5rem 0;
-}
-
-.municipal-form-control[rows] {
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
-}
-
-.mb-3 {
-  margin-bottom: 1rem;
-}
-
-.mt-3 {
-  margin-top: 1rem;
-}
-
-.alert ul {
-  margin: 0.5rem 0;
-  padding-left: 1.5rem;
-}
-
-.alert ul li {
-  margin: 0.25rem 0;
-}
-
-.text-success {
-  color: #28a745;
-}
-
-.text-danger {
-  color: #dc3545;
-}
-
-.detalle-mensaje {
-  font-style: italic;
-  color: #666;
-}
-</style>

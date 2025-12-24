@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Reporte de Licencias Suspendidas</h1>
-        <p>Padrón de Licencias - Consulta de Licencias con Suspensión o Bloqueo</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Consulta de Licencias con Suspensión o Bloqueo</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -35,7 +38,6 @@
                 class="municipal-form-control"
                 v-model="filters.tipoFiltro"
                 @change="onTipoFiltroChange"
-                :disabled="loading"
               >
                 <option value="year">Por Año</option>
                 <option value="range">Por Rango de Fechas</option>
@@ -53,7 +55,6 @@
                 :min="2000"
                 :max="new Date().getFullYear()"
                 placeholder="Ej: 2024"
-                :disabled="loading"
               >
             </div>
 
@@ -64,7 +65,6 @@
                 type="date"
                 class="municipal-form-control"
                 v-model="filters.dateFrom"
-                :disabled="loading"
               >
             </div>
 
@@ -75,7 +75,6 @@
                 type="date"
                 class="municipal-form-control"
                 v-model="filters.dateFrom"
-                :disabled="loading"
               >
             </div>
             <div class="form-group" v-if="filters.tipoFiltro === 'range'">
@@ -84,7 +83,6 @@
                 type="date"
                 class="municipal-form-control"
                 v-model="filters.dateTo"
-                :disabled="loading"
               >
             </div>
 
@@ -93,7 +91,6 @@
               <select
                 class="municipal-form-control"
                 v-model="filters.tipoSuspension"
-                :disabled="loading"
               >
                 <option value="0">Todos los tipos</option>
                 <option value="1">Tipo 1 - Suspensión Administrativa</option>
@@ -108,7 +105,7 @@
             <button
               class="btn-municipal-primary"
               @click="generarReporte"
-              :disabled="loading || !isFormValid"
+              :disabled="!isFormValid"
             >
               <font-awesome-icon icon="search" />
               Generar Reporte
@@ -116,7 +113,6 @@
             <button
               class="btn-municipal-secondary"
               @click="clearFilters"
-              :disabled="loading"
             >
               <font-awesome-icon icon="times" />
               Limpiar
@@ -127,20 +123,23 @@
 
       <!-- Tabla de resultados -->
       <div class="municipal-card" v-if="licencias.length > 0">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header header-with-badge">
           <h5>
             <font-awesome-icon icon="list" />
             Licencias Suspendidas
-            <span class="badge-danger" v-if="licencias.length > 0">{{ licencias.length }} licencias</span>
           </h5>
-          <button
-            class="btn-municipal-primary"
-            @click="exportarExcel"
-            :disabled="loading"
-          >
-            <font-awesome-icon icon="file-excel" />
-            Exportar a Excel
-          </button>
+          <div class="header-right">
+            <span class="badge-danger" v-if="licencias.length > 0">
+              {{ licencias.length }} licencias
+            </span>
+            <button
+              class="btn-municipal-primary"
+              @click="exportarExcel"
+            >
+              <font-awesome-icon icon="file-excel" />
+              Exportar a Excel
+            </button>
+          </div>
         </div>
         <div class="municipal-card-body">
           <div class="table-responsive">
@@ -161,7 +160,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="lic in licencias" :key="lic.id_licencia" class="clickable-row">
+                <tr
+                  v-for="lic in licencias"
+                  :key="lic.id_licencia"
+                  @click="selectedRow = lic"
+                  :class="{ 'table-row-selected': selectedRow === lic }"
+                  class="row-hover"
+                >
                   <td>
                     <strong class="text-primary">{{ lic.licencia }}</strong>
                   </td>
@@ -202,7 +207,7 @@
                   <td>
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="viewDetalle(lic)"
+                      @click.stop="viewDetalle(lic)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
@@ -227,14 +232,47 @@
         </div>
       </div>
 
-      <!-- Mensaje cuando no hay datos -->
-      <div class="municipal-card" v-if="!loading && licencias.length === 0 && reporteGenerado">
-        <div class="municipal-card-body text-center text-muted">
-          <font-awesome-icon icon="check-circle" size="3x" class="empty-icon text-success" />
-          <p>No se encontraron licencias suspendidas con los criterios especificados</p>
+      <!-- Empty State - Sin búsqueda -->
+      <div v-if="licencias.length === 0 && !hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="ban" size="3x" />
         </div>
+        <h4>Reporte de Licencias Suspendidas</h4>
+        <p>Configure los criterios de búsqueda y presione "Generar Reporte" para consultar las licencias suspendidas o bloqueadas</p>
       </div>
+
+      <!-- Empty State - Sin resultados -->
+      <div v-else-if="licencias.length === 0 && hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="inbox" size="3x" />
+        </div>
+        <h4>Sin resultados</h4>
+        <p>No se encontraron licencias suspendidas con los criterios especificados</p>
+      </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'repsuspendidasfrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Reporte de Licencias Suspendidas'"
+        @close="showDocModal = false"
+      />
     </div>
+    <!-- /module-view-content -->
 
     <!-- Modal de detalle -->
     <Modal
@@ -375,33 +413,9 @@
         </div>
       </div>
     </Modal>
-
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Generando reporte de licencias suspendidas...</p>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'repsuspendidasfrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
-  </template>
+  <!-- /module-view -->
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -409,31 +423,43 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useExcelExport } from '@/composables/useExcelExport'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { exportToExcel } = useExcelExport()
 
 // Estado
 const licencias = ref([])
 const selectedLicencia = ref(null)
+const selectedRow = ref(null)
 const showDetailModal = ref(false)
 const reporteGenerado = ref(false)
+const hasSearched = ref(false)
 
 const filters = ref({
   tipoFiltro: 'year',
@@ -475,7 +501,9 @@ const generarReporte = async () => {
     return
   }
 
-  setLoading(true, 'Generando reporte...')
+  showLoading('Generando reporte de licencias suspendidas...', 'Por favor espere')
+  hasSearched.value = true
+  selectedRow.value = null
   reporteGenerado.value = false
 
   try {
@@ -533,7 +561,7 @@ const generarReporte = async () => {
     licencias.value = []
     reporteGenerado.value = true
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -591,6 +619,8 @@ const clearFilters = () => {
   }
   licencias.value = []
   reporteGenerado.value = false
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const formatDate = (dateString) => {

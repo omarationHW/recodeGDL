@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Carga de Datos Catastrales</h1>
-        <p>Padrón de Licencias - Importación y Procesamiento de Información Catastral</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Importación y Procesamiento de Información Catastral</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -54,7 +57,7 @@
           <button
             class="btn-municipal-primary"
             @click="consultarDatos"
-            :disabled="loading || !cvecatnva"
+            :disabled="!cvecatnva"
           >
             <font-awesome-icon icon="search" />
             Consultar Datos
@@ -62,7 +65,6 @@
           <button
             class="btn-municipal-secondary"
             @click="limpiarFormulario"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -70,7 +72,7 @@
           <button
             class="btn-municipal-success"
             @click="guardarDatos"
-            :disabled="loading || !cvecatnva || !datosGenerales"
+            :disabled="!cvecatnva || !datosGenerales"
           >
             <font-awesome-icon icon="save" />
             Guardar Cambios
@@ -81,9 +83,9 @@
 
     <!-- Pestañas de datos -->
     <div class="municipal-card" v-if="datosGenerales">
-      <div class="tabs-container">
+      <div class="municipal-tabs">
         <button
-          class="tab-button"
+          class="municipal-tab"
           :class="{ active: activeTab === 'general' }"
           @click="activeTab = 'general'"
         >
@@ -91,7 +93,7 @@
           Datos Generales
         </button>
         <button
-          class="tab-button"
+          class="municipal-tab"
           :class="{ active: activeTab === 'avaluos' }"
           @click="activeTab = 'avaluos'; cargarAvaluos()"
         >
@@ -99,7 +101,7 @@
           Avalúos
         </button>
         <button
-          class="tab-button"
+          class="municipal-tab"
           :class="{ active: activeTab === 'construcciones' }"
           @click="activeTab = 'construcciones'"
         >
@@ -107,7 +109,7 @@
           Construcciones
         </button>
         <button
-          class="tab-button"
+          class="municipal-tab"
           :class="{ active: activeTab === 'area_carto' }"
           @click="activeTab = 'area_carto'; cargarAreaCarto()"
         >
@@ -209,12 +211,16 @@
 
     <!-- Tab: Avalúos -->
     <div v-show="activeTab === 'avaluos'" class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="money-bill-wave" />
           Datos de Avalúos
-          <span class="badge-purple" v-if="avaluos.length > 0">{{ avaluos.length }} registros</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="avaluos.length > 0">
+            {{ avaluos.length }} registros
+          </span>
+        </div>
       </div>
       <div class="municipal-card-body table-container">
         <div class="table-responsive">
@@ -232,7 +238,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="avaluo in avaluos" :key="avaluo.id" class="clickable-row">
+              <tr
+                v-for="avaluo in avaluos"
+                :key="avaluo.id"
+                @click="selectedRow = avaluo"
+                :class="{ 'table-row-selected': selectedRow === avaluo }"
+                class="row-hover"
+              >
                 <td><strong>{{ avaluo.id }}</strong></td>
                 <td>{{ avaluo.cuenta || 'N/A' }}</td>
                 <td><code>{{ avaluo.clave_catastral || 'N/A' }}</code></td>
@@ -260,12 +272,16 @@
 
     <!-- Tab: Construcciones -->
     <div v-show="activeTab === 'construcciones'" class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="home" />
           Datos de Construcciones
-          <span class="badge-purple" v-if="construcciones.length > 0">{{ construcciones.length }} registros</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="construcciones.length > 0">
+            {{ construcciones.length }} registros
+          </span>
+        </div>
       </div>
       <div class="municipal-card-body table-container">
         <div class="table-responsive">
@@ -283,7 +299,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="construccion in construcciones" :key="construccion.id" class="clickable-row">
+              <tr
+                v-for="construccion in construcciones"
+                :key="construccion.id"
+                @click="selectedRow = construccion"
+                :class="{ 'table-row-selected': selectedRow === construccion }"
+                class="row-hover"
+              >
                 <td><strong>{{ construccion.id }}</strong></td>
                 <td>{{ construccion.cuenta || 'N/A' }}</td>
                 <td>{{ construccion.tipo_construccion || 'N/A' }}</td>
@@ -313,12 +335,16 @@
 
     <!-- Tab: Área Cartográfica -->
     <div v-show="activeTab === 'area_carto'" class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="map" />
           Área Cartográfica Total
-          <span class="badge-purple" v-if="areaCarto">{{ areaCarto }} m²</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="areaCarto">
+            {{ areaCarto }} m²
+          </span>
+        </div>
       </div>
       <div class="municipal-card-body">
         <div v-if="areaCarto !== null" class="text-center area-carto-display">
@@ -338,17 +364,6 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
-      </div>
-    </div>
-
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <div class="toast-content">
@@ -360,16 +375,20 @@
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'cargadatosfrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Carga de Datos Catastrales'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -378,24 +397,33 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
-  handleApiError,
-  loadingMessage
+  handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const activeTab = ref('general')
@@ -406,6 +434,8 @@ const avaluos = ref([])
 const construcciones = ref([])
 const areaCarto = ref(null)
 const cveavaluo = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Métodos
 const consultarDatos = async () => {
@@ -419,7 +449,9 @@ const consultarDatos = async () => {
     return
   }
 
-  setLoading(true, 'Consultando datos catastrales...')
+  showLoading('Consultando datos catastrales...', 'Procesando información catastral')
+  hasSearched.value = true
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -458,7 +490,7 @@ const consultarDatos = async () => {
     handleApiError(error)
     datosGenerales.value = null
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -471,6 +503,8 @@ const limpiarFormulario = () => {
   areaCarto.value = null
   cveavaluo.value = null
   activeTab.value = 'general'
+  hasSearched.value = false
+  selectedRow.value = null
   showToast('info', 'Formulario limpiado')
 }
 
@@ -500,7 +534,8 @@ const guardarDatos = async () => {
 
   const usuario = localStorage.getItem('usuario') || 'sistema'
 
-  setLoading(true, 'Guardando cambios...')
+  showLoading('Guardando cambios...', 'Procesando información')
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -540,7 +575,7 @@ const guardarDatos = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -550,7 +585,8 @@ const cargarAvaluos = async () => {
     return
   }
 
-  setLoading(true, 'Cargando avalúos...')
+  showLoading('Cargando avalúos...', 'Obteniendo datos de avalúos')
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -580,7 +616,7 @@ const cargarAvaluos = async () => {
     handleApiError(error)
     avaluos.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -595,7 +631,8 @@ const cargarConstrucciones = async () => {
     return
   }
 
-  setLoading(true, 'Cargando construcciones...')
+  showLoading('Cargando construcciones...', 'Obteniendo datos de construcciones')
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -624,7 +661,7 @@ const cargarConstrucciones = async () => {
     handleApiError(error)
     construcciones.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -634,7 +671,8 @@ const cargarAreaCarto = async () => {
     return
   }
 
-  setLoading(true, 'Cargando área cartográfica...')
+  showLoading('Cargando área cartográfica...', 'Obteniendo datos cartográficos')
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -666,7 +704,7 @@ const cargarAreaCarto = async () => {
     handleApiError(error)
     areaCarto.value = null
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 

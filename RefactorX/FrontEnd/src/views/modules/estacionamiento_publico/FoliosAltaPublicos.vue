@@ -14,11 +14,13 @@
         <p>Registrar nuevo folio en ta14_folios_adeudo</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -162,26 +164,19 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - FoliosAltaPublicos">
-      <h3>Alta de Folios de Adeudo</h3>
-      <p>Este módulo permite registrar nuevos folios de adeudo para estacionamientos públicos.</p>
-      <h4>Campos obligatorios:</h4>
-      <ul>
-        <li><strong>Año:</strong> Año fiscal del folio</li>
-        <li><strong>Folio:</strong> Número único del folio</li>
-        <li><strong>Fecha:</strong> Fecha de emisión del folio</li>
-        <li><strong>Placa:</strong> Placa del vehículo (máx 7 caracteres)</li>
-      </ul>
-    </DocumentationModal>
-
-    <!-- Modal de Documentación Técnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'FoliosAltaPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'FoliosAltaPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Alta de Folio de Adeudo — Estacionamientos Públicos'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { reactive, ref, nextTick } from 'vue'
 import Swal from 'sweetalert2'
@@ -190,7 +185,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -327,12 +322,18 @@ async function guardar() {
 }
 
 // Documentación y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>

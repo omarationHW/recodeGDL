@@ -14,11 +14,13 @@
         <p>Gestion de usuarios y permisos del sistema</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -93,7 +95,7 @@
             <p>Cargando usuarios...</p>
           </div>
           <div v-else-if="usuarios.length === 0" class="empty-state">
-            <font-awesome-icon icon="user-slash" size="3x" />
+            <font-awesome-icon icon="user-slash" size="3x" class="empty-state-icon" />
             <p>No se encontraron usuarios</p>
           </div>
           <div v-else class="table-responsive">
@@ -238,28 +240,15 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - Administracion de Usuarios">
-      <h3>Administracion de Usuarios</h3>
-      <p>Este modulo permite gestionar los usuarios del sistema de estacionamientos publicos.</p>
-      <h4>Campos:</h4>
-      <ul>
-        <li><strong>Usuario:</strong> Login unico para acceso al sistema (max 10 caracteres)</li>
-        <li><strong>Nombre:</strong> Nombre completo del usuario</li>
-        <li><strong>Estado:</strong> A=Activo, I=Inactivo, B=Bloqueado</li>
-        <li><strong>Recaudadora:</strong> ID de la recaudadora asignada</li>
-        <li><strong>Nivel:</strong> Nivel de permisos (1=Usuario, 2=Supervisor, 3=Admin, 9=SuperAdmin)</li>
-      </ul>
-      <h4>Operaciones:</h4>
-      <ul>
-        <li><strong>Nuevo Usuario:</strong> Crea un nuevo registro de usuario</li>
-        <li><strong>Editar:</strong> Modifica los datos de un usuario existente</li>
-        <li><strong>Eliminar:</strong> Elimina un usuario del sistema</li>
-      </ul>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'PasswordsPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'PasswordsPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Administración de Usuarios'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
@@ -269,11 +258,10 @@ import Swal from 'sweetalert2'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
@@ -510,13 +498,19 @@ function getNivelClass(nivel) {
 
 onMounted(load)
 
-// Documentacion
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>
@@ -626,6 +620,11 @@ const closeTechDocs = () => showTechDocs.value = false
 .loading-container p,
 .empty-state p {
   margin-top: 1rem;
+}
+
+.empty-state-icon {
+  color: #adb5bd;
+  opacity: 0.6;
 }
 
 /* Tabla */

@@ -17,10 +17,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -150,7 +151,26 @@
         </div>
 
         <div class="municipal-card-body table-container">
-          <div class="table-responsive">
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="giros.length === 0 && !hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="search" size="3x" />
+            </div>
+            <h4>Búsqueda de Giros</h4>
+            <p>Utilice los filtros para buscar giros en el catálogo</p>
+          </div>
+
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="giros.length === 0 && hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
+            </div>
+            <h4>Sin resultados</h4>
+            <p>No se encontraron giros con los criterios especificados</p>
+          </div>
+
+          <!-- Tabla con resultados -->
+          <div v-else class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
@@ -181,7 +201,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="giro in paginatedGiros" :key="giro.id_giro" class="clickable-row">
+                <tr
+                  v-for="giro in paginatedGiros"
+                  :key="giro.id_giro"
+                  @click="selectedRow = giro"
+                  :class="{ 'table-row-selected': selectedRow === giro }"
+                  class="row-hover"
+                >
                   <td>
                     <span class="badge badge-light-info">
                       {{ giro.id_giro }}
@@ -212,15 +238,6 @@
                       <font-awesome-icon :icon="giro.vigente === 'V' ? 'check-circle' : 'times-circle'" class="me-1" />
                       {{ giro.vigente === 'V' ? 'VIGENTE' : 'CANCELADO' }}
                     </span>
-                  </td>
-                </tr>
-                <tr v-if="giros.length === 0">
-                  <td colspan="6" class="empty-state">
-                    <div class="empty-state-content">
-                      <font-awesome-icon icon="inbox" class="empty-state-icon" />
-                      <p class="empty-state-text">No se encontraron giros con los criterios especificados</p>
-                      <p class="empty-state-hint">Intente ajustar los filtros de búsqueda</p>
-                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -263,44 +280,52 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <div class="toast-content">
-        <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" class="toast-duration-icon" />
-          {{ toast.duration }}
-        </span>
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
       </div>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'buscagirofrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'buscagirofrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Búsqueda de Giros'"
+        @close="showDocModal = false"
+      />
+    </div>
   </div>
 </template>
 
 <script setup>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
@@ -311,12 +336,12 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
-// Importar useGlobalLoading para el loading estándar
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
 const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const giros = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const loadingEstadisticas = ref(false)
 const stats = ref({
   total: 0,
@@ -374,7 +399,7 @@ const cargarEstadisticas = async () => {
       [],
       '', // tenant vacío
       null, // pagination
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -395,6 +420,8 @@ const cargarEstadisticas = async () => {
 
 const buscarGiros = async () => {
   showLoading('Buscando giros...', 'Consultando base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
   currentPage.value = 1
   showFilters.value = false
 
@@ -416,7 +443,7 @@ const buscarGiros = async () => {
       ],
       '', // tenant vacío para usar conexión por defecto
       null, // pagination
-      'comun' // esquema
+      'publico' // esquema
     )
 
     const endTime = performance.now()
@@ -455,7 +482,9 @@ const clearFilters = () => {
   }
   giros.value = []
   totalResultados.value = 0
+  hasSearched.value = false
   currentPage.value = 1
+  selectedRow.value = null
   showToast('info', 'Filtros limpiados')
 }
 
@@ -463,17 +492,20 @@ const clearFilters = () => {
 const nextPage = () => {
   if (currentPage.value < totalPages.value) {
     currentPage.value++
+    selectedRow.value = null
   }
 }
 
 const previousPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--
+    selectedRow.value = null
   }
 }
 
 const changePageSize = () => {
   currentPage.value = 1
+  selectedRow.value = null
 }
 
 // Helpers

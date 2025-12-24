@@ -14,94 +14,94 @@ class GenericController
         return [
             'padron_licencias' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun'] // Solo estos esquemas
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun'] // Solo estos esquemas
             ],
             'licencias' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun']
             ],
             'aseo_contratado' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun']
             ],
             'aseo' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun']
             ],
             'cementerio' => [
                 'database' => 'cementerio',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun']
             ],
             'cementerios' => [
                 'database' => 'cementerio',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun']
             ],
             'estacionamiento_exclusivo' => [
                 'database' => 'estacionamiento_exclusivo',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'estacionamiento_publico' => [
                 'database' => 'estacionamiento_publico',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'estacionamientos' => [
                 'database' => 'padron_licencias',
-                'schema' => 'public',
-                'allowed_schemas' => ['public', 'comun']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public', 'comun']
             ],
             'mercados' => [
                 'database' => 'mercados',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'multas_reglamentos' => [
                 'database' => 'multas_reglamentos',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'multas' => [
                 'database' => 'multas_reglamentos',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'otras_obligaciones' => [
                 'database' => 'otras_obligaciones',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'otras-oblig' => [
                 'database' => 'otras_obligaciones',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'distribucion' => [
                 'database' => 'distribucion',
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ],
             'default' => [
                 'database' => config('database.connections.pgsql.database', 'postgres'),
-                'schema' => 'public',
-                'allowed_schemas' => ['public']
+                'schema' => 'publico',
+                'allowed_schemas' => ['publico', 'public']
             ]
         ];
     }
 
     /**
-     * Endpoint genérico para ejecutar stored procedures
+     * Endpoint genÃ©rico para ejecutar stored procedures
      *
      * @OA\Post(
      *     path="/api/generic",
-     *     summary="Ejecutar stored procedure genérico",
-     *     description="Endpoint genérico para ejecutar stored procedures en diferentes módulos y bases de datos. El esquema por defecto es 'public'. Solo la base 'padron_licencias' puede usar también el esquema 'comun'.",
+     *     summary="Ejecutar stored procedure genÃ©rico",
+     *     description="Endpoint genÃ©rico para ejecutar stored procedures en diferentes mÃ³dulos y bases de datos. El esquema por defecto es 'public'. Solo la base 'padron_licencias' puede usar tambiÃ©n el esquema 'comun'.",
      *     tags={"Generic API"},
      *     @OA\RequestBody(
      *         required=true,
@@ -111,15 +111,15 @@ class GenericController
      *                 property="eRequest",
      *                 type="object",
      *                 @OA\Property(property="Operacion", type="string", example="select", description="Nombre del stored procedure a ejecutar"),
-     *                 @OA\Property(property="Base", type="string", example="padron_licencias", description="Nombre del módulo/base de datos"),
+     *                 @OA\Property(property="Base", type="string", example="padron_licencias", description="Nombre del mÃ³dulo/base de datos"),
      *                 @OA\Property(property="Esquema", type="string", example="public", description="Esquema de la base de datos (opcional). Por defecto: 'public'. Solo 'padron_licencias' puede usar 'comun'"),
-     *                 @OA\Property(property="Parametros", type="object", description="Parámetros del stored procedure")
+     *                 @OA\Property(property="Parametros", type="object", description="ParÃ¡metros del stored procedure")
      *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Operación exitosa",
+     *         description="OperaciÃ³n exitosa",
      *         @OA\JsonContent(
      *             @OA\Property(property="eResponse", type="object",
      *                 @OA\Property(property="success", type="boolean", example=true),
@@ -130,7 +130,7 @@ class GenericController
      *     ),
      *     @OA\Response(
      *         response=400,
-     *         description="Petición inválida",
+     *         description="PeticiÃ³n invÃ¡lida",
      *         @OA\JsonContent(
      *             @OA\Property(property="eResponse", type="object",
      *                 @OA\Property(property="success", type="boolean", example=false),
@@ -156,21 +156,21 @@ class GenericController
         set_time_limit(120);
 
         try {
-            Log::info("🌐 REQUEST: " . $request->method() . " " . $request->path());
-            Log::info("🔍 RAW INPUT: " . $request->getContent());
+            Log::info("ðŸŒ REQUEST: " . $request->method() . " " . $request->path());
+            Log::info("ðŸ” RAW INPUT: " . $request->getContent());
 
             if (!$request->has('eRequest')) {
-                Log::error("❌ ERROR: No se encontró eRequest en la petición");
+                Log::error("âŒ ERROR: No se encontrÃ³ eRequest en la peticiÃ³n");
                 return response()->json([
                     'eResponse' => [
                         'success' => false,
-                        'message' => 'Petición inválida: No se encontró eRequest',
+                        'message' => 'PeticiÃ³n invÃ¡lida: No se encontrÃ³ eRequest',
                     ]
                 ], 400);
             }
 
             $eRequest = $request->input('eRequest');
-            Log::info("🔍 PARSED INPUT: " . json_encode($eRequest));
+            Log::info("ðŸ” PARSED INPUT: " . json_encode($eRequest));
 
             if (empty($eRequest['Operacion'])) {
                 throw new Exception('El campo eRequest.Operacion es requerido');
@@ -179,20 +179,20 @@ class GenericController
                 throw new Exception('El campo eRequest.Base es requerido');
             }
 
-            $operacion = strtolower($eRequest['Operacion']); // Convertir a minúsculas
-            $base = strtolower($eRequest['Base']); // Convertir a minúsculas
+            $operacion = strtolower($eRequest['Operacion']); // Convertir a minÃºsculas
+            $base = strtolower($eRequest['Base']); // Convertir a minÃºsculas
             $parametros = $eRequest['Parametros'] ?? [];
             $paginacion = $eRequest['Paginacion'] ?? null;
             $tenant = $eRequest['Tenant'] ?? '';
             $esquemaRequest = $eRequest['Esquema'] ?? null; // Esquema opcional desde el request
 
-            Log::info("🔍 Variables extraídas: operacion={$operacion}, base={$base}, parametros=" . count($parametros) . ", tenant={$tenant}, esquema={$esquemaRequest}");
+            Log::info("ðŸ” Variables extraÃ­das: operacion={$operacion}, base={$base}, parametros=" . count($parametros) . ", tenant={$tenant}, esquema={$esquemaRequest}");
 
             $moduleDbConfig = $this->getModuleDbConfig();
             $config = $moduleDbConfig[$base] ?? $moduleDbConfig['default'];
             $dbname = $config['database'];
             $schemaDefault = $config['schema']; // Esquema por defecto (public)
-            $allowedSchemas = $config['allowed_schemas'] ?? ['public'];
+            $allowedSchemas = $config['allowed_schemas'] ?? ['publico', 'public'];
 
             // Si viene esquema en el request, validar que sea permitido
             if ($esquemaRequest) {
@@ -205,18 +205,18 @@ class GenericController
                 $schema = $schemaDefault; // Usar esquema por defecto (public)
             }
 
-            Log::info("🔍 Módulo: {$base} -> Base: {$dbname}, Esquema: {$schema} (default: {$schemaDefault}, allowed: " . implode(', ', $allowedSchemas) . ")");
+            Log::info("ðŸ” MÃ³dulo: {$base} -> Base: {$dbname}, Esquema: {$schema} (default: {$schemaDefault}, allowed: " . implode(', ', $allowedSchemas) . ")");
 
             $host = config('database.connections.pgsql.host');
             $port = config('database.connections.pgsql.port');
             $username = config('database.connections.pgsql.username');
             $password = config('database.connections.pgsql.password');
 
-            Log::info("🔍 Conectando a la base de datos: host={$host}, port={$port}, dbname={$dbname}");
+            Log::info("ðŸ” Conectando a la base de datos: host={$host}, port={$port}, dbname={$dbname}");
             $dsn = "pgsql:host={$host};port={$port};dbname={$dbname}";
             $pdo = new PDO($dsn, $username, $password);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            Log::info("✅ Conexión a DB exitosa");
+            Log::info("âœ… ConexiÃ³n a DB exitosa");
 
             $spFullName = $schema . '.' . $operacion;
 
@@ -253,7 +253,7 @@ class GenericController
                         $debugMsg .= "{$sp['routine_schema']}.{$sp['routine_name']} ";
                     }
                 } else {
-                    $debugMsg .= "El SP no existe en ningún esquema.";
+                    $debugMsg .= "El SP no existe en ningÃºn esquema.";
                 }
 
                 throw new Exception($debugMsg);
@@ -261,17 +261,25 @@ class GenericController
 
             $spParametros = [];
             $paramMap = [];
+            $paramTypes = [];
+            $spParamTypes = [];
 
             foreach ($parametros as $param) {
                 if (isset($param['nombre']) && array_key_exists('valor', $param)) {
                     $valor = $param['valor'];
                     $tipo = $param['tipo'] ?? 'string';
+                    $pgType = null;
 
                     if ($valor !== null) {
                         switch ($tipo) {
                             case 'integer':
                             case 'int':
                                 $valor = intval($valor);
+                                $pgType = 'integer';
+                                break;
+                            case 'smallint':
+                                $valor = intval($valor);
+                                $pgType = 'smallint';
                                 break;
                             case 'numeric':
                             case 'decimal':
@@ -280,6 +288,30 @@ class GenericController
                             case 'boolean':
                             case 'bool':
                                 $valor = boolval($valor);
+                                $pgType = 'boolean';
+                                break;
+                            case 'date':
+                                $valor = strval($valor);
+                                $pgType = 'date';
+                                break;
+                            case 'timestamp':
+                            case 'datetime':
+                                $valor = strval($valor);
+                                $pgType = 'timestamp';
+                                break;
+                            case 'varchar':
+                            case 'character varying':
+                                $valor = strval($valor);
+                                $pgType = 'varchar';
+                                break;
+                            case 'char':
+                            case 'character':
+                                $valor = strval($valor);
+                                $pgType = 'char';
+                                break;
+                            case 'text':
+                                $valor = strval($valor);
+                                $pgType = 'text';
                                 break;
                             case 'json':
                                 $valor = is_string($valor) ? $valor : json_encode($valor);
@@ -292,7 +324,7 @@ class GenericController
                                     if (is_array($decoded)) {
                                         $valor = '{' . implode(',', array_map('intval', $decoded)) . '}';
                                     } else {
-                                        $valor = '{}'; // Array vacío si no se puede decodificar
+                                        $valor = '{}'; // Array vacÃ­o si no se puede decodificar
                                     }
                                 } elseif (is_array($valor)) {
                                     $valor = '{' . implode(',', array_map('intval', $valor)) . '}';
@@ -307,8 +339,9 @@ class GenericController
                     // Mantener null como null para que el SP pueda usar sus valores por defecto
 
                     $paramMap[$param['nombre']] = $valor;
+                    $paramTypes[$param['nombre']] = $pgType;
 
-                    // Fix para compatibilidad de parámetros id vs p_id
+                    // Fix para compatibilidad de parÃ¡metros id vs p_id
                     if ($param['nombre'] === 'id' && !isset($paramMap['p_id'])) {
                         $paramMap['p_id'] = $valor;
                     }
@@ -318,28 +351,39 @@ class GenericController
                 }
             }
 
-            // Procesar parámetros para el SP - buscar primero p_id, luego id
+            // Procesar parÃ¡metros para el SP - buscar primero p_id, luego id
             foreach ($parametros as $param) {
                 if (isset($param['nombre'])) {
                     $nombreParam = $param['nombre'];
 
-                    // Si el parámetro es 'id' pero existe 'p_id' en el map, usar p_id
+                    // Si el parÃ¡metro es 'id' pero existe 'p_id' en el map, usar p_id
                     if ($nombreParam === 'id' && isset($paramMap['p_id'])) {
                         $spParametros[] = $paramMap['p_id'];
+                        $spParamTypes[] = $paramTypes['p_id'] ?? null;
                     }
-                    // Si el parámetro es 'p_id' pero solo existe 'id', usar id
+                    // Si el parÃ¡metro es 'p_id' pero solo existe 'id', usar id
                     elseif ($nombreParam === 'p_id' && !isset($paramMap['p_id']) && isset($paramMap['id'])) {
                         $spParametros[] = $paramMap['id'];
+                        $spParamTypes[] = $paramTypes['id'] ?? null;
                     }
                     // Caso normal
                     else {
                         $spParametros[] = $paramMap[$nombreParam] ?? null;
+                    $spParamTypes[] = $paramTypes[$nombreParam] ?? null;
                     }
                 }
             }
 
-            $placeholders = str_repeat('?,', count($spParametros));
-            $placeholders = rtrim($placeholders, ',');
+            // Construir placeholders con casting explicito
+            $placeholderParts = [];
+            for ($i = 0; $i < count($spParametros); $i++) {
+                if (isset($spParamTypes[$i]) && $spParamTypes[$i] !== null) {
+                    $placeholderParts[] = "?::{$spParamTypes[$i]}";
+                } else {
+                    $placeholderParts[] = "?";
+                }
+            }
+            $placeholders = implode(",", $placeholderParts);
             $sql = "SELECT * FROM {$spFullName}({$placeholders})";
 
             $appendLimit = false;
@@ -356,8 +400,8 @@ class GenericController
                 $sql .= " LIMIT ? OFFSET ?";
             }
 
-            Log::info("🔍 Ejecutando SP: {$sql}");
-            Log::info("🔍 Parámetros: " . json_encode($spParametros));
+            Log::info("ðŸ” Ejecutando SP: {$sql}");
+            Log::info("ðŸ” ParÃ¡metros: " . json_encode($spParametros));
 
             $stmt = $pdo->prepare($sql);
             $execParams = $spParametros;
@@ -367,7 +411,7 @@ class GenericController
             }
             $stmt->execute($execParams);
 
-            Log::info("🔍 SP ejecutado, obteniendo resultados...");
+            Log::info("ðŸ” SP ejecutado, obteniendo resultados...");
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Convertir booleanos de PostgreSQL ('t'/'f') a booleanos de PHP (true/false)
@@ -381,7 +425,7 @@ class GenericController
                 }
             }
 
-            Log::info("✅ SP completado. Resultados: " . count($result) . " registros");
+            Log::info("âœ… SP completado. Resultados: " . count($result) . " registros");
 
             $testConnection = $pdo->query('SELECT current_database(), current_user, version()');
             $connectionInfo = $testConnection->fetch(PDO::FETCH_ASSOC);
@@ -396,11 +440,11 @@ class GenericController
                 'parameters_count' => count($spParametros)
             ];
 
-            Log::info("✅ Devolviendo respuesta exitosa con " . count($result) . " registros");
+            Log::info("âœ… Devolviendo respuesta exitosa con " . count($result) . " registros");
             return response()->json([
                 'eResponse' => [
                     'success' => true,
-                    'message' => 'Operación completada exitosamente',
+                    'message' => 'OperaciÃ³n completada exitosamente',
                     'data' => [
                         'result' => $result,
                         'count' => count($result),
@@ -426,3 +470,7 @@ class GenericController
         }
     }
 }
+
+
+
+

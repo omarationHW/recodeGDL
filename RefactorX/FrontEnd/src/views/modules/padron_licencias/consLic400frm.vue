@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Consulta de Licencias AS/400</h1>
-        <p>Padrón de Licencias - Consulta de Datos Históricos del Sistema AS/400</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Consulta de Datos Históricos del Sistema AS/400</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -45,7 +48,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchLicencia"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -53,7 +55,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -64,12 +65,14 @@
 
     <!-- Información de la licencia -->
     <div class="municipal-card" v-if="licenciaInfo">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="file-alt" />
           Información de la Licencia AS/400
-          <span class="badge-warning">Legacy</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-warning">Legacy</span>
+        </div>
       </div>
       <div class="municipal-card-body">
         <div class="details-grid">
@@ -200,23 +203,24 @@
 
     <!-- Historial de pagos -->
     <div class="municipal-card" v-if="licenciaInfo">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="money-bill-wave" />
           Historial de Pagos AS/400
-          <span class="badge-purple" v-if="pagos.length > 0">{{ pagos.length }} pagos</span>
         </h5>
-        <button
-          class="btn-municipal-secondary btn-sm"
-          @click="loadPagos"
-          :disabled="loading"
-        >
-          <font-awesome-icon icon="sync-alt" />
-          Actualizar
-        </button>
+        <div class="header-right">
+          <span class="badge-purple" v-if="pagos.length > 0">{{ pagos.length }} pagos</span>
+          <button
+            class="btn-municipal-secondary btn-sm"
+            @click="loadPagos"
+          >
+            <font-awesome-icon icon="sync-alt" />
+            Actualizar
+          </button>
+        </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
+      <div class="municipal-card-body table-container">
         <div class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
@@ -231,7 +235,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="pago in pagos" :key="pago.folio" class="clickable-row">
+              <tr
+                v-for="pago in pagos"
+                :key="pago.folio"
+                @click="selectedRow = pago"
+                :class="{ 'table-row-selected': selectedRow === pago }"
+                class="row-hover"
+              >
                 <td><code class="text-primary">{{ pago.folio?.trim() }}</code></td>
                 <td>{{ pago.concepto?.trim() || 'N/A' }}</td>
                 <td>
@@ -277,36 +287,31 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading && !licenciaInfo" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Consultando sistema AS/400...</p>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'consLic400frm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Consulta de Licencias AS/400'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -315,17 +320,25 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -333,9 +346,13 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const licenciaInfo = ref(null)
 const pagos = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Filtros
 const filters = ref({
@@ -359,7 +376,9 @@ const searchLicencia = async () => {
     return
   }
 
-  setLoading(true, 'Consultando licencia en AS/400...')
+  showLoading('Consultando licencia en AS/400...', 'Accediendo al sistema legacy')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const response = await execute(
@@ -390,14 +409,14 @@ const searchLicencia = async () => {
     licenciaInfo.value = null
     pagos.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const loadPagos = async () => {
   if (!filters.value.numeroLicencia) return
 
-  setLoading(true, 'Cargando historial de pagos...')
+  showLoading('Cargando historial de pagos...', 'Consultando base de datos AS/400')
 
   try {
     const response = await execute(
@@ -419,7 +438,7 @@ const loadPagos = async () => {
     handleApiError(error)
     pagos.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -429,6 +448,8 @@ const clearFilters = () => {
   }
   licenciaInfo.value = null
   pagos.value = []
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 // Utilidades

@@ -18,7 +18,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -40,11 +44,11 @@
       <div v-show="showFilters" class="municipal-card-body">
         <div class="form-row">
           <div class="form-group">
-            <label class="municipal-form-label">ID Requisito:</label>
+            <label class="municipal-form-label">ID (Req):</label>
             <input
               type="number"
               class="municipal-form-control"
-              v-model.number="filters.id_requisito"
+              v-model.number="filters.req"
               placeholder="ID del requisito"
               @keyup.enter="aplicarFiltrosYPaginacion"
             />
@@ -83,7 +87,7 @@
           <font-awesome-icon icon="list" />
           Requisitos Registrados
         </h5>
-        <div class="ms-auto d-flex align-items-center gap-3">
+        <div class="header-right">
           <span class="badge-purple" v-if="totalRegistros > 0">
             {{ totalRegistros.toLocaleString() }} registro{{ totalRegistros !== 1 ? 's' : '' }}
           </span>
@@ -117,20 +121,40 @@
                   </div>
                 </td>
               </tr>
-              <tr v-else-if="requisitos.length === 0">
-                <td colspan="3" class="empty-state">
-                  <div class="empty-state-content">
-                    <font-awesome-icon icon="inbox" class="empty-state-icon" />
-                    <p class="empty-state-text">No se encontraron requisitos con los filtros seleccionados</p>
-                    <p class="empty-state-hint">Intenta ajustar los filtros de búsqueda o presiona "Actualizar"</p>
+              <tr v-else-if="requisitos.length === 0 && !hasSearched">
+                <td colspan="3">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">
+                      <font-awesome-icon icon="clipboard-list" size="3x" />
+                    </div>
+                    <h4>Catálogo de Requisitos</h4>
+                    <p>Presiona "Actualizar" para cargar los requisitos registrados en el sistema</p>
                   </div>
                 </td>
               </tr>
-              <tr v-else v-for="requisito in requisitos" :key="requisito.id_requisito" class="clickable-row">
+              <tr v-else-if="requisitos.length === 0 && hasSearched">
+                <td colspan="3">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">
+                      <font-awesome-icon icon="inbox" size="3x" />
+                    </div>
+                    <h4>Sin resultados</h4>
+                    <p>No se encontraron requisitos con los criterios especificados</p>
+                  </div>
+                </td>
+              </tr>
+              <tr
+                v-else
+                v-for="requisito in requisitos"
+                :key="requisito.req"
+                @click="selectedRow = requisito"
+                :class="{ 'table-row-selected': selectedRow === requisito }"
+                class="row-hover"
+              >
                 <td style="text-align: center;">
                   <span class="badge badge-light-secondary">
                     <font-awesome-icon icon="hashtag" />
-                    {{ requisito.id_requisito }}
+                    {{ requisito.req }}
                   </span>
                 </td>
                 <td>
@@ -223,64 +247,54 @@
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
       <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
         <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" class="toast-duration-icon" />
-          {{ toast.duration }}
-        </span>
       </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'CatRequisitos'"
+      :moduleName="'padron_licencias'"
+      :docType="docType"
+      :title="'Catálogo de Requisitos'"
+      @close="showDocModal = false"
+    />
   </div>
   <!-- /module-view-content -->
 
   </div>
   <!-- /module-view -->
 
-  <!-- Modal de Creación -->
+  <!-- Modal de Creación - Basado en Delphi: c_girosreq solo tiene req (autogenerado) y descripcion -->
   <Modal
     :show="showModalCrear"
     title="Crear Nuevo Requisito"
     @close="cerrarModal"
-    size="lg"
+    size="md"
   >
     <div class="modal-section">
       <div class="section-header">
         <font-awesome-icon icon="clipboard-list" />
         <h6>Información del Requisito</h6>
       </div>
-      <div class="modal-grid-2">
+      <div class="modal-grid-1">
         <div class="form-field">
-          <label class="form-label-modal">ID Requisito <span class="text-danger">*</span></label>
-          <input
-            type="number"
-            class="form-input-modal"
-            v-model.number="nuevoRequisito.id_requisito"
-            placeholder="ID del requisito"
-          >
-        </div>
-        <div class="form-field" style="grid-column: 1 / -1;">
           <label class="form-label-modal">Descripción <span class="text-danger">*</span></label>
           <input
             type="text"
             class="form-input-modal"
             v-model="nuevoRequisito.descripcion"
-            maxlength="200"
-            placeholder="Descripción breve"
+            maxlength="255"
+            placeholder="Descripción del requisito"
           >
-        </div>
-        <div class="form-field" style="grid-column: 1 / -1;">
-          <label class="form-label-modal">Requisitos Detallados</label>
-          <textarea
-            class="form-input-modal"
-            v-model="nuevoRequisito.requisitos"
-            rows="6"
-            placeholder="Descripción detallada de los requisitos..."
-          ></textarea>
+          <small class="form-text text-muted">El ID se genera automáticamente</small>
         </div>
       </div>
     </div>
@@ -297,44 +311,36 @@
     </template>
   </Modal>
 
-  <!-- Modal de Edición -->
+  <!-- Modal de Edición - Basado en Delphi: solo descripcion es editable -->
   <Modal
     :show="showModalEditar"
-    :title="`Editar Requisito: ${requisitoSeleccionado?.descripcion?.trim() || ''}`"
+    :title="`Editar Requisito #${requisitoSeleccionado?.req || ''}`"
     @close="cerrarModal"
-    size="lg"
+    size="md"
   >
     <div class="modal-section">
       <div class="section-header">
         <font-awesome-icon icon="clipboard-list" />
         <h6>Información del Requisito</h6>
       </div>
-      <div class="modal-grid-2">
+      <div class="modal-grid-1">
         <div class="form-field">
-          <label class="form-label-modal">ID (no editable)</label>
+          <label class="form-label-modal">ID (Req)</label>
           <input
             type="number"
             class="form-input-modal"
-            :value="requisitoSeleccionado?.id_requisito"
+            :value="requisitoSeleccionado?.req"
             disabled
           >
         </div>
-        <div class="form-field" style="grid-column: 1 / -1;">
+        <div class="form-field">
           <label class="form-label-modal">Descripción <span class="text-danger">*</span></label>
           <input
             type="text"
             class="form-input-modal"
             v-model="requisitoEditado.descripcion"
-            maxlength="200"
+            maxlength="255"
           >
-        </div>
-        <div class="form-field" style="grid-column: 1 / -1;">
-          <label class="form-label-modal">Requisitos Detallados</label>
-          <textarea
-            class="form-input-modal"
-            v-model="requisitoEditado.requisitos"
-            rows="6"
-          ></textarea>
         </div>
       </div>
     </div>
@@ -351,30 +357,26 @@
     </template>
   </Modal>
 
-  <!-- Modal de Vista -->
+  <!-- Modal de Vista - Basado en Delphi: solo req y descripcion -->
   <Modal
     :show="showModalVer"
-    :title="`Detalles del Requisito: ${requisitoSeleccionado?.descripcion?.trim() || ''}`"
+    :title="`Requisito #${requisitoSeleccionado?.req || ''}`"
     @close="cerrarModal"
-    size="lg"
+    size="md"
   >
     <div class="modal-section">
       <div class="section-header">
         <font-awesome-icon icon="info-circle" />
-        <h6>Información Completa</h6>
+        <h6>Información del Requisito</h6>
       </div>
       <div class="details-grid">
         <div class="detail-row">
-          <span class="detail-label">ID:</span>
-          <span class="detail-value">{{ requisitoSeleccionado?.id_requisito }}</span>
+          <span class="detail-label">ID (Req):</span>
+          <span class="detail-value">{{ requisitoSeleccionado?.req }}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Descripción:</span>
           <span class="detail-value">{{ requisitoSeleccionado?.descripcion?.trim() }}</span>
-        </div>
-        <div class="detail-row" style="grid-column: 1 / -1;">
-          <span class="detail-label">Requisitos Detallados:</span>
-          <span class="detail-value"><pre style="white-space: pre-wrap; font-family: inherit;">{{ requisitoSeleccionado?.requisitos || 'N/A' }}</pre></span>
         </div>
       </div>
     </div>
@@ -390,14 +392,6 @@
       </button>
     </template>
   </Modal>
-
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'CatRequisitos'"
-    :moduleName="'padron_licencias'"
-    @close="closeDocumentation"
-  />
 </template>
 
 <script setup>
@@ -420,10 +414,19 @@ const {
 } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
 
-// Documentation
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Estado
 const loading = ref(false)
@@ -434,6 +437,8 @@ const showModalCrear = ref(false)
 const showModalEditar = ref(false)
 const showModalVer = ref(false)
 const showFilters = ref(false) // Acordeón de filtros - inicia oculto
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Paginación
 const paginaActual = ref(1)
@@ -455,31 +460,28 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// Filtros
+// Filtros - Basado en Delphi: columnas req, descripcion
 const filters = ref({
-  id_requisito: null,
+  req: null,
   descripcion: ''
 })
 
-// Formularios
+// Formularios - Basado en Delphi: c_girosreq solo tiene req y descripcion
 const nuevoRequisito = ref({
-  id_requisito: null,
-  descripcion: '',
-  requisitos: ''
+  descripcion: ''  // req es autogenerado (serial)
 })
 
 const requisitoEditado = ref({
-  descripcion: '',
-  requisitos: ''
+  descripcion: ''
 })
 
 // Métodos
 const aplicarFiltrosYPaginacion = () => {
   let filtered = [...todosRequisitos.value]
 
-  // Aplicar filtros
-  if (filters.value.id_requisito !== null && filters.value.id_requisito !== '') {
-    filtered = filtered.filter(r => r.id_requisito === filters.value.id_requisito)
+  // Aplicar filtros - Basado en Delphi: columna req
+  if (filters.value.req !== null && filters.value.req !== '') {
+    filtered = filtered.filter(r => r.req === filters.value.req)
   }
 
   if (filters.value.descripcion) {
@@ -501,15 +503,20 @@ const aplicarFiltrosYPaginacion = () => {
 const buscar = async () => {
   const startTime = performance.now()
   showLoading('Cargando requisitos...', 'Buscando en el catálogo')
+  hasSearched.value = true
+  selectedRow.value = null
   loading.value = true
   showFilters.value = false // Cerrar acordeón al actualizar
 
   try {
+    // Basado en Delphi: select * from c_girosreq order by req
     const response = await execute(
       'sp_catrequisitos_list',
-      'licencias',
+      'padron_licencias',
       [],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -541,10 +548,13 @@ const buscar = async () => {
 
 const limpiarFiltros = () => {
   filters.value = {
-    id_requisito: null,
+    req: null,
     descripcion: ''
   }
+  requisitos.value = []
+  hasSearched.value = false
   paginaActual.value = 1
+  selectedRow.value = null
   if (todosRequisitos.value.length > 0) {
     aplicarFiltrosYPaginacion()
   }
@@ -553,27 +563,29 @@ const limpiarFiltros = () => {
 const cambiarPagina = (nuevaPagina) => {
   if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas.value) {
     paginaActual.value = nuevaPagina
+    selectedRow.value = null
     aplicarFiltrosYPaginacion()
   }
 }
 
 const cambiarRegistrosPorPagina = () => {
   paginaActual.value = 1
+  selectedRow.value = null
   aplicarFiltrosYPaginacion()
 }
 
 const abrirModalCrear = () => {
+  // Basado en Delphi: req es autogenerado, solo se captura descripcion
   nuevoRequisito.value = {
-    id_requisito: null,
-    descripcion: '',
-    requisitos: ''
+    descripcion: ''
   }
   showModalCrear.value = true
 }
 
 const crearRequisito = async () => {
-  if (!nuevoRequisito.value.id_requisito || !nuevoRequisito.value.descripcion?.trim()) {
-    showToast('warning', 'ID y Descripción son requeridos')
+  // Basado en Delphi: solo descripcion es requerido, req es autogenerado
+  if (!nuevoRequisito.value.descripcion?.trim()) {
+    showToast('warning', 'La descripción es requerida')
     return
   }
 
@@ -582,7 +594,6 @@ const crearRequisito = async () => {
     title: '¿Crear Nuevo Requisito?',
     html: `
       <div class="swal-content">
-        <p><strong>ID:</strong> ${nuevoRequisito.value.id_requisito}</p>
         <p><strong>Descripción:</strong> ${nuevoRequisito.value.descripcion}</p>
       </div>
     `,
@@ -598,24 +609,27 @@ const crearRequisito = async () => {
   showLoading('Creando requisito...', 'Guardando información')
 
   try {
+    // Basado en Delphi: insert into c_girosreq (descripcion) values (:descripcion)
+    // El req se genera automáticamente (serial)
     const response = await execute(
       'sp_catrequisitos_create',
-      'licencias',
+      'padron_licencias',
       [
-        { nombre: 'p_id_requisito', valor: nuevoRequisito.value.id_requisito, tipo: 'integer' },
-        { nombre: 'p_descripcion', valor: nuevoRequisito.value.descripcion.trim(), tipo: 'string' },
-        { nombre: 'p_requisitos', valor: nuevoRequisito.value.requisitos || '', tipo: 'string' }
+        { nombre: 'p_descripcion', valor: nuevoRequisito.value.descripcion.trim(), tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     hideLoading()
 
-    if (response && response.result && response.result[0]?.success) {
+    if (response && response.result && response.result.length > 0) {
+      const nuevoReq = response.result[0]
       await Swal.fire({
         icon: 'success',
         title: '¡Requisito Creado!',
-        text: 'El requisito ha sido creado exitosamente',
+        text: `Requisito #${nuevoReq.req} creado exitosamente`,
         confirmButtonColor: '#9363CD',
         timer: 2000,
         showConfirmButton: false
@@ -623,8 +637,9 @@ const crearRequisito = async () => {
 
       showToast('success', 'Requisito creado exitosamente')
       cerrarModal()
+      buscar() // Recargar lista
     } else {
-      showToast('error', response.result?.[0]?.message || 'Error al crear el requisito')
+      showToast('error', 'Error al crear el requisito')
     }
   } catch (error) {
     hideLoading()
@@ -639,9 +654,9 @@ const verRequisito = (requisito) => {
 
 const editarRequisito = (requisito) => {
   requisitoSeleccionado.value = requisito
+  // Basado en Delphi: solo descripcion es editable
   requisitoEditado.value = {
-    descripcion: requisito.descripcion?.trim() || '',
-    requisitos: requisito.requisitos || ''
+    descripcion: requisito.descripcion?.trim() || ''
   }
   showModalEditar.value = true
   showModalVer.value = false
@@ -658,7 +673,7 @@ const actualizarRequisito = async () => {
     title: '¿Actualizar Requisito?',
     html: `
       <div class="swal-content">
-        <p><strong>ID:</strong> ${requisitoSeleccionado.value.id_requisito}</p>
+        <p><strong>ID:</strong> ${requisitoSeleccionado.value.req}</p>
         <p><strong>Descripción:</strong> ${requisitoEditado.value.descripcion}</p>
       </div>
     `,
@@ -674,20 +689,22 @@ const actualizarRequisito = async () => {
   showLoading('Actualizando requisito...', 'Guardando cambios')
 
   try {
+    // Basado en Delphi: update c_girosreq set descripcion = :descripcion where req = :req
     const response = await execute(
       'sp_catrequisitos_update',
-      'licencias',
+      'padron_licencias',
       [
-        { nombre: 'p_id_requisito', valor: requisitoSeleccionado.value.id_requisito, tipo: 'integer' },
-        { nombre: 'p_descripcion', valor: requisitoEditado.value.descripcion.trim(), tipo: 'string' },
-        { nombre: 'p_requisitos', valor: requisitoEditado.value.requisitos || '', tipo: 'string' }
+        { nombre: 'p_req', valor: requisitoSeleccionado.value.req, tipo: 'integer' },
+        { nombre: 'p_descripcion', valor: requisitoEditado.value.descripcion.trim(), tipo: 'string' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     hideLoading()
 
-    if (response && response.result && response.result[0]?.success) {
+    if (response && response.result && response.result.length > 0) {
       await Swal.fire({
         icon: 'success',
         title: '¡Requisito Actualizado!',
@@ -699,8 +716,9 @@ const actualizarRequisito = async () => {
 
       showToast('success', 'Requisito actualizado exitosamente')
       cerrarModal()
+      buscar() // Recargar lista
     } else {
-      showToast('error', response.result?.[0]?.message || 'Error al actualizar el requisito')
+      showToast('error', 'Error al actualizar el requisito')
     }
   } catch (error) {
     hideLoading()
@@ -714,7 +732,7 @@ const eliminarRequisito = async (requisito) => {
     title: '¿Eliminar Requisito?',
     html: `
       <div class="swal-content">
-        <p><strong>ID:</strong> ${requisito.id_requisito}</p>
+        <p><strong>ID:</strong> ${requisito.req}</p>
         <p><strong>Descripción:</strong> ${requisito.descripcion?.trim()}</p>
         <p class="text-danger mt-3">Esta acción no se puede deshacer</p>
       </div>
@@ -731,13 +749,16 @@ const eliminarRequisito = async (requisito) => {
   showLoading('Eliminando requisito...', 'Procesando')
 
   try {
+    // Basado en Delphi: delete from c_girosreq where req = :req
     const response = await execute(
       'sp_catrequisitos_delete',
-      'licencias',
+      'padron_licencias',
       [
-        { nombre: 'p_id_requisito', valor: requisito.id_requisito, tipo: 'integer' }
+        { nombre: 'p_req', valor: requisito.req, tipo: 'integer' }
       ],
-      'guadalajara'
+      'guadalajara',
+      null,
+      'publico'
     )
 
     hideLoading()
@@ -753,6 +774,7 @@ const eliminarRequisito = async (requisito) => {
       })
 
       showToast('success', 'Requisito eliminado exitosamente')
+      buscar() // Recargar lista
     } else {
       showToast('error', response.result?.[0]?.message || 'Error al eliminar el requisito')
     }

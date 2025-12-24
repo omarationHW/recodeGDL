@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { requireAuth, redirectIfAuthenticated } from '@/router/guards'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,6 +8,7 @@ const router = createRouter({
       path: '/',
       name: 'dashboard',
       component: () => import('@/views/Dashboard.vue')
+},    {      path: '/login',      name: 'login',      component: () => import('@/views/Login.vue'),      meta: { requiresAuth: false },      beforeEnter: redirectIfAuthenticated
     },
     {
       path: '/estacionamiento-publico',
@@ -59,6 +61,12 @@ const router = createRouter({
     { path: '/estacionamiento-publico/seguridad-login', name: 'estacionamiento-publico-seguridad-login', component: () => import('@/views/modules/estacionamiento_publico/SeguridadLoginPublicos.vue') },
     { path: '/estacionamiento-publico/inspectores', name: 'estacionamiento-publico-inspectores', component: () => import('@/views/modules/estacionamiento_publico/InspectoresPublicos.vue') },
     { path: '/estacionamiento-publico/baja-multiple', name: 'estacionamiento-publico-baja-multiple', component: () => import('@/views/modules/estacionamiento_publico/BajaMultiplePublicos.vue') },
+    // RUTAS DE MULTAS Y REGLAMENTOS
+    {
+      path: '/multas-reglamentos',
+      name: 'multas-reglamentos',
+      component: () => import('@/views/modules/multas_reglamentos/index.vue')
+    },
     { path: '/multas-reglamentos/captura-dif', name: 'multas-reglamentos-captura-dif', component: () => import('@/views/modules/multas_reglamentos/CapturaDif.vue') },
     { path: '/multas-reglamentos/carta-invitacion', name: 'multas-reglamentos-carta-invitacion', component: () => import('@/views/modules/multas_reglamentos/CartaInvitacion.vue') },
     { path: '/multas-reglamentos/drecgo-fosa', name: 'multas-reglamentos-drecgo-fosa', component: () => import('@/views/modules/multas_reglamentos/DrecgoFosa.vue') },
@@ -602,7 +610,7 @@ const router = createRouter({
       component: () => import('@/views/modules/cementerios/index.vue')
     },
     // RUTAS ESTACIONAMIENTO EXCLUSIVO
-    { path: '/estacionamiento-exclusivo', name: 'estacionamiento-exclusivo', component: () => import('@/views/modules/estacionamiento_exclusivo/Menu.vue') },
+    { path: '/estacionamiento-exclusivo', name: 'estacionamiento-exclusivo', component: () => import('@/views/modules/estacionamiento_exclusivo/index.vue') },
     { path: '/estacionamiento-exclusivo/acceso', name: 'estacionamiento-exclusivo-acceso', component: () => import('@/views/modules/estacionamiento_exclusivo/acceso.vue') },
     { path: '/estacionamiento-exclusivo/individual', name: 'estacionamiento-exclusivo-individual', component: () => import('@/views/modules/estacionamiento_exclusivo/Individual.vue') },
     { path: '/estacionamiento-exclusivo/individual-folio', name: 'estacionamiento-exclusivo-individual-folio', component: () => import('@/views/modules/estacionamiento_exclusivo/Individual_Folio.vue') },
@@ -794,11 +802,7 @@ const router = createRouter({
     { path: '/mercados/paso-mdos', name: 'mercados-paso-mdos', component: () => import('@/views/modules/mercados/PasoMdos.vue') },
     { path: '/mercados/menu', name: 'mercados-menu', component: () => import('@/views/modules/mercados/Menu.vue') },
 
-    {
-      path: '/multas-reglamentos',
-      name: 'multas-reglamentos',
-      component: () => import('@/views/modules/multas_reglamentos/index.vue')
-    },
+    // Continuación de rutas de multas-reglamentos
     {
       path: '/multas-reglamentos/actualiza-fecha-empresas',
       name: 'multas-reglamentos-actualiza-fecha-empresas',
@@ -1071,6 +1075,157 @@ const router = createRouter({
       name: 'multas-reglamentos-consdesc',
       component: () => import('@/views/modules/multas_reglamentos/consdesc.vue')
     },
+    
+    // === 19 nuevos componentes migrados de Delphi (dic 2024) ===
+    {
+      path: '/multas-reglamentos/bloqueo-licencia',
+      name: 'multas-reglamentos-bloqueo-licencia',
+      component: () => import('@/views/modules/multas_reglamentos/BloqueoLicencia.vue')
+    },
+    {
+      path: '/multas-reglamentos/conspag400',
+      name: 'multas-reglamentos-conspag400',
+      component: () => import('@/views/modules/multas_reglamentos/ConsPag400.vue')
+    },
+    {
+      path: '/multas-reglamentos/constpat400',
+      name: 'multas-reglamentos-constpat400',
+      component: () => import('@/views/modules/multas_reglamentos/ConsTPat400.vue')
+    },
+    {
+      path: '/multas-reglamentos/consuem400',
+      name: 'multas-reglamentos-consuem400',
+      component: () => import('@/views/modules/multas_reglamentos/ConsUem400.vue')
+    },
+    {
+      path: '/multas-reglamentos/convproyecfrm',
+      name: 'multas-reglamentos-convproyecfrm',
+      component: () => import('@/views/modules/multas_reglamentos/Convproyecfrm.vue')
+    },
+    {
+      path: '/multas-reglamentos/cancelarecibo',
+      name: 'multas-reglamentos-cancelarecibo',
+      component: () => import('@/views/modules/multas_reglamentos/cancelarecibo.vue')
+    },
+    {
+      path: '/multas-reglamentos/dmulta-otras-obligaciones',
+      name: 'multas-reglamentos-dmulta-otras-obligaciones',
+      component: () => import('@/views/modules/multas_reglamentos/DMultaOtrasObligaciones.vue')
+    },
+    {
+      path: '/multas-reglamentos/desc-multa-mercados',
+      name: 'multas-reglamentos-desc-multa-mercados',
+      component: () => import('@/views/modules/multas_reglamentos/DescMultaMercados.vue')
+    },
+    {
+      path: '/multas-reglamentos/desc-multa-req-dif-trans',
+      name: 'multas-reglamentos-desc-multa-req-dif-trans',
+      component: () => import('@/views/modules/multas_reglamentos/DescMultaReqDifTrans.vue')
+    },
+    {
+      path: '/multas-reglamentos/desc-multa-trans-frm',
+      name: 'multas-reglamentos-desc-multa-trans-frm',
+      component: () => import('@/views/modules/multas_reglamentos/DescMultaTransFrm.vue')
+    },
+    {
+      path: '/multas-reglamentos/consdesctosmfrm',
+      name: 'multas-reglamentos-consdesctosmfrm',
+      component: () => import('@/views/modules/multas_reglamentos/consdesctosmfrm.vue')
+    },
+    {
+      path: '/multas-reglamentos/consmulconv',
+      name: 'multas-reglamentos-consmulconv',
+      component: () => import('@/views/modules/multas_reglamentos/consmulconv.vue')
+    },
+    {
+      path: '/multas-reglamentos/consmulpresc',
+      name: 'multas-reglamentos-consmulpresc',
+      component: () => import('@/views/modules/multas_reglamentos/consmulpresc.vue')
+    },
+    {
+      path: '/multas-reglamentos/consreqmulfrm',
+      name: 'multas-reglamentos-consreqmulfrm',
+      component: () => import('@/views/modules/multas_reglamentos/consreqmulfrm.vue')
+    },
+    {
+      path: '/multas-reglamentos/descmultalic',
+      name: 'multas-reglamentos-descmultalic',
+      component: () => import('@/views/modules/multas_reglamentos/descmultalic.vue')
+    },
+    {
+      path: '/multas-reglamentos/difxcobperito',
+      name: 'multas-reglamentos-difxcobperito',
+      component: () => import('@/views/modules/multas_reglamentos/DifxCobPerito.vue')
+    },
+    {
+      path: '/multas-reglamentos/drecgo-mercado',
+      name: 'multas-reglamentos-drecgo-mercado',
+      component: () => import('@/views/modules/multas_reglamentos/DrecgoMercado.vue')
+    },
+    {
+      path: '/multas-reglamentos/drecgo-aseo',
+      name: 'multas-reglamentos-drecgo-aseo',
+      component: () => import('@/views/modules/multas_reglamentos/drecgoAseo.vue')
+    },
+    {
+      path: '/multas-reglamentos/edo-cta-licencias',
+      name: 'multas-reglamentos-edo-cta-licencias',
+      component: () => import('@/views/modules/multas_reglamentos/EdoCtaLicencias.vue')
+    },
+    // === Rutas adicionales de multas-reglamentos ===
+    { path: '/multas-reglamentos/consescrit400', name: 'multas-reglamentos-consescrit400', component: () => import('@/views/modules/multas_reglamentos/consescrit400.vue') },
+    { path: '/multas-reglamentos/consmulpagos', name: 'multas-reglamentos-consmulpagos', component: () => import('@/views/modules/multas_reglamentos/consmulpagos.vue') },
+    { path: '/multas-reglamentos/consobsmulfrm', name: 'multas-reglamentos-consobsmulfrm', component: () => import('@/views/modules/multas_reglamentos/consobsmulfrm.vue') },
+    { path: '/multas-reglamentos/consultapredial', name: 'multas-reglamentos-consultapredial', component: () => import('@/views/modules/multas_reglamentos/consultapredial.vue') },
+    { path: '/multas-reglamentos/dderechoslic', name: 'multas-reglamentos-dderechoslic', component: () => import('@/views/modules/multas_reglamentos/dderechosLic.vue') },
+    { path: '/multas-reglamentos/descmultampalfrm', name: 'multas-reglamentos-descmultampalfrm', component: () => import('@/views/modules/multas_reglamentos/descmultampalfrm.vue') },
+    { path: '/multas-reglamentos/descpredfrm', name: 'multas-reglamentos-descpredfrm', component: () => import('@/views/modules/multas_reglamentos/descpredfrm.vue') },
+    { path: '/multas-reglamentos/desctorec', name: 'multas-reglamentos-desctorec', component: () => import('@/views/modules/multas_reglamentos/desctorec.vue') },
+    { path: '/multas-reglamentos/drecgolic', name: 'multas-reglamentos-drecgolic', component: () => import('@/views/modules/multas_reglamentos/drecgoLic.vue') },
+    { path: '/multas-reglamentos/drecgo-otras-obligaciones', name: 'multas-reglamentos-drecgo-otras-obligaciones', component: () => import('@/views/modules/multas_reglamentos/drecgoOtrasObligaciones.vue') },
+    { path: '/multas-reglamentos/entregafrm', name: 'multas-reglamentos-entregafrm', component: () => import('@/views/modules/multas_reglamentos/entregafrm.vue') },
+    { path: '/multas-reglamentos/estadreq', name: 'multas-reglamentos-estadreq', component: () => import('@/views/modules/multas_reglamentos/estadreq.vue') },
+    { path: '/multas-reglamentos/frmeje', name: 'multas-reglamentos-frmeje', component: () => import('@/views/modules/multas_reglamentos/FrmEje.vue') },
+    { path: '/multas-reglamentos/frmpol', name: 'multas-reglamentos-frmpol', component: () => import('@/views/modules/multas_reglamentos/frmpol.vue') },
+    { path: '/multas-reglamentos/impreqCvecat', name: 'multas-reglamentos-impreqcvecat', component: () => import('@/views/modules/multas_reglamentos/impreqCvecat.vue') },
+    { path: '/multas-reglamentos/impresion-nva', name: 'multas-reglamentos-impresion-nva', component: () => import('@/views/modules/multas_reglamentos/ImpresionNva.vue') },
+    { path: '/multas-reglamentos/ipor', name: 'multas-reglamentos-ipor', component: () => import('@/views/modules/multas_reglamentos/ipor.vue') },
+    { path: '/multas-reglamentos/leyesfrm', name: 'multas-reglamentos-leyesfrm', component: () => import('@/views/modules/multas_reglamentos/leyesfrm.vue') },
+    { path: '/multas-reglamentos/licencia-microgenerador', name: 'multas-reglamentos-licencia-microgenerador', component: () => import('@/views/modules/multas_reglamentos/LicenciaMicrogenerador.vue') },
+    { path: '/multas-reglamentos/licencia-microgenerador-ecologia', name: 'multas-reglamentos-licencia-microgenerador-ecologia', component: () => import('@/views/modules/multas_reglamentos/LicenciaMicrogeneradorEcologia.vue') },
+    { path: '/multas-reglamentos/ligapago', name: 'multas-reglamentos-ligapago', component: () => import('@/views/modules/multas_reglamentos/ligapago.vue') },
+    { path: '/multas-reglamentos/ligapago-tra', name: 'multas-reglamentos-ligapago-tra', component: () => import('@/views/modules/multas_reglamentos/ligapagoTra.vue') },
+    { path: '/multas-reglamentos/listanotificacionesfrm', name: 'multas-reglamentos-listanotificacionesfrm', component: () => import('@/views/modules/multas_reglamentos/listanotificacionesfrm.vue') },
+    { path: '/multas-reglamentos/listareq', name: 'multas-reglamentos-listareq', component: () => import('@/views/modules/multas_reglamentos/listareq.vue') },
+    { path: '/multas-reglamentos/listchq', name: 'multas-reglamentos-listchq', component: () => import('@/views/modules/multas_reglamentos/listchq.vue') },
+    { path: '/multas-reglamentos/listdesctomultafrm', name: 'multas-reglamentos-listdesctomultafrm', component: () => import('@/views/modules/multas_reglamentos/listdesctomultafrm.vue') },
+    { path: '/multas-reglamentos/multas400frm', name: 'multas-reglamentos-multas400frm', component: () => import('@/views/modules/multas_reglamentos/multas400frm.vue') },
+    { path: '/multas-reglamentos/multasfrm', name: 'multas-reglamentos-multasfrm', component: () => import('@/views/modules/multas_reglamentos/multasfrm.vue') },
+    { path: '/multas-reglamentos/multasfrmcalif', name: 'multas-reglamentos-multasfrmcalif', component: () => import('@/views/modules/multas_reglamentos/multasfrmcalif.vue') },
+    { path: '/multas-reglamentos/newsfrm', name: 'multas-reglamentos-newsfrm', component: () => import('@/views/modules/multas_reglamentos/newsfrm.vue') },
+    { path: '/multas-reglamentos/pagalicfrm', name: 'multas-reglamentos-pagalicfrm', component: () => import('@/views/modules/multas_reglamentos/pagalicfrm.vue') },
+    { path: '/multas-reglamentos/pagosdivfrm', name: 'multas-reglamentos-pagosdivfrm', component: () => import('@/views/modules/multas_reglamentos/pagosdivfrm.vue') },
+    { path: '/multas-reglamentos/pagosmultfrm', name: 'multas-reglamentos-pagosmultfrm', component: () => import('@/views/modules/multas_reglamentos/pagosmultfrm.vue') },
+    { path: '/multas-reglamentos/polcon', name: 'multas-reglamentos-polcon', component: () => import('@/views/modules/multas_reglamentos/polcon.vue') },
+    { path: '/multas-reglamentos/prepagofrm', name: 'multas-reglamentos-prepagofrm', component: () => import('@/views/modules/multas_reglamentos/prepagofrm.vue') },
+    { path: '/multas-reglamentos/pres', name: 'multas-reglamentos-pres', component: () => import('@/views/modules/multas_reglamentos/pres.vue') },
+    { path: '/multas-reglamentos/proyecfrm', name: 'multas-reglamentos-proyecfrm', component: () => import('@/views/modules/multas_reglamentos/proyecfrm.vue') },
+    { path: '/multas-reglamentos/pruebacalcas', name: 'multas-reglamentos-pruebacalcas', component: () => import('@/views/modules/multas_reglamentos/pruebacalcas.vue') },
+    { path: '/multas-reglamentos/psplash', name: 'multas-reglamentos-psplash', component: () => import('@/views/modules/multas_reglamentos/psplash.vue') },
+    { path: '/multas-reglamentos/reg', name: 'multas-reglamentos-reg', component: () => import('@/views/modules/multas_reglamentos/reg.vue') },
+    { path: '/multas-reglamentos/regHfrm', name: 'multas-reglamentos-reghfrm', component: () => import('@/views/modules/multas_reglamentos/regHfrm.vue') },
+    { path: '/multas-reglamentos/reimpfrm', name: 'multas-reglamentos-reimpfrm', component: () => import('@/views/modules/multas_reglamentos/reimpfrm.vue') },
+    { path: '/multas-reglamentos/relmes', name: 'multas-reglamentos-relmes', component: () => import('@/views/modules/multas_reglamentos/relmes.vue') },
+    { path: '/multas-reglamentos/repavance', name: 'multas-reglamentos-repavance', component: () => import('@/views/modules/multas_reglamentos/repavance.vue') },
+    { path: '/multas-reglamentos/repmultampalfrm', name: 'multas-reglamentos-repmultampalfrm', component: () => import('@/views/modules/multas_reglamentos/repmultampalfrm.vue') },
+    { path: '/multas-reglamentos/reqctascanfrm', name: 'multas-reglamentos-reqctascanfrm', component: () => import('@/views/modules/multas_reglamentos/reqctascanfrm.vue') },
+    { path: '/multas-reglamentos/reqmultas400frm', name: 'multas-reglamentos-reqmultas400frm', component: () => import('@/views/modules/multas_reglamentos/reqmultas400frm.vue') },
+    { path: '/multas-reglamentos/sfrm_calificacionQR', name: 'multas-reglamentos-sfrm-calificacionqr', component: () => import('@/views/modules/multas_reglamentos/sfrm_calificacionQR.vue') },
+    { path: '/multas-reglamentos/sfrm_chgpass', name: 'multas-reglamentos-sfrm-chgpass', component: () => import('@/views/modules/multas_reglamentos/sfrm_chgpass.vue') },
+    { path: '/multas-reglamentos/sfrm_prescrip_sec01', name: 'multas-reglamentos-sfrm-prescrip-sec01', component: () => import('@/views/modules/multas_reglamentos/sfrm_prescrip_sec01.vue') },
+    { path: '/multas-reglamentos/sgcv2', name: 'multas-reglamentos-sgcv2', component: () => import('@/views/modules/multas_reglamentos/sgcv2.vue') },
+    { path: '/multas-reglamentos/trasladosfrm', name: 'multas-reglamentos-trasladosfrm', component: () => import('@/views/modules/multas_reglamentos/trasladosfrm.vue') },
+    // === Fin rutas adicionales ===
     {
       path: '/multas-reglamentos/:view',
       name: 'multas-reglamentos-loader',
@@ -1713,6 +1868,21 @@ const router = createRouter({
     { path: '/otras-obligaciones/carga-valores', name: 'otras-obligaciones-carga-valores', component: () => import('@/views/modules/otras_obligaciones/CargaValores.vue') },
     { path: '/otras-obligaciones/apremios', name: 'otras-obligaciones-apremios', component: () => import('@/views/modules/otras_obligaciones/Apremios.vue') }
   ]
+})
+
+// Guard global de autenticación
+router.beforeEach((to, from, next) => {
+  // Rutas públicas que no requieren autenticación
+  const publicRoutes = ['/login', '/']
+  const isPublicRoute = publicRoutes.includes(to.path) || to.meta.requiresAuth === false
+
+  if (isPublicRoute) {
+    next()
+    return
+  }
+
+  // Para todas las demás rutas, verificar autenticación
+  requireAuth(to, from, next)
 })
 
 export default router

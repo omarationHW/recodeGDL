@@ -9,12 +9,19 @@
         <p>Inicio > Mercados > Consulta Pagos Energía</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || resultados.length === 0">
           <font-awesome-icon icon="file-excel" /> Excel
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -45,7 +52,7 @@
               <select class="municipal-form-control" v-model.number="formLocal.oficina" @change="onOficinaChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -95,7 +102,7 @@
               <select class="municipal-form-control" v-model.number="formFechaPago.oficina_pago" @change="onOficinaPagoChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -213,20 +220,26 @@
       </div>
     </div>
 
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast"><font-awesome-icon icon="times" /></button>
-    </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'ConsPagosEnergia'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - ConsPagosEnergia'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'ConsPagosEnergia'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - ConsPagosEnergia'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted, watch } from 'vue'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
 import axios from 'axios'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 const showFilters = ref(true)
 const searchType = ref('')
@@ -240,8 +253,6 @@ const searchPerformed = ref(false)
 
 const formLocal = ref({ oficina: '', num_mercado: '', categoria: '', seccion: '', local: '', letra_local: '', bloque: '' })
 const formFechaPago = ref({ fecha_pago: '', oficina_pago: '', caja_pago: '', operacion_pago: '' })
-
-const toast = ref({ show: false, type: 'info', message: '' })
 
 // Paginación
 const currentPage = ref(1)
@@ -285,13 +296,7 @@ watch(resultados, () => {
 })
 
 const toggleFilters = () => { showFilters.value = !showFilters.value }
-const mostrarAyuda = () => { showToast('info', 'Ayuda: Busque pagos de energía por local o por fecha de pago') }
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => hideToast(), 5000)
-}
-const hideToast = () => { toast.value.show = false }
-const getToastIcon = (type) => ({ success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' }[type] || 'info-circle')
+const mostrarAyuda = () => { showToast('Ayuda: Busque pagos de energía por local o por fecha de pago', 'info') }
 
 const formatCurrency = (val) => val ? '$' + parseFloat(val).toLocaleString('es-MX', { minimumFractionDigits: 2 }) : '$0.00'
 const formatDate = (val) => val ? new Date(val).toLocaleDateString('es-MX') : ''
@@ -299,16 +304,30 @@ const formatNumber = (num) => new Intl.NumberFormat('es-MX').format(num)
 
 const fetchRecaudadoras = async () => {
   try {
-    const res = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] } })
-    if (res.data.eResponse?.success) recaudadoras.value = res.data.eResponse.data.result || []
-  } catch { showToast('error', 'Error al cargar recaudadoras') }
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success) recaudadoras.value = res.data.result || []
+  } catch { showToast('Error al cargar recaudadoras', 'error') }
 }
 
 const fetchSecciones = async () => {
   try {
-    const res = await axios.post('/api/generic', { eRequest: { Operacion: 'sp_get_secciones', Base: 'padron_licencias', Parametros: [] } })
-    if (res.data.eResponse?.success) secciones.value = res.data.eResponse.data.result || []
-  } catch { showToast('error', 'Error al cargar secciones') }
+    const res = await apiService.execute(
+          'sp_get_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success) secciones.value = res.data.result || []
+  } catch { showToast('Error al cargar secciones', 'error') }
 }
 
 const onOficinaChange = async () => {
@@ -316,11 +335,16 @@ const onOficinaChange = async () => {
   formLocal.value.num_mercado = ''
   if (!formLocal.value.oficina) return
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_consulta_locales_get_mercados', Base: 'padron_licencias', Parametros: [{ Nombre: 'p_oficina', Valor: formLocal.value.oficina }] }
-    })
-    if (res.data.eResponse?.success) mercados.value = res.data.eResponse.data.result || []
-  } catch { showToast('error', 'Error al cargar mercados') }
+    const res = await apiService.execute(
+          'sp_consulta_locales_get_mercados',
+          'mercados',
+          [{ nombre: 'p_oficina', valor: formLocal.value.oficina }],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success) mercados.value = res.data.result || []
+  } catch { showToast('Error al cargar mercados', 'error') }
 }
 
 const onOficinaPagoChange = async () => {
@@ -328,51 +352,56 @@ const onOficinaPagoChange = async () => {
   formFechaPago.value.caja_pago = ''
   if (!formFechaPago.value.oficina_pago) return
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_cajas_energia', Base: 'padron_licencias', Parametros: [{ Nombre: 'p_oficina', Valor: formFechaPago.value.oficina_pago }] }
-    })
-    if (res.data.eResponse?.success) cajas.value = res.data.eResponse.data.result || []
-  } catch { showToast('error', 'Error al cargar cajas') }
+    const res = await apiService.execute(
+          'sp_get_cajas_energia',
+          'mercados',
+          [{ nombre: 'p_oficina', valor: formFechaPago.value.oficina_pago }],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success) cajas.value = res.data.result || []
+  } catch { showToast('Error al cargar cajas', 'error') }
 }
 
 const onSearchTypeChange = () => { resultados.value = []; searchPerformed.value = false }
 
 const buscar = async () => {
-  if (!searchType.value) { showToast('warning', 'Seleccione tipo de búsqueda'); return }
+  if (!searchType.value) { showToast('Seleccione tipo de búsqueda', 'warning'); return }
 
   let sp = '', params = []
   if (searchType.value === 'local') {
-    if (!formLocal.value.oficina || !formLocal.value.local) { showToast('warning', 'Complete recaudadora y local'); return }
+    if (!formLocal.value.oficina || !formLocal.value.local) { showToast('Complete recaudadora y local', 'warning'); return }
     sp = 'sp_cons_pagos_energia_por_local'
     params = [
-      { Nombre: 'p_oficina', Valor: formLocal.value.oficina },
-      { Nombre: 'p_num_mercado', Valor: formLocal.value.num_mercado || null },
-      { Nombre: 'p_categoria', Valor: formLocal.value.categoria || null },
-      { Nombre: 'p_seccion', Valor: formLocal.value.seccion || null },
-      { Nombre: 'p_local', Valor: formLocal.value.local },
-      { Nombre: 'p_letra_local', Valor: formLocal.value.letra_local || null },
-      { Nombre: 'p_bloque', Valor: formLocal.value.bloque || null }
+      { nombre: 'p_oficina', valor: formLocal.value.oficina },
+      { nombre: 'p_num_mercado', valor: formLocal.value.num_mercado || null },
+      { nombre: 'p_categoria', valor: formLocal.value.categoria || null },
+      { nombre: 'p_seccion', valor: formLocal.value.seccion || null },
+      { nombre: 'p_local', valor: formLocal.value.local },
+      { nombre: 'p_letra_local', valor: formLocal.value.letra_local || null },
+      { nombre: 'p_bloque', valor: formLocal.value.bloque || null }
     ]
   } else {
-    if (!formFechaPago.value.fecha_pago || !formFechaPago.value.oficina_pago) { showToast('warning', 'Complete fecha y oficina'); return }
+    if (!formFechaPago.value.fecha_pago || !formFechaPago.value.oficina_pago) { showToast('Complete fecha y oficina', 'warning'); return }
     sp = 'sp_cons_pagos_energia_por_fecha'
     params = [
-      { Nombre: 'p_fecha_pago', Valor: formFechaPago.value.fecha_pago },
-      { Nombre: 'p_oficina_pago', Valor: formFechaPago.value.oficina_pago },
-      { Nombre: 'p_caja_pago', Valor: formFechaPago.value.caja_pago || null },
-      { Nombre: 'p_operacion_pago', Valor: formFechaPago.value.operacion_pago || null }
+      { nombre: 'p_fecha_pago', valor: formFechaPago.value.fecha_pago },
+      { nombre: 'p_oficina_pago', valor: formFechaPago.value.oficina_pago },
+      { nombre: 'p_caja_pago', valor: formFechaPago.value.caja_pago || null },
+      { nombre: 'p_operacion_pago', valor: formFechaPago.value.operacion_pago || null }
     ]
   }
 
   showLoading('Consultando pagos de energía...', 'Por favor espere')
   loading.value = true; resultados.value = []; searchPerformed.value = true
   try {
-    const res = await axios.post('/api/generic', { eRequest: { Operacion: sp, Base: 'padron_licencias', Parametros: params } })
-    if (res.data.eResponse?.success) {
-      resultados.value = res.data.eResponse.data.result || []
-      resultados.value.length > 0 ? (showToast('success', `${resultados.value.length} pagos encontrados`), showFilters.value = false) : showToast('info', 'No se encontraron pagos')
-    } else showToast('error', res.data.eResponse?.message || 'Error')
-  } catch { showToast('error', 'Error al buscar') }
+    const res = await apiService.execute(sp, 'mercados', params, '', null, 'publico')
+    if (res?.success) {
+      resultados.value = res.data.result || []
+      resultados.value.length > 0 ? (showToast(`${resultados.value.length} pagos encontrados`), showFilters.value = false) : showToast('No se encontraron pagos', 'success', 'info')
+    } else showToast(res.message || 'Error', 'error')
+  } catch { showToast('Error al buscar', 'error') }
   finally {
     loading.value = false
     hideLoading()
@@ -383,10 +412,10 @@ const limpiar = () => {
   formLocal.value = { oficina: '', num_mercado: '', categoria: '', seccion: '', local: '', letra_local: '', bloque: '' }
   formFechaPago.value = { fecha_pago: '', oficina_pago: '', caja_pago: '', operacion_pago: '' }
   cajas.value = []; resultados.value = []; searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
-const exportarExcel = () => resultados.value.length ? showToast('info', 'Exportación en desarrollo') : showToast('warning', 'No hay datos')
+const exportarExcel = () => resultados.value.length ? showToast('Exportación en desarrollo') : showToast('No hay datos', 'info', 'warning')
 
 onMounted(async () => {
   showLoading('Cargando Consulta de Pagos de Energía', 'Preparando catálogos...')

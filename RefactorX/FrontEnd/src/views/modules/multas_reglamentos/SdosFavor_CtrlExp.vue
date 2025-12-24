@@ -6,6 +6,16 @@
         <h1>Control de Expedientes (Saldos Favor)</h1>
         <p>Consulta y control</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
     <div class="module-view-content">
       <!-- Filtros -->
@@ -85,23 +95,45 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'SdosFavor_CtrlExp'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Control de Expedientes (Saldos Favor)'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'SdosFavor_CtrlExp'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Control de Expedientes (Saldos Favor)'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_SDOSFAVOR_CTRLEXP'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const filters = ref({ cuenta: '' })
 const rows = ref([])
 const columns = ref([])
@@ -120,6 +152,7 @@ const paginatedRows = computed(() => rows.value.slice(startIndex.value, endIndex
 async function reload() {
   const params = [{ nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') }]
 
+  showLoading('Consultando...', 'Por favor espere')
   try {
     const response = await execute(OP_LIST, BASE_DB, params)
     console.log('Respuesta completa:', response)
@@ -148,53 +181,9 @@ async function reload() {
     console.error('Error al cargar expedientes:', e)
     rows.value = []
     columns.value = []
+  } finally {
+    hideLoading()
   }
 }
 </script>
 
-<style scoped>
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding: 15px;
-  border-top: 1px solid #dee2e6;
-}
-
-.pagination-info {
-  color: #6c757d;
-  font-size: 14px;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.pagination-page {
-  color: #495057;
-  font-weight: 500;
-}
-
-.btn-pagination {
-  padding: 8px 16px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  background-color: #fff;
-  color: #495057;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.btn-pagination:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-</style>

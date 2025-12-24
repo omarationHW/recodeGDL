@@ -10,14 +10,20 @@
         <p>Inicio > Mercados > Convenios</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button v-if="convenioSeleccionado" class="btn-municipal-secondary" @click="volverListado">
           <font-awesome-icon icon="arrow-left" />
           Volver al Listado
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -164,7 +170,10 @@
             </div>
           </div>
         </div>
-      </template>
+      
+  <DocumentationModal :show="showAyuda" :component-name="'DatosConvenio'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - DatosConvenio'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'DatosConvenio'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - DatosConvenio'" @close="showDocumentacion = false" />
+</template>
 
       <!-- Vista de Detalle -->
       <template v-else>
@@ -416,9 +425,15 @@
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -507,7 +522,7 @@ const goToPageParciales = (page) => {
 // Toast
 const toast = ref({ show: false, type: 'info', message: '' })
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = { show: true, type, message }
   setTimeout(() => hideToast(), 5000)
 }
@@ -540,7 +555,7 @@ const getStatusClass = (vigencia) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Consulta de convenios y sus pagos')
+  showToast('Consulta de convenios y sus pagos', 'info')
 }
 
 const buscarConvenios = async () => {
@@ -549,35 +564,36 @@ const buscarConvenios = async () => {
   try {
     const params = []
     if (filtros.value.nombre) {
-      params.push({ Nombre: 'p_nombre', Valor: filtros.value.nombre })
+      params.push({ nombre: 'p_nombre', valor: filtros.value.nombre })
     } else {
-      params.push({ Nombre: 'p_nombre', Valor: null })
+      params.push({ nombre: 'p_nombre', valor: null })
     }
     if (filtros.value.vigencia) {
-      params.push({ Nombre: 'p_vigencia', Valor: filtros.value.vigencia })
+      params.push({ nombre: 'p_vigencia', valor: filtros.value.vigencia })
     } else {
-      params.push({ Nombre: 'p_vigencia', Valor: null })
+      params.push({ nombre: 'p_vigencia', valor: null })
     }
 
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_convenios_list',
-        Base: 'mercados',
-        Parametros: params
-      }
-    })
+    const res = await apiService.execute(
+          'sp_convenios_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data?.eResponse?.success) {
-      convenios.value = res.data.eResponse.data?.result || []
+    if (res.success) {
+      convenios.value = res.data?.result || []
       currentPageConvenios.value = 1
       if (convenios.value.length > 0) {
-        showToast('success', `Se encontraron ${convenios.value.length} convenios`)
+        showToast(`Se encontraron ${convenios.value.length} convenios`, 'success')
       } else {
-        showToast('info', 'No se encontraron convenios')
+        showToast('No se encontraron convenios', 'info')
       }
     }
   } catch (err) {
-    showToast('error', 'Error al buscar convenios')
+    showToast('Error al buscar convenios', 'error')
     console.error(err)
   } finally {
     loadingList.value = false
@@ -592,35 +608,37 @@ const seleccionarConvenio = async (conv) => {
 
   try {
     // Cargar datos completos del convenio
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_datos_convenio',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_conv', Valor: conv.id_convenio }
-        ]
-      }
-    })
-    convenio.value = res.data?.eResponse?.data?.result?.[0] || null
+    const res = await apiService.execute(
+          'sp_get_datos_convenio',
+          'mercados',
+          [
+          { nombre: 'p_id_conv', valor: conv.id_convenio }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    convenio.value = res.data?.data.result?.[0] || null
 
     // Cargar parcialidades
-    const res2 = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_convenio_parciales',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_conv', Valor: conv.id_convenio }
-        ]
-      }
-    })
-    parciales.value = res2.data?.eResponse?.data?.result || []
+    const res2 = await apiService.execute(
+          'sp_get_convenio_parciales',
+          'mercados',
+          [
+          { nombre: 'p_id_conv', valor: conv.id_convenio }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    parciales.value = res2.data?.data.result || []
     currentPageParciales.value = 1
 
     if (convenio.value) {
-      showToast('success', 'Convenio cargado correctamente')
+      showToast('Convenio cargado correctamente', 'success')
     }
   } catch (e) {
-    showToast('error', 'Error al cargar convenio: ' + (e.response?.data?.message || e.message))
+    showToast('Error al cargar convenio: ' + (e.response?.data?.message || e.message), 'error')
   } finally {
     loadingDetail.value = false
     hideLoading()

@@ -4,7 +4,17 @@
       <div class="module-view-icon"><font-awesome-icon icon="file-invoice" /></div>
       <div class="module-view-info">
         <h1>Consulta Requerimientos 400</h1>
-        <p>Consulta con filtros y paginación server-side</p>
+        <p>Consulta de requerimientos fiscales del Artículo 400 por cuenta y ejercicio</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
       </div>
     </div>
 
@@ -14,16 +24,40 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Cuenta</label>
-              <input class="municipal-form-control" v-model="filters.cuenta" placeholder="Clave cuenta" @keyup.enter="reload" />
+              <input
+                class="municipal-form-control"
+                v-model="filters.cuenta"
+                @keyup.enter="filters.cuenta.trim() && reload()"
+              />
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Año</label>
-              <input class="municipal-form-control" type="number" v-model.number="filters.ejercicio" @keyup.enter="reload" />
+              <input
+                class="municipal-form-control"
+                type="number"
+                v-model.number="filters.ejercicio"
+                placeholder="Ej: 2024"
+                @keyup.enter="filters.cuenta.trim() && reload()"
+              />
             </div>
           </div>
           <div class="button-group">
-            <button class="btn-municipal-primary" :disabled="loading" @click="reload">
-              <font-awesome-icon icon="search" /> Buscar
+            <button
+              class="btn-municipal-primary"
+              :disabled="loading || !filters.cuenta.trim()"
+              @click="reload"
+            >
+              <font-awesome-icon icon="search" v-if="!loading" />
+              <font-awesome-icon icon="spinner" spin v-if="loading" />
+              {{ loading ? 'Buscando...' : 'Buscar' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              :disabled="loading"
+              @click="limpiar"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
             </button>
           </div>
         </div>
@@ -191,27 +225,48 @@
       </Modal>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'ConsReq400'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Consulta Requerimientos 400'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'ConsReq400'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Consulta Requerimientos 400'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_CONSREQ400 = 'RECAUDADORA_CONSREQ400'
-const SCHEMA = 'multas_reglamentos'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
-const filters = ref({ cuenta: '', ejercicio: new Date().getFullYear() })
+const filters = ref({ cuenta: '', ejercicio: 2024 })
 const page = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
@@ -227,121 +282,37 @@ async function reload() {
     { nombre: 'p_offset', tipo: 'int', valor: (page.value - 1) * pageSize.value },
     { nombre: 'p_limit', tipo: 'int', valor: pageSize.value }
   ]
+  showLoading('Consultando...', 'Por favor espere')
   try {
-    const data = await execute(OP_CONSREQ400, BASE_DB, params, '', null, SCHEMA)
-    const result = Array.isArray(data?.result) ? data.result : Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
+    const response = await execute(OP_CONSREQ400, BASE_DB, params, '', null, 'publico')
+    console.log('Respuesta completa:', response)
+
+    // Extraer datos con fallbacks
+    const responseData = response?.eResponse?.data || response?.data || response
+    const result = Array.isArray(responseData?.result) ? responseData.result :
+                   Array.isArray(responseData?.rows) ? responseData.rows :
+                   Array.isArray(responseData) ? responseData : []
+
+    console.log('Registros extraídos:', result.length, result)
     rows.value = result
     total.value = result.length > 0 ? Number(result[0].total_count || result.length) : 0
   } catch (e) {
+    console.error('Error al consultar requerimientos:', e)
     rows.value = []
     total.value = 0
+  } finally {
+    hideLoading()
   }
+}
+
+function limpiar() {
+  filters.value = { cuenta: '', ejercicio: 2024 }
+  page.value = 1
+  rows.value = []
+  total.value = 0
 }
 
 function go(p) { page.value = p; reload() }
 function openDetail(r) { selected.value = r; showDetail.value = true }
-
-reload()
 </script>
 
-<style scoped>
-.detail-content {
-  padding: 0.5rem 0;
-}
-
-.detail-section {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.detail-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.detail-section-title {
-  color: #2c5282;
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #3b82f6;
-}
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 0.75rem;
-}
-
-.detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.detail-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.detail-value {
-  font-size: 0.95rem;
-  color: #1e293b;
-  font-weight: 500;
-  padding: 0.4rem 0.6rem;
-  background-color: #f8fafc;
-  border-radius: 4px;
-  border-left: 3px solid #cbd5e1;
-}
-
-.detail-observation {
-  background-color: #fffbeb;
-  border-left: 4px solid #f59e0b;
-  padding: 1rem;
-  border-radius: 4px;
-  color: #78350f;
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.badge-activo {
-  background-color: #10b981;
-  color: white;
-  padding: 0.4rem 0.8rem;
-  border-radius: 4px;
-  font-weight: 600;
-  text-align: center;
-  border-left: none;
-}
-
-.badge-pagado {
-  background-color: #3b82f6;
-  color: white;
-  padding: 0.4rem 0.8rem;
-  border-radius: 4px;
-  font-weight: 600;
-  text-align: center;
-  border-left: none;
-}
-
-.badge-pendiente {
-  background-color: #f59e0b;
-  color: white;
-  padding: 0.4rem 0.8rem;
-  border-radius: 4px;
-  font-weight: 600;
-  text-align: center;
-  border-left: none;
-}
-
-@media (max-width: 768px) {
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

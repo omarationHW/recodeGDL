@@ -10,6 +10,14 @@
         <p>Alta, Baja y Modificación de ejecutores de cobranza coactiva</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button class="btn-municipal-primary" @click="reload">
           <font-awesome-icon icon="sync-alt" />
           Actualizar
@@ -201,19 +209,19 @@
 
       <!-- ========== TABLA DE EJECUTORES ========== -->
       <div class="municipal-card">
-        <div class="municipal-card-header clickable-header" @click="toggleTabla">
-          <div class="header-with-badge">
-            <h5>
-              <font-awesome-icon icon="list" />
-              Listado de Ejecutores
-              <font-awesome-icon :icon="showTabla ? 'chevron-up' : 'chevron-down'" class="ms-2" />
-            </h5>
-            <span class="badge badge-purple" v-if="totalRegistros > 0">
+        <div class="municipal-card-header header-with-badge clickable-header" @click="toggleTabla">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Listado de Ejecutores
+            <font-awesome-icon :icon="showTabla ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="totalRegistros > 0">
               {{ totalRegistros }} registros
             </span>
-          </div>
-          <div v-if="loading" class="spinner-border spinner-border-sm text-primary" role="status">
-            <span class="visually-hidden">Cargando...</span>
+            <div v-if="loading" class="spinner-border spinner-border-sm text-primary ms-2" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
           </div>
         </div>
 
@@ -244,9 +252,22 @@
             </div>
           </div>
 
-          <div v-if="rows.length === 0 && !loading" class="empty-state">
-            <font-awesome-icon icon="inbox" size="3x" class="empty-icon" />
-            <p>No hay ejecutores para mostrar</p>
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="rows.length === 0 && !hasSearched && !loading" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="users" size="3x" />
+            </div>
+            <h4>Captura de Ejecutores</h4>
+            <p>Ingrese un número de ejecutor para buscar o cargar la lista completa</p>
+          </div>
+
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="rows.length === 0 && hasSearched && !loading" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
+            </div>
+            <h4>Sin resultados</h4>
+            <p>No se encontraron ejecutores con los criterios especificados</p>
           </div>
 
           <div v-else class="table-responsive">
@@ -264,7 +285,14 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="r in rows" :key="r.cve_eje" class="clickable-row" @dblclick="seleccionarEjecutor(r)">
+                <tr
+                  v-for="r in rows"
+                  :key="r.cve_eje"
+                  @click="selectedRow = r"
+                  :class="{ 'table-row-selected': selectedRow === r }"
+                  class="row-hover"
+                  @dblclick="seleccionarEjecutor(r)"
+                >
                   <td><code>{{ r.cve_eje }}</code></td>
                   <td>{{ r.nombre }}</td>
                   <td>{{ formatRFC(r) }}</td>
@@ -315,39 +343,37 @@
           </div>
         </div>
       </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'ABCEjec'"
+        :moduleName="'estacionamiento_exclusivo'"
+        :docType="docType"
+        :title="'Captura de Ejecutores'"
+        @close="showDocModal = false"
+      />
     </div>
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      @close="closeDocumentation"
-      title="Ayuda - ABCEjec"
-    >
-      <h3>Captura de Ejecutores</h3>
-      <p>Este módulo permite gestionar el catálogo de ejecutores de cobranza coactiva.</p>
-      <h4>Funcionalidades:</h4>
-      <ul>
-        <li><strong>Alta:</strong> Registrar un nuevo ejecutor ingresando su número y datos.</li>
-        <li><strong>Modificación:</strong> Actualizar los datos de un ejecutor existente.</li>
-        <li><strong>Baja:</strong> Desactivar un ejecutor (puede reactivarse posteriormente).</li>
-        <li><strong>Reactivación:</strong> Volver a activar un ejecutor dado de baja.</li>
-      </ul>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'ABCEjec'"
-      :moduleName="'estacionamiento_exclusivo'"
-      @close="closeTechDocs"
-    />
+    <!-- /module-view-content -->
   </div>
+  <!-- /module-view -->
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -356,7 +382,7 @@ import Swal from 'sweetalert2'
 // ========== CONSTANTES ==========
 // La tabla ta_15_ejecutores está en padron_licencias.comun
 const BASE_DB = 'padron_licencias'
-const SCHEMA = 'comun'
+const SCHEMA = 'publico'
 
 // SPs para ABCEjec (en esquema comun)
 const OP_LIST = 'sp_ejecutores_list'
@@ -369,20 +395,26 @@ const OP_STATS = 'sp_ejecutores_estadisticas'
 
 // ========== COMPOSABLES ==========
 const { execute } = useApi()
-const { showLoading, hideLoading } = useGlobalLoading()
 const {
+  toast,
   showToast,
+  hideToast,
+  getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // ========== ESTADO ==========
-const loading = ref(false)
 const saving = ref(false)
 const showFormulario = ref(false)
 const showTabla = ref(true)
 const ejecutorExiste = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Datos
+const loading = ref(false)
 const rows = ref([])
 const recaudadoras = ref([])
 const cveEjecutor = ref(null)
@@ -539,7 +571,9 @@ const buscarEjecutor = async () => {
     return
   }
 
-  showLoading('Buscando ejecutor...')
+  showLoading('Buscando ejecutor...', 'Consultando base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
   try {
     // Usamos sp_ejecutores_list con el cve_eje como filtro
     const params = [
@@ -703,7 +737,8 @@ const guardarEjecutor = async () => {
   if (!confirmResult.isConfirmed) return
 
   saving.value = true
-  showLoading(ejecutorExiste.value ? 'Modificando ejecutor...' : 'Registrando ejecutor...')
+  showLoading(ejecutorExiste.value ? 'Modificando ejecutor...' : 'Registrando ejecutor...', 'Guardando información')
+  selectedRow.value = null
 
   try {
     let result
@@ -800,7 +835,8 @@ const toggleVigencia = async () => {
   if (!confirmResult.isConfirmed) return
 
   saving.value = true
-  showLoading(esBaja ? 'Dando de baja...' : 'Reactivando...')
+  showLoading(esBaja ? 'Dando de baja...' : 'Reactivando...', 'Actualizando estado')
+  selectedRow.value = null
 
   try {
     const params = [
@@ -951,7 +987,9 @@ const toggleTabla = () => {
 
 // Reload
 const reload = async () => {
-  showLoading('Actualizando lista de ejecutores...')
+  showLoading('Actualizando lista de ejecutores...', 'Cargando datos')
+  hasSearched.value = true
+  selectedRow.value = null
   try {
     await cargarEjecutores()
     showToast('success', 'Lista actualizada')
@@ -1000,13 +1038,19 @@ onMounted(async () => {
   await cargarEjecutores()
 })
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <!-- Sin estilos scoped - Todo desde municipal-theme.css -->

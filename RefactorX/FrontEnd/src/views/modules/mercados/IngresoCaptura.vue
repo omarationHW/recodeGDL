@@ -9,15 +9,22 @@
         <p>Inicio > Consultas > Ingreso Captura</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="buscar" :disabled="loading || !isFormValid">
           <font-awesome-icon icon="search" /> Buscar
         </button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -33,7 +40,7 @@
               <select class="municipal-form-control" v-model.number="form.oficina_pago" @change="onOficinaChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -124,12 +131,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'IngresoCaptura'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - IngresoCaptura'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'IngresoCaptura'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - IngresoCaptura'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -177,18 +193,23 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Complete todos los filtros (mercado, fecha, oficina, caja y operación) para consultar los ingresos capturados en ese periodo.')
+  showToast('Complete todos los filtros (mercado, fecha, oficina, caja y operación) para consultar los ingresos capturados en ese periodo.', 'info')
 }
 
 const fetchRecaudadoras = async () => {
   showLoading('Cargando Oficinas Recaudadoras', 'Preparando catálogos del sistema...')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] }
-    })
-    if (res.data.eResponse?.success) recaudadoras.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success) recaudadoras.value = res.data.result || []
   } catch (err) {
-    showToast('error', 'Error al cargar recaudadoras')
+    showToast('Error al cargar recaudadoras', 'error')
   } finally {
     hideLoading()
   }
@@ -199,22 +220,23 @@ const onOficinaChange = async () => {
   form.value.num_mercado = null
   if (!form.value.oficina_pago) return
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_consulta_locales_get_mercados',
-        Base: 'padron_licencias',
-        Parametros: [{ Nombre: 'p_oficina', Valor: form.value.oficina_pago }]
-      }
-    })
-    if (res.data.eResponse?.success) mercados.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_consulta_locales_get_mercados',
+          'mercados',
+          [{ nombre: 'p_oficina', valor: form.value.oficina_pago }],
+          '',
+          null,
+          'publico'
+        )
+    if (res?.success) mercados.value = res.data.result || []
   } catch (err) {
-    showToast('error', 'Error al cargar mercados')
+    showToast('Error al cargar mercados', 'error')
   }
 }
 
 const buscar = async () => {
   if (!isFormValid.value) {
-    showToast('warning', 'Complete todos los campos requeridos')
+    showToast('Complete todos los campos requeridos', 'warning')
     return
   }
 
@@ -224,32 +246,33 @@ const buscar = async () => {
 
   showLoading()
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_ingreso_captura',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_num_mercado', Valor: parseInt(form.value.num_mercado) },
-          { Nombre: 'p_fecha_pago', Valor: form.value.fecha_pago },
-          { Nombre: 'p_oficina_pago', Valor: parseInt(form.value.oficina_pago) },
-          { Nombre: 'p_caja_pago', Valor: form.value.caja_pago.toUpperCase() },
-          { Nombre: 'p_operacion_pago', Valor: parseInt(form.value.operacion_pago) }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+          'sp_get_ingreso_captura',
+          'mercados',
+          [
+          { nombre: 'p_num_mercado', valor: parseInt(form.value.num_mercado) },
+          { nombre: 'p_fecha_pago', valor: form.value.fecha_pago },
+          { nombre: 'p_oficina_pago', valor: parseInt(form.value.oficina_pago) },
+          { nombre: 'p_caja_pago', valor: form.value.caja_pago.toUpperCase() },
+          { nombre: 'p_operacion_pago', valor: parseInt(form.value.operacion_pago) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      results.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      results.value = res.data.result || []
       if (results.value.length > 0) {
-        showToast('success', `Se encontraron ${results.value.length} registros`)
+        showToast(`Se encontraron ${results.value.length} registros`, 'success')
       } else {
-        showToast('info', 'No se encontraron resultados para los filtros aplicados')
+        showToast('No se encontraron resultados para los filtros aplicados', 'info')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al consultar')
+      showToast(res.message || 'Error al consultar', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al realizar la consulta')
+    showToast('Error de conexión al realizar la consulta', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -258,7 +281,7 @@ const buscar = async () => {
 
 const exportarExcel = () => {
   if (results.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -279,9 +302,9 @@ const exportarExcel = () => {
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
 
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
-    showToast('error', 'Error al exportar')
+    showToast('Error al exportar', 'error')
   }
 }
 

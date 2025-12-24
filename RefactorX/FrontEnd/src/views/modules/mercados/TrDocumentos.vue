@@ -10,10 +10,16 @@
         <p>Inicio > Mercados > Transferencia de Documentos</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
         </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        
       </div>
     </div>
 
@@ -161,7 +167,7 @@
               <div class="col-12">
                 <div class="text-end">
                   <button
-                    class="btn-municipal-success"
+                    class="btn-municipal-primary"
                     @click="onGenerarTransferencia"
                     :disabled="loading"
                   >
@@ -204,16 +210,10 @@
         </a>
       </div>
     </Modal>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'TrDocumentos'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - TrDocumentos'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'TrDocumentos'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - TrDocumentos'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
@@ -222,10 +222,15 @@ import axios from 'axios'
 import Modal from '@/components/common/Modal.vue'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 // Composables
 const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast: showToastComposable } = useToast()
+const { showToast } = useToast()
 
 // Estado
 const form = ref({
@@ -242,42 +247,9 @@ const buscado = ref(false)
 const loading = ref(false)
 const showModalDescarga = ref(false)
 
-// Toast local (para mostrar en UI)
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
-
-// Métodos de Toast
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
-}
-
 // Métodos del componente
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione una fecha, cuenta y tipo de documento para buscar los documentos a transferir')
+  showToast('Seleccione una fecha, cuenta y tipo de documento para buscar los documentos a transferir', 'info')
 }
 
 const formatCurrency = (value) => {
@@ -305,7 +277,7 @@ const loadCuentas = async () => {
     }
   } catch (error) {
     console.error('Error al cargar cuentas:', error)
-    showToast('error', 'Error al cargar las cuentas')
+    showToast('Error al cargar las cuentas', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -323,7 +295,7 @@ const loadBancos = async () => {
     ]
   } catch (error) {
     console.error('Error al cargar bancos:', error)
-    showToast('error', 'Error al cargar los bancos')
+    showToast('Error al cargar los bancos', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -343,7 +315,7 @@ const onBuscar = async () => {
     const cuenta = cuentas.value.find(c => c.id === form.value.cuenta)
 
     if (!cuenta) {
-      showToast('warning', 'Debe seleccionar una cuenta válida')
+      showToast('Debe seleccionar una cuenta válida', 'warning')
       return
     }
 
@@ -369,13 +341,13 @@ const onBuscar = async () => {
     buscado.value = true
 
     if (documentos.value.length > 0) {
-      showToast('success', `Se encontraron ${documentos.value.length} documentos`)
+      showToast(`Se encontraron ${documentos.value.length} documentos`, 'success')
     } else {
-      showToast('info', 'No se encontraron documentos para los criterios seleccionados')
+      showToast('No se encontraron documentos para los criterios seleccionados', 'info')
     }
   } catch (error) {
     console.error('Error al buscar documentos:', error)
-    showToast('error', 'Error al buscar documentos')
+    showToast('Error al buscar documentos', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -384,7 +356,7 @@ const onBuscar = async () => {
 
 const onGenerarTransferencia = async () => {
   if (!documentos.value.length) {
-    showToast('warning', 'No hay documentos para generar la transferencia')
+    showToast('No hay documentos para generar la transferencia', 'warning')
     return
   }
 
@@ -414,13 +386,13 @@ const onGenerarTransferencia = async () => {
     if (data.eResponse.success && data.eResponse.data && data.eResponse.data[0].archivo_url) {
       archivoUrl.value = data.eResponse.data[0].archivo_url
       showModalDescarga.value = true
-      showToast('success', 'Archivo generado exitosamente')
+      showToast('Archivo generado exitosamente', 'success')
     } else {
-      showToast('error', 'No se pudo generar el archivo')
+      showToast('No se pudo generar el archivo', 'error')
     }
   } catch (error) {
     console.error('Error al generar archivo de transferencia:', error)
-    showToast('error', 'Error al generar archivo de transferencia')
+    showToast('Error al generar archivo de transferencia', 'error')
   } finally {
     loading.value = false
     hideLoading()

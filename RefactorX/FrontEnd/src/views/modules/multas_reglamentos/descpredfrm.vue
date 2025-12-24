@@ -6,6 +6,16 @@
         <h1>Descuentos Prediales</h1>
         <p>Consulta descuentos de predios (clave catastral)</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -107,23 +117,45 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'descpredfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Descuentos Prediales'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'descpredfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Descuentos Prediales'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_DESCPREDFRM'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({ cvecat: '' })
 const rows = ref([])
@@ -132,7 +164,7 @@ const currentPage = ref(1)
 const itemsPerPage = 10
 const errorMessage = ref('')
 
-const SCHEMA = 'multas_reglamentos'
+const SCHEMA = 'publico'
 
 // Paginación
 const totalPages = computed(() => Math.ceil(rows.value.length / itemsPerPage))
@@ -159,6 +191,7 @@ async function reload() {
     { nombre: 'p_cvecat', tipo: 'string', valor: claveCatastral }
   ]
 
+  showLoading('Consultando...', 'Por favor espere')
   try {
     const data = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
     rows.value = Array.isArray(data?.result) ? data.result : Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
@@ -170,6 +203,8 @@ async function reload() {
     setTimeout(() => {
       errorMessage.value = ''
     }, 3000)
+  } finally {
+    hideLoading()
   }
 }
 
@@ -183,149 +218,3 @@ function limpiar() {
 // No cargar automáticamente, esperar a que el usuario haga clic en Buscar
 // reload()
 </script>
-
-<style scoped>
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.alert-error {
-  margin-top: 0.5rem;
-  padding: 0.75rem;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 0.25rem;
-  color: #721c24;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.button-group {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.btn-municipal-primary {
-  padding: 0.5rem 1rem;
-  border: 1px solid #007bff;
-  border-radius: 0.25rem;
-  background-color: #007bff;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-municipal-primary:hover:not(:disabled) {
-  background-color: #0056b3;
-  border-color: #0056b3;
-}
-
-.btn-municipal-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-municipal-secondary {
-  padding: 0.5rem 1rem;
-  border: 1px solid #6c757d;
-  border-radius: 0.25rem;
-  background-color: #6c757d;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  background-color: #5a6268;
-  border-color: #545b62;
-}
-
-.btn-municipal-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: #6c757d;
-}
-
-.empty-state svg {
-  color: #dee2e6;
-  margin-bottom: 1rem;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding: 15px;
-  border-top: 1px solid #dee2e6;
-}
-
-.pagination-info {
-  color: #6c757d;
-  font-size: 14px;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.pagination-page {
-  color: #495057;
-  font-weight: 500;
-}
-
-.btn-pagination {
-  padding: 8px 16px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  background-color: #fff;
-  color: #495057;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.btn-pagination:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-@media (max-width: 768px) {
-  .button-group {
-    flex-direction: column;
-  }
-}
-</style>

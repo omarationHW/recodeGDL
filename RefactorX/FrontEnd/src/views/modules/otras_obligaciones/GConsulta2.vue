@@ -19,10 +19,11 @@
           <font-awesome-icon icon="sync" :spin="loading" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -128,7 +129,7 @@
                   v-for="(item, index) in coincidencias"
                   :key="index"
                   class="row-hover"
-                  :class="{ 'selected-row': controlSeleccionado === item.control }"
+                  :class="{ 'table-row-selected': controlSeleccionado === item.control }"
                 >
                   <td>{{ item.control }}</td>
                   <td class="text-center">
@@ -379,10 +380,12 @@
 
   <!-- Modal de Ayuda -->
   <DocumentationModal
-    :show="showDocumentation"
+    :show="showDocModal"
     :componentName="'GConsulta2'"
     :moduleName="'otras_obligaciones'"
-    @close="closeDocumentation"
+    :docType="docType"
+    :title="'Consulta 2 - Búsqueda Avanzada'"
+    @close="showDocModal = false"
   />
 </template>
 
@@ -400,9 +403,18 @@ const route = useRoute()
 const router = useRouter()
 
 // Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const BASE_DB = 'otras_obligaciones'

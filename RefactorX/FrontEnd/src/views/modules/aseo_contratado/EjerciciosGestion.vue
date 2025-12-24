@@ -10,25 +10,6 @@
         <h1>Gestión de Ejercicios Fiscales</h1>
         <p>Aseo Contratado - Administración de ejercicios fiscales y periodos de facturación</p>
       </div>
-      <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
-        </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
-      </div>
-    
       <button
         type="button"
         class="btn-help-icon"
@@ -225,7 +206,7 @@
                 </div>
               </div>
 
-              <div class="municipal-alert municipal-alert-info" v-if="formEjercicio.generar_periodos_auto && !modoEdicion">
+              <div class="alert alert-info" v-if="formEjercicio.generar_periodos_auto && !modoEdicion">
                 <font-awesome-icon icon="info-circle" class="me-2" />
                 Se generarán {{ formEjercicio.num_periodos }} periodos automáticamente desde
                 {{ formatFecha(formEjercicio.fecha_inicio) }} hasta {{ formatFecha(formEjercicio.fecha_fin) }}
@@ -332,7 +313,7 @@
             <div v-if="periodos.length > 0">
               <div class="table-responsive">
                 <table class="municipal-table">
-                  <thead class="municipal-table-header">
+                  <thead>
                     <tr>
                       <th>Periodo</th>
                       <th>Descripción</th>
@@ -381,12 +362,12 @@
                 </table>
               </div>
             </div>
-            <div v-else class="municipal-alert municipal-alert-info">
+            <div v-else class="alert alert-info">
               <font-awesome-icon icon="info-circle" class="me-2" />
               No hay periodos registrados para este ejercicio.
             </div>
           </div>
-          <div v-else class="municipal-alert municipal-alert-warning">
+          <div v-else class="alert alert-warning">
             <font-awesome-icon icon="exclamation-triangle" class="me-2" />
             Seleccione un ejercicio para ver sus periodos.
           </div>
@@ -429,7 +410,7 @@
             <div v-if="tarifas.length > 0">
               <div class="table-responsive">
                 <table class="municipal-table">
-                  <thead class="municipal-table-header">
+                  <thead>
                     <tr>
                       <th>Tipo de Aseo</th>
                       <th>Descripción</th>
@@ -474,12 +455,12 @@
                 </table>
               </div>
             </div>
-            <div v-else class="municipal-alert municipal-alert-info">
+            <div v-else class="alert alert-info">
               <font-awesome-icon icon="info-circle" class="me-2" />
               No hay tarifas configuradas para este ejercicio.
             </div>
           </div>
-          <div v-else class="municipal-alert municipal-alert-warning">
+          <div v-else class="alert alert-warning">
             <font-awesome-icon icon="exclamation-triangle" class="me-2" />
             Seleccione un ejercicio para ver sus tarifas.
           </div>
@@ -526,20 +507,10 @@
         <li>Un ejercicio cerrado no puede modificarse</li>
       </ul>
     </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'EjerciciosGestion'"
-      :moduleName="'aseo_contratado'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import Swal from 'sweetalert2'
@@ -548,10 +519,8 @@ import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useToast } from '@/composables/useToast'
 
-const { showLoading, hideLoading } = useGlobalLoading()
-
 const { execute } = useApi()
-const { handleApiError } = useLicenciasErrorHandler()
+const { handleError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
 
 // Estado
@@ -602,8 +571,7 @@ const cargarEjercicios = async () => {
       ejercicioActual.value = actual.ejercicio
     }
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al cargar ejercicios')
+    handleError(error, 'Error al cargar ejercicios')
     ejercicios.value = []
   }
 }
@@ -622,8 +590,7 @@ const seleccionarEjercicio = async (ejercicio) => {
       ejercicioSeleccionado.value = { ...ejercicio, ...stats[0] }
     }
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
+    console.error('Error al cargar estadísticas:', error)
   }
 }
 
@@ -664,8 +631,7 @@ const guardarEjercicio = async () => {
     await cargarEjercicios()
     nuevoEjercicio()
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al guardar ejercicio')
+    handleError(error, 'Error al guardar ejercicio')
   } finally {
     guardando.value = false
   }
@@ -700,8 +666,7 @@ const cerrarEjercicio = async () => {
       await cargarEjercicios()
       nuevoEjercicio()
     } catch (error) {
-      hideLoading()
-      handleApiError(error, 'Error al cerrar ejercicio')
+      handleError(error, 'Error al cerrar ejercicio')
     }
   }
 }
@@ -719,8 +684,7 @@ const cargarPeriodos = async () => {
     })
     periodos.value = response || []
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al cargar periodos')
+    handleError(error, 'Error al cargar periodos')
     periodos.value = []
   }
 }
@@ -754,8 +718,7 @@ const eliminarPeriodo = async (periodo) => {
       showToast('Periodo eliminado exitosamente', 'success')
       await cargarPeriodos()
     } catch (error) {
-      hideLoading()
-      handleApiError(error, 'Error al eliminar periodo')
+      handleError(error, 'Error al eliminar periodo')
     }
   }
 }
@@ -773,8 +736,7 @@ const cargarTarifas = async () => {
     })
     tarifas.value = response || []
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al cargar tarifas')
+    handleError(error, 'Error al cargar tarifas')
     tarifas.value = []
   }
 }
@@ -807,8 +769,7 @@ const eliminarTarifa = async (tarifa) => {
       showToast('Tarifa eliminada exitosamente', 'success')
       await cargarTarifas()
     } catch (error) {
-      hideLoading()
-      handleApiError(error, 'Error al eliminar tarifa')
+      handleError(error, 'Error al eliminar tarifa')
     }
   }
 }
@@ -839,8 +800,7 @@ const copiarTarifas = async () => {
       showToast('Tarifas copiadas exitosamente', 'success')
       await cargarTarifas()
     } catch (error) {
-      hideLoading()
-      handleApiError(error, 'Error al copiar tarifas')
+      handleError(error, 'Error al copiar tarifas')
     }
   }
 }
@@ -873,14 +833,5 @@ const formatFecha = (fecha) => {
 onMounted(() => {
   cargarEjercicios()
 })
-
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
-
 </script>
 

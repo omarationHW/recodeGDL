@@ -6,6 +6,16 @@
         <h1>Modificación Masiva</h1>
         <p>Actualización masiva de requerimientos por rango de folios</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -22,24 +32,8 @@
                 class="municipal-form-control"
                 rows="8"
                 v-model="jsonPayload"
-                placeholder='{"tipo":"predial","recaud":1,"folio_ini":1000,"folio_fin":1010,"fecha":"2025-01-17","accion":"consultar"}'
+                placeholder='{"recaudadora": 1, "folio_inicio": 5000, "folio_fin": 5200, "estado": "ACTIVO"}'
               ></textarea>
-            </div>
-          </div>
-
-          <!-- Ejemplos rápidos -->
-          <div class="ejemplos-section">
-            <label class="municipal-form-label">Ejemplos rápidos:</label>
-            <div class="ejemplos-buttons">
-              <button class="btn-ejemplo" @click="cargarEjemplo(1)">
-                <font-awesome-icon icon="file-alt" /> Predial
-              </button>
-              <button class="btn-ejemplo" @click="cargarEjemplo(2)">
-                <font-awesome-icon icon="gavel" /> Multa
-              </button>
-              <button class="btn-ejemplo" @click="cargarEjemplo(3)">
-                <font-awesome-icon icon="id-card" /> Licencia
-              </button>
             </div>
           </div>
 
@@ -67,27 +61,33 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th>Tipo</th>
-                  <th>Registros Afectados</th>
+                  <th>Recaudadora</th>
+                  <th>Total Encontrados</th>
                   <th>Folio Inicio</th>
                   <th>Folio Final</th>
+                  <th>Estado</th>
                   <th>Mensaje</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(resultado, idx) in resultados" :key="idx" :class="getRowClass(resultado)">
-                  <td>
-                    <span class="badge" :class="getBadgeTipo(resultado.tipo_req)">
-                      {{ resultado.tipo_req }}
+                  <td class="text-center">
+                    <span class="badge badge-primary">
+                      {{ getDetalleValue(resultado, 'recaudadora') }}
                     </span>
                   </td>
                   <td class="text-center">
-                    <span class="badge-count" :class="getCountClass(resultado.registros_actualizados)">
-                      {{ resultado.registros_actualizados }}
+                    <span class="badge-count" :class="getCountClass(resultado.total_encontrados)">
+                      {{ resultado.total_encontrados }}
                     </span>
                   </td>
-                  <td class="text-center text-mono">{{ resultado.folio_inicio }}</td>
-                  <td class="text-center text-mono">{{ resultado.folio_final }}</td>
+                  <td class="text-center text-mono">{{ getDetalleValue(resultado, 'folio_inicio') }}</td>
+                  <td class="text-center text-mono">{{ getDetalleValue(resultado, 'folio_fin') }}</td>
+                  <td class="text-center">
+                    <span class="badge" :class="getBadgeEstado(getDetalleValue(resultado, 'estado'))">
+                      {{ getDetalleValue(resultado, 'estado') }}
+                    </span>
+                  </td>
                   <td>
                     <span :class="getMensajeClass(resultado.mensaje)">
                       {{ resultado.mensaje }}
@@ -130,85 +130,84 @@
         </div>
         <div class="municipal-card-body">
           <div class="info-section">
-            <h6>Acciones disponibles:</h6>
+            <h6>Formato JSON:</h6>
+            <pre><code>{
+  "recaudadora": 1,
+  "folio_inicio": 5000,
+  "folio_fin": 5200,
+  "estado": "ACTIVO"
+}</code></pre>
+
+            <h6>Parámetros:</h6>
             <ul>
-              <li><strong>consultar:</strong> Solo cuenta registros (no modifica datos)</li>
-              <li><strong>modificar:</strong> Actualiza fechas de práctica/entrega</li>
-              <li><strong>cancelar:</strong> Marca como cancelados o elimina registros (⚠️ irreversible)</li>
+              <li><strong>recaudadora:</strong> Número de recaudadora (1-10)</li>
+              <li><strong>folio_inicio:</strong> Cuenta catastral inicial</li>
+              <li><strong>folio_fin:</strong> Cuenta catastral final</li>
+              <li><strong>estado:</strong> ACTIVO, CANCELADO o PAGADO</li>
             </ul>
 
-            <h6>Tipos de requerimientos:</h6>
+            <h6>Estados disponibles:</h6>
             <ul>
-              <li><strong>predial:</strong> Requerimientos de pago predial (3,676,785 registros)</li>
-              <li><strong>multa:</strong> Requerimientos de multas (403,145 registros)</li>
-              <li><strong>licencia:</strong> Requerimientos de licencias (224,736 registros)</li>
+              <li><strong>ACTIVO:</strong> Requerimientos vigentes/activos (99,606 registros)</li>
+              <li><strong>CANCELADO:</strong> Requerimientos cancelados (18 registros)</li>
+              <li><strong>PAGADO:</strong> Requerimientos pagados</li>
             </ul>
 
             <h6>⚠️ Importante:</h6>
             <ul>
-              <li>Siempre usa <code>"accion":"consultar"</code> primero para verificar</li>
-              <li>La acción "cancelar" ELIMINA permanentemente registros de multas y licencias</li>
-              <li>El año se extrae automáticamente de la fecha proporcionada</li>
+              <li>Esta operación solo <strong>consulta y cuenta</strong> registros (no modifica datos)</li>
+              <li>El campo "folio" corresponde a la <strong>cuenta catastral</strong> (cvecuenta)</li>
+              <li>Total de requerimientos disponibles: <strong>118,842</strong></li>
             </ul>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'ModifMasiva'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Modificación Masiva'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'ModifMasiva'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Modificación Masiva'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_UPDATE = 'RECAUDADORA_MODIF_MASIVA'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const jsonPayload = ref('')
 const resultados = ref([])
 const searched = ref(false)
 const error = ref('')
-
-// Ejemplos predefinidos
-const ejemplos = {
-  1: {
-    tipo: 'predial',
-    recaud: 3,
-    folio_ini: 1328820,
-    folio_fin: 1328830,
-    fecha: '2025-01-17',
-    accion: 'consultar'
-  },
-  2: {
-    tipo: 'multa',
-    recaud: 2,
-    folio_ini: 100635,
-    folio_fin: 100650,
-    fecha: '2024-04-29',
-    accion: 'consultar'
-  },
-  3: {
-    tipo: 'licencia',
-    recaud: 2,
-    folio_ini: 28745,
-    folio_fin: 28755,
-    fecha: '2024-01-01',
-    accion: 'consultar'
-  }
-}
-
-function cargarEjemplo(num) {
-  jsonPayload.value = JSON.stringify(ejemplos[num], null, 2)
-}
 
 async function aplicar() {
   searched.value = false
@@ -216,8 +215,9 @@ async function aplicar() {
   error.value = ''
 
   try {
+    showLoading('Consultando...', 'Por favor espere')
     const params = [{ nombre: 'datos', tipo: 'string', valor: jsonPayload.value }]
-    const data = await execute(OP_UPDATE, BASE_DB, params)
+    const data = await execute(OP_UPDATE, BASE_DB, params, '', null, SCHEMA)
 
     // Extraer resultados
     let rows = []
@@ -239,17 +239,36 @@ async function aplicar() {
     console.error('Error al ejecutar modificación masiva:', e)
     error.value = e.message || 'Error al ejecutar la operación'
     searched.value = true
+  } finally {
+    hideLoading()
   }
 }
 
-function getBadgeTipo(tipo) {
-  const badges = {
-    'predial': 'badge-primary',
-    'multa': 'badge-danger',
-    'licencia': 'badge-success',
-    'error': 'badge-error'
+// Extraer valores del campo detalles (JSONB)
+function getDetalleValue(resultado, campo) {
+  if (!resultado.detalles) return '-'
+
+  // Si detalles es string (JSON), parsearlo
+  let detallesObj = resultado.detalles
+  if (typeof detallesObj === 'string') {
+    try {
+      detallesObj = JSON.parse(detallesObj)
+    } catch (e) {
+      return '-'
+    }
   }
-  return badges[tipo] || 'badge-secondary'
+
+  return detallesObj[campo] || '-'
+}
+
+function getBadgeEstado(estado) {
+  const badges = {
+    'ACTIVO': 'badge-success',
+    'VIGENTE': 'badge-success',
+    'CANCELADO': 'badge-danger',
+    'PAGADO': 'badge-primary'
+  }
+  return badges[estado] || 'badge-secondary'
 }
 
 function getCountClass(count) {
@@ -260,231 +279,18 @@ function getCountClass(count) {
 }
 
 function getMensajeClass(mensaje) {
+  if (!mensaje) return ''
   if (mensaje.includes('Error')) return 'mensaje-error'
-  if (mensaje.includes('exitosamente')) return 'mensaje-success'
-  if (mensaje.includes('Consulta')) return 'mensaje-info'
-  return ''
+  if (mensaje.includes('encontraron') || mensaje.includes('encontró')) return 'mensaje-success'
+  if (mensaje.includes('No se encontraron')) return 'mensaje-info'
+  return 'mensaje-info'
 }
 
 function getRowClass(resultado) {
-  if (resultado.tipo_req === 'error') return 'row-error'
-  if (resultado.registros_actualizados > 0) return 'row-success'
+  if (resultado.total_encontrados === 0) return 'row-neutral'
+  if (resultado.total_encontrados > 0) return 'row-success'
   return 'row-neutral'
 }
 </script>
 
-<style scoped>
-.full-width {
-  width: 100%;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-muted {
-  color: #6c757d;
-}
-
-.text-mono {
-  font-family: 'Courier New', monospace;
-  font-size: 0.9em;
-}
-
-.mb-3 {
-  margin-bottom: 1rem;
-}
-
-/* Ejemplos rápidos */
-.ejemplos-section {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-
-.ejemplos-buttons {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 0.5rem;
-}
-
-.btn-ejemplo {
-  padding: 0.5rem 1rem;
-  border: 1px solid #007bff;
-  background-color: #fff;
-  color: #007bff;
-  cursor: pointer;
-  border-radius: 0.25rem;
-  transition: all 0.2s;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-ejemplo:hover {
-  background-color: #007bff;
-  color: #fff;
-}
-
-/* Badges */
-.badge {
-  display: inline-block;
-  padding: 0.35em 0.65em;
-  font-size: 0.875em;
-  font-weight: 600;
-  line-height: 1;
-  color: #fff;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: baseline;
-  border-radius: 0.25rem;
-  text-transform: uppercase;
-}
-
-.badge-primary {
-  background-color: #007bff;
-}
-
-.badge-success {
-  background-color: #28a745;
-}
-
-.badge-danger {
-  background-color: #dc3545;
-}
-
-.badge-error {
-  background-color: #dc3545;
-}
-
-.badge-secondary {
-  background-color: #6c757d;
-}
-
-/* Badge de conteo */
-.badge-count {
-  display: inline-block;
-  padding: 0.5em 0.75em;
-  font-size: 1.1em;
-  font-weight: 700;
-  border-radius: 0.25rem;
-}
-
-.count-zero {
-  background-color: #6c757d;
-  color: #fff;
-}
-
-.count-low {
-  background-color: #17a2b8;
-  color: #fff;
-}
-
-.count-medium {
-  background-color: #ffc107;
-  color: #212529;
-}
-
-.count-high {
-  background-color: #28a745;
-  color: #fff;
-}
-
-/* Mensajes */
-.mensaje-error {
-  color: #dc3545;
-  font-weight: 600;
-}
-
-.mensaje-success {
-  color: #28a745;
-  font-weight: 600;
-}
-
-.mensaje-info {
-  color: #17a2b8;
-  font-weight: 500;
-}
-
-/* Filas de la tabla */
-.row-error {
-  background-color: #f8d7da !important;
-}
-
-.row-success {
-  background-color: #d4edda !important;
-}
-
-.row-neutral {
-  background-color: #fff3cd !important;
-}
-
-/* Alertas */
-.alert {
-  padding: 1rem;
-  border-radius: 0.25rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.alert-error {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  color: #721c24;
-}
-
-/* Sección de información */
-.info-section {
-  line-height: 1.6;
-}
-
-.info-section h6 {
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-  color: #495057;
-  font-weight: 600;
-}
-
-.info-section ul {
-  margin-left: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.info-section code {
-  background-color: #f8f9fa;
-  padding: 0.2em 0.4em;
-  border-radius: 0.25rem;
-  font-family: 'Courier New', monospace;
-  font-size: 0.875em;
-  color: #e83e8c;
-}
-
-.table-responsive {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .ejemplos-buttons {
-    flex-direction: column;
-  }
-
-  .btn-ejemplo {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .municipal-table {
-    font-size: 0.875rem;
-  }
-
-  .municipal-table th,
-  .municipal-table td {
-    padding: 0.5rem;
-  }
-}
-</style>
 

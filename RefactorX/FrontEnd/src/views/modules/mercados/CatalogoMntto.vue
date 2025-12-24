@@ -10,7 +10,16 @@
         <p>Mercados - Administración y Mantenimiento del Catálogo</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="showModal('create')">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="showModal('create')">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
@@ -18,10 +27,7 @@
           <font-awesome-icon icon="sync" />
           Refrescar
         </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
+        
       </div>
     </div>
 
@@ -246,23 +252,62 @@
           <font-awesome-icon icon="times" />
           Cancelar
         </button>
-        <button type="button" class="btn-municipal-success" @click="submitForm" :disabled="loading">
+        <button type="button" class="btn-municipal-primary" @click="submitForm" :disabled="loading">
           <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
           <font-awesome-icon icon="save" v-if="!loading" />
           Guardar
         </button>
-      </template>
+      
+  <DocumentationModal :show="showAyuda" :component-name="'CatalogoMntto'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CatalogoMntto'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CatalogoMntto'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CatalogoMntto'" @close="showDocumentacion = false" />
+</template>
     </Modal>
   </div>
 </template>
 
 <script setup>
+
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
+import Swal from 'sweetalert2';
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
 import Modal from '@/components/common/Modal.vue';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const router = useRouter();
 const { showLoading, hideLoading } = useGlobalLoading();
@@ -322,30 +367,24 @@ const goToPage = (page) => {
 const changePageSize = (size) => {
   itemsPerPage.value = parseInt(size);
   currentPage.value = 1;
-};
-
-// Cerrar
-const cerrar = () => {
-  router.push('/mercados');
-};
-
-// Cargar mercados
+};// Cargar mercados
 async function fetchData() {
   loading.value = true;
   showLoading();
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_catalogo_mntto_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_catalogo_mntto_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      rows.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      rows.value = response.data.result || [];
     } else {
-      showToast(response.data?.eResponse?.message || 'Error al cargar datos', 'error');
+      showToast(response.message || 'Error al cargar datos', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
@@ -360,16 +399,17 @@ async function fetchData() {
 async function fetchCategorias() {
   showLoading();
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_categorias_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_categoria_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      categorias.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      categorias.value = response.data.result || [];
     }
   } catch (error) {
     console.error('Error cargando categorías:', error);
@@ -426,34 +466,35 @@ async function submitForm() {
     console.log('Saving market with data:', form.value);
     const params = formMode.value === 'create'
       ? [
-          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina), tipo: 'smallint' },
-          { Nombre: 'p_num_mercado_nvo', Valor: parseInt(form.value.num_mercado_nvo), tipo: 'smallint' },
-          { Nombre: 'p_descripcion', Valor: form.value.descripcion.trim() },
-          { Nombre: 'p_categoria', Valor: form.value.categoria ? parseInt(form.value.categoria) : null, tipo: 'smallint' },
-          { Nombre: 'p_zona', Valor: form.value.zona ? parseInt(form.value.zona) : null, tipo: 'smallint' }
+          { nombre: 'p_oficina', valor: parseInt(form.value.oficina), tipo: 'smallint' },
+          { nombre: 'p_num_mercado_nvo', valor: parseInt(form.value.num_mercado_nvo), tipo: 'smallint' },
+          { nombre: 'p_descripcion', valor: form.value.descripcion.trim() },
+          { nombre: 'p_categoria', valor: form.value.categoria ? parseInt(form.value.categoria) : null, tipo: 'smallint' },
+          { nombre: 'p_zona', valor: form.value.zona ? parseInt(form.value.zona) : null, tipo: 'smallint' }
         ]
       : [
-          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina), tipo: 'smallint' },
-          { Nombre: 'p_num_mercado_nvo', Valor: parseInt(form.value.num_mercado_nvo), tipo: 'smallint' },
-          { Nombre: 'p_descripcion', Valor: form.value.descripcion.trim() },
-          { Nombre: 'p_categoria', Valor: form.value.categoria ? parseInt(form.value.categoria) : null, tipo: 'smallint' },
-          { Nombre: 'p_zona', Valor: form.value.zona ? parseInt(form.value.zona) : null, tipo: 'smallint' }
+          { nombre: 'p_oficina', valor: parseInt(form.value.oficina), tipo: 'smallint' },
+          { nombre: 'p_num_mercado_nvo', valor: parseInt(form.value.num_mercado_nvo), tipo: 'smallint' },
+          { nombre: 'p_descripcion', valor: form.value.descripcion.trim() },
+          { nombre: 'p_categoria', valor: form.value.categoria ? parseInt(form.value.categoria) : null, tipo: 'smallint' },
+          { nombre: 'p_zona', valor: form.value.zona ? parseInt(form.value.zona) : null, tipo: 'smallint' }
         ];
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: sp,
-        Base: 'mercados',
-        Parametros: params
-      }
-    });
+    const response = await apiService.execute(
+      sp,
+      'mercados',
+      params,
+      '',
+      null,
+      'publico'
+    );
 
-    if (response.data?.eResponse?.success) {
+    if (response.success) {
       showToast(formMode.value === 'create' ? 'Mercado creado' : 'Mercado actualizado', 'success');
       closeModal();
       fetchData();
     } else {
-      showToast(response.data?.eResponse?.message || 'Error al guardar', 'error');
+      showToast(response.message || 'Error al guardar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
@@ -462,6 +503,28 @@ async function submitForm() {
     loading.value = false;
     hideLoading();
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - CatÃ¡logo de Mantenimiento',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite administrar el catÃ¡logo de mantenimiento de mercados.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Utilice los botones de la barra superior para agregar o modificar registros
+          <li>Complete todos los campos requeridos marcados con *
+          <li>Los cambios se guardarÃ¡n inmediatamente al hacer clic en Guardar</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

@@ -8,10 +8,14 @@
         <h1>Actualiza Fecha de Práctica de Empresas</h1>
         <p>Aplicación de fechas a folios de empresas (vía BD)</p>
       </div>
-      <div class="module-view-actions">
-        <button class="btn-municipal-secondary" :disabled="loading" @click="resetAll">
-          <font-awesome-icon icon="sync-alt" />
-          Limpiar
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -133,26 +137,48 @@
       </div>
     </div>
 
-    <div v-if="loading && folios.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'ActualizaFechaEmpresas'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Actualiza Fecha de Práctica de Empresas'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'ActualizaFechaEmpresas'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Actualiza Fecha de Práctica de Empresas'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
   </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-// Configuración (ajustar según tu backend genérico)
+// Configuración (ajustar según tu backend genérico)// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
+
 const BASE_DB = 'multas_reglamentos' // TODO: confirmar alias de base
 const OP_GET_EJECUTORES = 'RECAUDADORA_GET_EJECUTORES' // TODO: confirmar nombre
 const OP_PARSE_FILE = 'RECAUDADORA_PARSE_FILE' // TODO: confirmar nombre
 const OP_APLICA_FECHAS = 'RECAUDADORA_ACTUALIZA_FECHAS' // TODO: confirmar nombre
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({
   ejecutor: '',
@@ -172,7 +198,7 @@ onMounted(async () => {
 })
 
 async function fetchEjecutores() {
-  // Debe traer datos reales desde BD vía SP
+  showLoading('Cargando ejecutores...', 'Por favor espere')
   try {
     console.log('🔍 Cargando ejecutores...')
     const data = await execute(OP_GET_EJECUTORES, BASE_DB, [])
@@ -198,6 +224,8 @@ async function fetchEjecutores() {
     ejecutores.value = []
     // Mostrar error al usuario
     alert('Error al cargar ejecutores: ' + (e.message || 'Error desconocido') + '\n\nVerifique que el SP recaudadora_get_ejecutores esté desplegado en la base de datos.')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -213,6 +241,7 @@ function onFileChange(e) {
 
 async function parseFile() {
   if (!fileContent.value) return
+  showLoading('Analizando archivo...', 'Por favor espere')
   try {
     const payload = [{ nombre: 'p_file_content', tipo: 'string', valor: fileContent.value }]
     const data = await execute(OP_PARSE_FILE, BASE_DB, payload)
@@ -222,12 +251,16 @@ async function parseFile() {
     foliosCorrectos.value = 0
     foliosIncorrectos.value = 0
     errores.value = []
-  } catch (e) {}
+  } catch (e) {
+  } finally {
+    hideLoading()
+  }
 }
 
 async function actualizaFolio(idx) {
   const f = folios.value[idx]
   if (!f || !filters.value.fechaCorte) return
+  showLoading('Actualizando folio...', 'Por favor espere')
   try {
     const params = [
       { nombre: 'p_clave_cuenta', tipo: 'string', valor: f.clave_cuenta },
@@ -240,11 +273,14 @@ async function actualizaFolio(idx) {
     applyResult(data, [f])
   } catch (e) {
     registerErrorFromException(e, f)
+  } finally {
+    hideLoading()
   }
 }
 
 async function actualizaTodos() {
   if (!filters.value.fechaCorte || folios.value.length === 0) return
+  showLoading('Actualizando todos los folios...', 'Por favor espere')
   try {
     // Enviar arreglo de folios al SP; estructura genérica por parámetros nombrados
     const params = [
@@ -260,6 +296,8 @@ async function actualizaTodos() {
     applyResult(data, folios.value)
   } catch (e) {
     // error global
+  } finally {
+    hideLoading()
   }
 }
 

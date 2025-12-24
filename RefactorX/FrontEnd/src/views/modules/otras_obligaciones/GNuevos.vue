@@ -18,11 +18,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -338,14 +338,17 @@
       </div>
 
     </div>
-  </div>
 
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'GNuevos'"
-    :moduleName="'otras_obligaciones'"
-    @close="closeDocumentation"
-  />
+    <!-- Modal de Ayuda y Documentacion -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'GNuevos'"
+      :moduleName="'otras_obligaciones'"
+      :docType="docType"
+      :title="'Alta de Nuevos Registros'"
+      @close="showDocModal = false"
+    />
+  </div>
 </template>
 
 <script setup>
@@ -359,9 +362,20 @@ import Swal from 'sweetalert2'
 
 const router = useRouter()
 const route = useRoute()
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+
+// Documentacion y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const BASE_DB = 'otras_obligaciones'

@@ -14,19 +14,11 @@
         <p>sp_get_remesas y detalle de remesa</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -47,17 +39,17 @@
         </div>
       </div>
       <div class="municipal-card">
-        <div class="municipal-card-header"><h5>Remesas</h5></div>
+        <div class="municipal-card-header header-with-badge"><h5>Remesas</h5></div>
         <div class="municipal-card-body table-container">
           <div class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header"><tr><th>Tipo</th><th>Remesa</th><th>Inicio</th><th>Fin</th><th>Control</th><th>Cant</th><th>Acciones</th></tr></thead>
               <tbody>
-                <tr v-for="r in paginatedRemesas" :key="r.num_remesa">
+                <tr v-for="r in paginatedRemesas" :key="r.num_remesa" class="row-hover">
                   <td>{{ r.tipo }}</td><td>{{ r.num_remesa }}</td><td>{{ formatDate(r.fecha_inicio) }}</td><td>{{ formatDate(r.fecha_fin) }}</td><td>{{ r.control }}</td><td>{{ r.cant_reg }}</td>
                   <td><button class="btn-municipal-info btn-sm" @click="verDetalle(r)" title="Ver detalle"><font-awesome-icon icon="eye" /></button></td>
                 </tr>
-                <tr v-if="remesas.length===0"><td colspan="7" class="text-center text-muted">Sin datos</td></tr>
+                <tr v-if="remesas.length===0"><td colspan="7" class="text-center text-muted"><font-awesome-icon icon="inbox" class="empty-state-icon" /> Sin datos</td></tr>
               </tbody>
             </table>
           </div>
@@ -119,7 +111,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="d in paginatedDetalle" :key="d.folio">
+                <tr v-for="d in paginatedDetalle" :key="d.folio" class="row-hover">
                   <td>{{ d.placa }}</td>
                   <td>{{ d.axo }}</td>
                   <td>{{ d.folio }}</td>
@@ -127,7 +119,7 @@
                   <td>{{ formatMonto(d.importe) }}</td>
                 </tr>
                 <tr v-if="detalleRemesa.length === 0">
-                  <td colspan="5" class="text-center text-muted">Sin registros</td>
+                  <td colspan="5" class="text-center text-muted"><font-awesome-icon icon="inbox" class="empty-state-icon" /> Sin registros</td>
                 </tr>
               </tbody>
             </table>
@@ -172,29 +164,20 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
-      @close="closeDocumentation"
-      title="Ayuda - ConsRemesasPublicos"
-    >
-      <h3>Cons Remesas Publicos</h3>
-      <p>Documentacion del modulo Estacionamiento Publico.</p>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
+      :show="showDocModal"
       :componentName="'ConsRemesasPublicos'"
       :moduleName="'estacionamiento_publico'"
-      @close="closeTechDocs"
+      :docType="docType"
+      :title="'Consulta de Remesas'"
+      @close="showDocModal = false"
     />
 
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted, computed, watch } from 'vue'
 import { useApi } from '@/composables/useApi'
@@ -202,7 +185,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -336,13 +319,19 @@ onMounted(() => {
   load()
 })
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 </script>
 

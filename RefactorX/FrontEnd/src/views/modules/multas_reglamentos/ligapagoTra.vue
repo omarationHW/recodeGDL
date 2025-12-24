@@ -8,6 +8,16 @@
         <h1>Liga Pago Trámite</h1>
         <p>Generación de liga de pago por trámite</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -75,24 +85,44 @@
           </div>
         </div>
       </div>
-    </div>
+    </div>    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'ligapagoTra'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Liga Pago Trámite'"
+      @close="showAyuda = false"
+    />
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'ligapagoTra'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Liga Pago Trámite'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_LIGAPAGOTRA'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({ tramite: '' })
 const ligaGenerada = ref('')
@@ -116,7 +146,7 @@ async function generar() {
   ]
 
   try {
-    const data = await execute(OP, BASE_DB, params)
+    const data = await execute(OP, BASE_DB, params, '', null, SCHEMA)
 
     if (data?.result && Array.isArray(data.result) && data.result.length > 0) {
       const resultado = data.result[0]
@@ -164,54 +194,3 @@ function copiarLiga() {
 }
 </script>
 
-<style scoped>
-.info-tramite {
-  border-bottom: 1px solid #dee2e6;
-  padding-bottom: 1rem;
-}
-
-.info-tramite p {
-  margin: 0.5rem 0;
-}
-
-.liga-url {
-  word-break: break-all;
-  background: #f8f9fa;
-  padding: 10px;
-  border-radius: 4px;
-  font-family: monospace;
-  margin: 1rem 0;
-}
-
-.mt-2 {
-  margin-top: 0.5rem;
-}
-
-.mb-3 {
-  margin-bottom: 1rem;
-}
-
-.alert-danger {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 8px;
-  padding: 16px;
-  color: #721c24;
-}
-
-.alert-danger svg {
-  margin-right: 8px;
-}
-
-.alert-success {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  border-radius: 8px;
-  padding: 16px;
-  color: #155724;
-}
-
-.alert-success svg {
-  margin-right: 8px;
-}
-</style>

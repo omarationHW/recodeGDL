@@ -8,25 +8,6 @@
         <h1>Reporte de Pagos</h1>
         <p>Aseo Contratado - Reporte de pagos registrados</p>
       </div>
-      <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
-        </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
-      </div>
-    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -144,20 +125,10 @@
         <li>Recaudadora específica (opcional)</li>
       </ul>
     </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'Rpt_Pagos'"
-      :moduleName="'aseo_contratado'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
@@ -166,6 +137,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
+const loading = ref(false)
 const showDocumentation = ref(false)
 const reporteGenerado = ref(false)
 const datos = ref([])
@@ -179,8 +151,6 @@ const filtros = ref({
 
 const totales = computed(() => ({
   monto_total: datos.value.reduce((sum, p) => sum + parseFloat(p.importe || 0), 0)
-
-const { showLoading, hideLoading } = useGlobalLoading()
 }))
 
 const generarReporte = async () => {
@@ -189,17 +159,16 @@ const generarReporte = async () => {
     return
   }
 
-  showLoading()
+  loading.value = true
   try {
     // Simular datos - implementar SP real
     datos.value = []
     reporteGenerado.value = true
     showToast('Funcionalidad en desarrollo', 'info')
   } catch (error) {
-    hideLoading()
     showToast('Error al generar reporte', 'error')
   } finally {
-    hideLoading()
+    loading.value = false
   }
 }
 
@@ -232,10 +201,9 @@ onMounted(async () => {
       p_limit: 100,
       p_search: null
     })
-    if (response) recaudadoras.value = response
+    if (response && response.data) recaudadoras.value = response.data
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
+    console.error('Error:', error)
   }
 })
 </script>

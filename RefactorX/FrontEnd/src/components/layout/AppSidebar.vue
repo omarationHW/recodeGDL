@@ -53,10 +53,31 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import sessionService from '@/services/sessionService'
 import MenuItem from './MenuItem.vue'
 import { useSidebar } from '@/composables/useSidebar'
 
+const route = useRoute()
 const { sidebarCollapsed, sidebarWidth, setSidebarWidth } = useSidebar()
+const currentSystem = ref(sessionService.getSistema())
+
+// Mapeo de sistemas a prefijos de ruta
+const SISTEMA_TO_PATH = {
+  'mercados': '/mercados',
+  'cementerios': '/cementerios',
+  'estacionamiento_publico': '/estacionamiento-publico',
+  'estacionamiento_exclusivo': '/estacionamiento-exclusivo',
+  'aseo_contratado': '/aseo-contratado',
+  'multas_reglamentos': '/multas-reglamentos',
+  'otras_obligaciones': '/otras-obligaciones',
+  'padron_licencias': '/padron-licencias'
+}
+
+// Watcher para actualizar el sistema cuando cambie la ruta
+watch(() => route.path, () => {
+  currentSystem.value = sessionService.getSistema()
+}, { immediate: true })
 const searchQuery = ref('')
 
 // Redimensionamiento del sidebar
@@ -1529,56 +1550,56 @@ const menuItems = [
         icon: 'file-contract',
         children: [
           { path: '/multas-reglamentos', label: 'Menu Principal', icon: 'home' },
-          { path: '/multas-reglamentos/ActualizaFechaEmpresas', label: 'Actualiza Fecha Empresas', icon: 'calendar-alt' },
-          { path: '/multas-reglamentos/AplicaSdosFavor', label: 'Aplica Saldos a Favor', icon: 'balance-scale' },
-          { path: '/multas-reglamentos/BloqueoMulta', label: 'Bloqueo de Multas', icon: 'ban' },
-          { path: '/multas-reglamentos/CapturaDif', label: 'Captura Diferencias', icon: 'keyboard' },
-          { path: '/multas-reglamentos/CartaInvitacion', label: 'Carta Invitacion', icon: 'envelope' },
-          { path: '/multas-reglamentos/CatastroDM', label: 'Catastro DM', icon: 'map' },
-          { path: '/multas-reglamentos/ConsReq400', label: 'Consulta Req. 400', icon: 'file-invoice' },
-          { path: '/multas-reglamentos/DescDerechosMerc', label: 'Desc. Derechos Mercado', icon: 'store' },
-          { path: '/multas-reglamentos/DrecgoFosa', label: 'Desc. Recargos Fosa', icon: 'cross' },
-          { path: '/multas-reglamentos/DrecgoTrans', label: 'Desc. Recargos Trans.', icon: 'exchange-alt' },
-          { path: '/multas-reglamentos/Ejecutores', label: 'Ejecutores', icon: 'user-shield' },
-          { path: '/multas-reglamentos/Empresas', label: 'Empresas', icon: 'building' },
-          { path: '/multas-reglamentos/Exclusivos_Upd', label: 'Actualizar Exclusivos', icon: 'parking' },
-          { path: '/multas-reglamentos/ExtractosRpt', label: 'Reporte Extractos', icon: 'file-alt' },
-          { path: '/multas-reglamentos/FirmaElectronica', label: 'Firma Electronica', icon: 'signature' },
-          { path: '/multas-reglamentos/FolMulta', label: 'Folio Multa', icon: 'hashtag' },
-          { path: '/multas-reglamentos/FrmEje', label: 'Formulario Ejecutor', icon: 'user-tie' },
-          { path: '/multas-reglamentos/GastosTransmision', label: 'Gastos Transmision', icon: 'money-bill' },
-          { path: '/multas-reglamentos/Hastafrm', label: 'Validacion Hasta', icon: 'calendar-check' },
-          { path: '/multas-reglamentos/ImpresionNva', label: 'Impresion Nueva', icon: 'print' },
-          { path: '/multas-reglamentos/ImprimeDesctos', label: 'Imprime Descuentos', icon: 'print' },
-          { path: '/multas-reglamentos/LicenciaMicrogenerador', label: 'Lic. Microgenerador', icon: 'solar-panel' },
-          { path: '/multas-reglamentos/LicenciaMicrogeneradorEcologia', label: 'Lic. Microgen. Ecologia', icon: 'leaf' },
-          { path: '/multas-reglamentos/ListAna', label: 'Listado Analitico', icon: 'list-alt' },
-          { path: '/multas-reglamentos/ListaDiferencias', label: 'Lista Diferencias', icon: 'list' },
-          { path: '/multas-reglamentos/ListadoMultiple', label: 'Listado Multiple', icon: 'th-list' },
-          { path: '/multas-reglamentos/ModifMasiva', label: 'Modificacion Masiva', icon: 'edit' },
-          { path: '/multas-reglamentos/MultasDM', label: 'Multas DM', icon: 'gavel' },
-          { path: '/multas-reglamentos/Otorgadescto', label: 'Otorgar Descuento', icon: 'percent' },
-          { path: '/multas-reglamentos/PagosEspe', label: 'Pagos Especiales', icon: 'credit-card' },
-          { path: '/multas-reglamentos/PeriodoInicial', label: 'Periodo Inicial', icon: 'calendar' },
-          { path: '/multas-reglamentos/Propuestatab', label: 'Propuesta Tab', icon: 'table' },
-          { path: '/multas-reglamentos/Publicos_Upd', label: 'Actualizar Publicos', icon: 'parking' },
-          { path: '/multas-reglamentos/RegSecyMas', label: 'Registro Sec. y Mas', icon: 'clipboard' },
-          { path: '/multas-reglamentos/RepDescImpto', label: 'Rep. Desc. Impuesto', icon: 'file-invoice-dollar' },
-          { path: '/multas-reglamentos/RepOper', label: 'Reporte Operaciones', icon: 'chart-bar' },
-          { path: '/multas-reglamentos/Req', label: 'Requerimientos', icon: 'file-alt' },
-          { path: '/multas-reglamentos/ReqFrm', label: 'Form. Requerimientos', icon: 'clipboard-list' },
-          { path: '/multas-reglamentos/ReqPromocion', label: 'Req. Promocion', icon: 'bullhorn' },
-          { path: '/multas-reglamentos/ReqTrans', label: 'Req. Transmision', icon: 'car' },
-          { path: '/multas-reglamentos/RequerimientosDM', label: 'Requerimientos DM', icon: 'folder-open' },
-          { path: '/multas-reglamentos/RequerxCvecat', label: 'Req. por Cve. Catastral', icon: 'search' },
-          { path: '/multas-reglamentos/ResolucionJuez', label: 'Resolucion Juez', icon: 'balance-scale-right' },
-          { path: '/multas-reglamentos/SdosFavorDM', label: 'Saldos Favor DM', icon: 'coins' },
-          { path: '/multas-reglamentos/SdosFavor_CtrlExp', label: 'Saldos Favor Ctrl Exp.', icon: 'folder' },
-          { path: '/multas-reglamentos/SdosFavor_Pagos', label: 'Saldos Favor Pagos', icon: 'money-check' },
-          { path: '/multas-reglamentos/SinLigarFrm', label: 'Sin Ligar Form.', icon: 'unlink' },
-          { path: '/multas-reglamentos/SolSdosFavor', label: 'Solicitud Saldos Favor', icon: 'hand-holding-usd' },
-          { path: '/multas-reglamentos/TDMConection', label: 'Conexion TDM', icon: 'plug' },
-          { path: '/multas-reglamentos/Ubicodifica', label: 'Ubicodifica', icon: 'map-marker-alt' },
+          { path: '/multas-reglamentos/actualiza-fecha-empresas', label: 'Actualiza Fecha Empresas', icon: 'calendar-alt' },
+          { path: '/multas-reglamentos/aplica-sdos-favor', label: 'Aplica Saldos a Favor', icon: 'balance-scale' },
+          { path: '/multas-reglamentos/bloqueo-multa', label: 'Bloqueo de Multas', icon: 'ban' },
+          { path: '/multas-reglamentos/captura-dif', label: 'Captura Diferencias', icon: 'keyboard' },
+          { path: '/multas-reglamentos/carta-invitacion', label: 'Carta Invitacion', icon: 'envelope' },
+          { path: '/multas-reglamentos/catastro-dm', label: 'Catastro DM', icon: 'map' },
+          { path: '/multas-reglamentos/consreq400', label: 'Consulta Req. 400', icon: 'file-invoice' },
+          { path: '/multas-reglamentos/desc-derechos-merc', label: 'Desc. Derechos Mercado', icon: 'store' },
+          { path: '/multas-reglamentos/drecgo-fosa', label: 'Desc. Recargos Fosa', icon: 'cross' },
+          { path: '/multas-reglamentos/drecgo-trans', label: 'Desc. Recargos Trans.', icon: 'exchange-alt' },
+          { path: '/multas-reglamentos/ejecutores', label: 'Ejecutores', icon: 'user-shield' },
+          { path: '/multas-reglamentos/empresas', label: 'Empresas', icon: 'building' },
+          { path: '/multas-reglamentos/exclusivos-upd', label: 'Actualizar Exclusivos', icon: 'parking' },
+          { path: '/multas-reglamentos/extractos-rpt', label: 'Reporte Extractos', icon: 'file-alt' },
+          { path: '/multas-reglamentos/firma-electronica', label: 'Firma Electronica', icon: 'signature' },
+          { path: '/multas-reglamentos/fol-multa', label: 'Folio Multa', icon: 'hashtag' },
+          { path: '/multas-reglamentos/frmeje', label: 'Formulario Ejecutor', icon: 'user-tie' },
+          { path: '/multas-reglamentos/gastos-transmision', label: 'Gastos Transmision', icon: 'money-bill' },
+          { path: '/multas-reglamentos/hastafrm', label: 'Validacion Hasta', icon: 'calendar-check' },
+          { path: '/multas-reglamentos/impresion-nva', label: 'Impresion Nueva', icon: 'print' },
+          { path: '/multas-reglamentos/imprime-desctos', label: 'Imprime Descuentos', icon: 'print' },
+          { path: '/multas-reglamentos/licencia-microgenerador', label: 'Lic. Microgenerador', icon: 'solar-panel' },
+          { path: '/multas-reglamentos/licencia-microgenerador-ecologia', label: 'Lic. Microgen. Ecologia', icon: 'leaf' },
+          { path: '/multas-reglamentos/list-ana', label: 'Listado Analitico', icon: 'list-alt' },
+          { path: '/multas-reglamentos/lista-diferencias', label: 'Lista Diferencias', icon: 'list' },
+          { path: '/multas-reglamentos/listado-multiple', label: 'Listado Multiple', icon: 'th-list' },
+          { path: '/multas-reglamentos/modif-masiva', label: 'Modificacion Masiva', icon: 'edit' },
+          { path: '/multas-reglamentos/multas-dm', label: 'Multas DM', icon: 'gavel' },
+          { path: '/multas-reglamentos/otorgadescto', label: 'Otorgar Descuento', icon: 'percent' },
+          { path: '/multas-reglamentos/pagos-espe', label: 'Pagos Especiales', icon: 'credit-card' },
+          { path: '/multas-reglamentos/periodo-inicial', label: 'Periodo Inicial', icon: 'calendar' },
+          { path: '/multas-reglamentos/propuestatab', label: 'Propuesta Tab', icon: 'table' },
+          { path: '/multas-reglamentos/publicos-upd', label: 'Actualizar Publicos', icon: 'parking' },
+          { path: '/multas-reglamentos/regsecy-mas', label: 'Registro Sec. y Mas', icon: 'clipboard' },
+          { path: '/multas-reglamentos/rep-desc-impto', label: 'Rep. Desc. Impuesto', icon: 'file-invoice-dollar' },
+          { path: '/multas-reglamentos/rep-oper', label: 'Reporte Operaciones', icon: 'chart-bar' },
+          { path: '/multas-reglamentos/req', label: 'Requerimientos', icon: 'file-alt' },
+          { path: '/multas-reglamentos/req-frm', label: 'Form. Requerimientos', icon: 'clipboard-list' },
+          { path: '/multas-reglamentos/req-promocion', label: 'Req. Promocion', icon: 'bullhorn' },
+          { path: '/multas-reglamentos/reqtrans', label: 'Req. Transmision', icon: 'car' },
+          { path: '/multas-reglamentos/requerimientos-dm', label: 'Requerimientos DM', icon: 'folder-open' },
+          { path: '/multas-reglamentos/requerx-cvecat', label: 'Req. por Cve. Catastral', icon: 'search' },
+          { path: '/multas-reglamentos/resolucion-juez', label: 'Resolucion Juez', icon: 'balance-scale-right' },
+          { path: '/multas-reglamentos/sdosfavor-dm', label: 'Saldos Favor DM', icon: 'coins' },
+          { path: '/multas-reglamentos/sdosfavor-ctrlexp', label: 'Saldos Favor Ctrl Exp.', icon: 'folder' },
+          { path: '/multas-reglamentos/sdosfavor-pagos', label: 'Saldos Favor Pagos', icon: 'money-check' },
+          { path: '/multas-reglamentos/sinligarfrm', label: 'Sin Ligar Form.', icon: 'unlink' },
+          { path: '/multas-reglamentos/sol-sdos-favor', label: 'Solicitud Saldos Favor', icon: 'hand-holding-usd' },
+          { path: '/multas-reglamentos/tdm-conection', label: 'Conexion TDM', icon: 'plug' },
+          { path: '/multas-reglamentos/ubicodifica', label: 'Ubicodifica', icon: 'map-marker-alt' },
           { path: '/multas-reglamentos/autdescto', label: 'Autorizacion Descuento', icon: 'certificate' },
           { path: '/multas-reglamentos/bloqctasreqfrm', label: 'Bloqueo Ctas. Req.', icon: 'lock' },
           { path: '/multas-reglamentos/busque', label: 'Busqueda', icon: 'search' },
@@ -1591,12 +1612,12 @@ const menuItems = [
           { path: '/multas-reglamentos/consmulpagos', label: 'Consulta Multas Pagos', icon: 'receipt' },
           { path: '/multas-reglamentos/consobsmulfrm', label: 'Consulta Obs. Multas', icon: 'comment-alt' },
           { path: '/multas-reglamentos/consultapredial', label: 'Consulta Predial', icon: 'home' },
-          { path: '/multas-reglamentos/dderechosLic', label: 'Desc. Derechos Lic.', icon: 'id-card' },
+          { path: '/multas-reglamentos/dderechoslic', label: 'Desc. Derechos Lic.', icon: 'id-card' },
           { path: '/multas-reglamentos/descmultampalfrm', label: 'Desc. Multa Mpal.', icon: 'percent' },
           { path: '/multas-reglamentos/descpredfrm', label: 'Descuento Predial', icon: 'home' },
           { path: '/multas-reglamentos/desctorec', label: 'Descuento Recargos', icon: 'percentage' },
-          { path: '/multas-reglamentos/drecgoLic', label: 'Desc. Recargos Lic.', icon: 'id-card' },
-          { path: '/multas-reglamentos/drecgoOtrasObligaciones', label: 'Desc. Otras Oblig.', icon: 'file-invoice-dollar' },
+          { path: '/multas-reglamentos/drecgolic', label: 'Desc. Recargos Lic.', icon: 'id-card' },
+          { path: '/multas-reglamentos/drecgo-otras-obligaciones', label: 'Desc. Otras Oblig.', icon: 'file-invoice-dollar' },
           { path: '/multas-reglamentos/entregafrm', label: 'Entrega Form.', icon: 'clipboard-check' },
           { path: '/multas-reglamentos/estadreq', label: 'Estado Requerimientos', icon: 'tasks' },
           { path: '/multas-reglamentos/frmpol', label: 'Form. Policia', icon: 'shield-alt' },
@@ -1604,7 +1625,7 @@ const menuItems = [
           { path: '/multas-reglamentos/ipor', label: 'IPOR', icon: 'calculator' },
           { path: '/multas-reglamentos/leyesfrm', label: 'Leyes Form.', icon: 'book' },
           { path: '/multas-reglamentos/ligapago', label: 'Liga Pago', icon: 'link' },
-          { path: '/multas-reglamentos/ligapagoTra', label: 'Liga Pago Trans.', icon: 'link' },
+          { path: '/multas-reglamentos/ligapago-tra', label: 'Liga Pago Trans.', icon: 'link' },
           { path: '/multas-reglamentos/listanotificacionesfrm', label: 'Lista Notificaciones', icon: 'bell' },
           { path: '/multas-reglamentos/listareq', label: 'Lista Requerimientos', icon: 'list' },
           { path: '/multas-reglamentos/listchq', label: 'Lista Cheques', icon: 'money-check-alt' },
@@ -2335,6 +2356,45 @@ const menuItems = [
 ]
 
 // Función recursiva para filtrar items manteniendo la jerarquía
+// Función para filtrar items por sistema seleccionado
+const filterBySystem = (items, sistema) => {
+  if (!sistema) return items
+
+  const pathPrefix = SISTEMA_TO_PATH[sistema]
+  if (!pathPrefix) return items
+
+  const filtered = []
+
+  for (const item of items) {
+    // Dashboard siempre visible
+    if (item.path === '/') {
+      filtered.push(item)
+      continue
+    }
+
+    // Si el item tiene path que coincide con el sistema
+    if (item.path && item.path.startsWith(pathPrefix)) {
+      filtered.push(item)
+      continue
+    }
+
+    // Si tiene hijos, filtrar recursivamente
+    if (item.children && item.children.length > 0) {
+      const filteredChildren = filterBySystem(item.children, sistema)
+
+      // Solo incluir si tiene hijos después del filtrado
+      if (filteredChildren.length > 0) {
+        filtered.push({
+          ...item,
+          children: filteredChildren
+        })
+      }
+    }
+  }
+
+  return filtered
+}
+
 const filterMenuItems = (items, query) => {
   if (!query || query.trim() === '') {
     return items
@@ -2402,8 +2462,11 @@ const sortMenu = (items) => {
 
 // Computed para items filtrados y ordenados
 const filteredItems = computed(() => {
-  const filtered = filterMenuItems(menuItems, searchQuery.value)
-  return sortMenu(filtered)
+  // Primero filtrar por sistema seleccionado
+  const systemFiltered = filterBySystem(menuItems, currentSystem.value)
+  // Luego aplicar filtro de búsqueda
+  const searchFiltered = filterMenuItems(systemFiltered, searchQuery.value)
+  return sortMenu(searchFiltered)
 })
 
 // Método para limpiar búsqueda

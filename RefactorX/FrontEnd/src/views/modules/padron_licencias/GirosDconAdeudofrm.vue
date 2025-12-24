@@ -13,7 +13,7 @@
         <button
           class="btn-municipal-success"
           @click="exportToExcel"
-          :disabled="loading || giros.length === 0"
+          :disabled="giros.length === 0"
         >
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
@@ -21,15 +21,15 @@
         <button
           class="btn-municipal-primary"
           @click="loadGiros"
-          :disabled="loading"
         >
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -130,7 +130,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchGiros"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -138,7 +137,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -146,7 +144,6 @@
           <button
             class="btn-municipal-secondary"
             @click="loadGiros"
-            :disabled="loading"
           >
             <font-awesome-icon icon="sync-alt" />
             Actualizar
@@ -205,7 +202,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(giro, index) in giros" :key="`giro-${index}`" class="row-hover">
+              <tr
+                v-for="(giro, index) in giros"
+                :key="`giro-${index}`"
+                @click="selectedRow = giro"
+                :class="{ 'table-row-selected': selectedRow === giro }"
+                class="row-hover"
+              >
                 <td>
                   <div class="giro-name">
                     <font-awesome-icon icon="store" class="giro-icon" />
@@ -250,12 +253,25 @@
                   </div>
                 </td>
               </tr>
-              <tr v-if="giros.length === 0">
-                <td colspan="7" class="empty-state">
-                  <div class="empty-state-content">
-                    <font-awesome-icon icon="inbox" class="empty-state-icon" />
-                    <p class="empty-state-text">No se encontraron giros con adeudos</p>
-                    <p class="empty-state-hint">Intenta ajustar los filtros de búsqueda</p>
+              <tr v-if="giros.length === 0 && !hasSearched">
+                <td colspan="7" style="text-align: center; padding: 3rem;">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">
+                      <font-awesome-icon icon="file-invoice-dollar" size="3x" />
+                    </div>
+                    <h4>Giros con Adeudo</h4>
+                    <p>Utilice los filtros de búsqueda para consultar los giros con adeudos pendientes</p>
+                  </div>
+                </td>
+              </tr>
+              <tr v-else-if="giros.length === 0 && hasSearched">
+                <td colspan="7" style="text-align: center; padding: 3rem;">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">
+                      <font-awesome-icon icon="inbox" size="3x" />
+                    </div>
+                    <h4>Sin resultados</h4>
+                    <p>No se encontraron giros con los criterios especificados</p>
                   </div>
                 </td>
               </tr>
@@ -265,83 +281,82 @@
       </div>
 
       <!-- Paginación -->
-      <div class="pagination-container" v-if="totalRecords > 0 && !loading">
+      <div v-if="giros.length > 0" class="pagination-controls">
         <div class="pagination-info">
-          <font-awesome-icon icon="info-circle" />
-          Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-          a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
-          de {{ totalRecords }} registros
+          <span class="text-muted">
+            Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+            a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+            de {{ formatNumber(totalRecords) }} registros
+          </span>
         </div>
 
-        <div class="pagination-controls">
-          <div class="page-size-selector">
-            <label>Mostrar:</label>
-            <select v-model="itemsPerPage" @change="changePageSize">
-              <option :value="10">10</option>
-              <option :value="25">25</option>
-              <option :value="50">50</option>
-              <option :value="100">100</option>
-            </select>
-          </div>
+        <div class="pagination-size">
+          <label class="municipal-form-label me-2">Registros por página:</label>
+          <select
+            class="municipal-form-control form-control-sm"
+            :value="itemsPerPage"
+            @change="changePageSize($event.target.value)"
+            style="width: auto; display: inline-block;"
+          >
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
 
-          <div class="pagination-nav">
-            <button
-              class="pagination-button"
-              @click="goToPage(currentPage - 1)"
-              :disabled="currentPage === 1"
-            >
-              <font-awesome-icon icon="chevron-left" />
-            </button>
-
-            <button
-              v-for="page in visiblePages"
-              :key="page"
-              class="pagination-button"
-              :class="{ active: page === currentPage }"
-              @click="goToPage(page)"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="pagination-button"
-              @click="goToPage(currentPage + 1)"
-              :disabled="currentPage === totalPages"
-            >
-              <font-awesome-icon icon="chevron-right" />
-            </button>
-          </div>
+        <div class="pagination-buttons">
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+            <font-awesome-icon icon="angle-double-left" />
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+            <font-awesome-icon icon="angle-left" />
+          </button>
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            class="btn-sm"
+            :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+            @click="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+            <font-awesome-icon icon="angle-right" />
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+            <font-awesome-icon icon="angle-double-right" />
+          </button>
         </div>
       </div>
     </div>
 
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'GirosDconAdeudofrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Giros con Adeudo'"
+        @close="showDocModal = false"
+      />
     </div>
     <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <div class="toast-content">
-        <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" class="toast-duration-icon" />
-          {{ toast.duration }}
-        </span>
-      </div>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
   <!-- /module-view -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'GirosDconAdeudofrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
   </template>
 
 <script setup>
@@ -350,12 +365,22 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
@@ -366,8 +391,6 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
-// Importar useGlobalLoading para el loading estándar
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
 const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
@@ -377,6 +400,8 @@ const itemsPerPage = ref(10)
 const totalRecords = ref(0)
 const showFilters = ref(false)
 const loadingEstadisticas = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Resumen
 const summary = ref({
@@ -412,10 +437,13 @@ const totalPages = computed(() => {
 
 const visiblePages = computed(() => {
   const pages = []
-  const start = Math.max(1, currentPage.value - 2)
-  const end = Math.min(totalPages.value, currentPage.value + 2)
-
-  for (let i = start; i <= end; i++) {
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
     pages.push(i)
   }
   return pages
@@ -480,7 +508,9 @@ const loadEstadisticas = async () => {
 }
 
 const loadGiros = async () => {
-  showLoading('Cargando giros con adeudo...')
+  showLoading('Cargando giros con adeudo...', 'Consultando información de adeudos')
+  hasSearched.value = true
+  selectedRow.value = null
   showFilters.value = false
 
   // Timer para medir el tiempo de consulta
@@ -540,8 +570,10 @@ const clearFilters = () => {
     giro: '',
     minDebt: ''
   }
+  giros.value = []
+  hasSearched.value = false
   currentPage.value = 1
-  loadGiros()
+  selectedRow.value = null
 }
 
 const exportToExcel = async () => {
@@ -557,7 +589,7 @@ const exportToExcel = async () => {
   })
 
   if (result.isConfirmed) {
-    showLoading('Generando archivo Excel...')
+    showLoading('Generando archivo Excel...', 'Procesando datos para exportación')
 
     try {
       const response = await execute(
@@ -602,7 +634,7 @@ const generateReport = async () => {
   })
 
   if (result.isConfirmed) {
-    showLoading('Generando reporte PDF...')
+    showLoading('Generando reporte PDF...', 'Procesando datos para el reporte')
 
     try {
       const response = await execute(
@@ -635,14 +667,16 @@ const generateReport = async () => {
 }
 
 const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-    loadGiros()
-  }
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
+  loadGiros()
 }
 
-const changePageSize = () => {
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
   currentPage.value = 1
+  selectedRow.value = null
   loadGiros()
 }
 

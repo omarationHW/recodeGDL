@@ -14,11 +14,13 @@
         <p>Folios capturados por fecha e inspector</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -74,7 +76,7 @@
             </span>
           </div>
           <div class="section-actions" v-if="rowsFiltradas.length > 0">
-            <span class="total-badge">
+            <span class="total-badge header-with-badge">
               <font-awesome-icon icon="clipboard-list" /> Total Folios: {{ totalFolios }}
             </span>
           </div>
@@ -123,7 +125,7 @@
 
           <!-- Estado vacio -->
           <div v-else class="empty-state-panel">
-            <div class="empty-icon-container">
+            <div class="empty-icon-container empty-state-icon">
               <font-awesome-icon icon="id-badge" size="3x" />
             </div>
             <h4>Reporte de Calcomanias</h4>
@@ -163,34 +165,27 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - ReportesCalcoPublicos">
-      <h3>Reporte de Calcomanias</h3>
-      <p>Este modulo genera reportes de folios capturados por cada inspector en una fecha especifica.</p>
-      <h4>Instrucciones:</h4>
-      <ol>
-        <li>Seleccione la fecha a consultar</li>
-        <li>Opcionalmente filtre por un inspector especifico</li>
-        <li>Presione el boton "Ejecutar"</li>
-        <li>Se mostrara la lista de inspectores con sus folios y porcentajes</li>
-      </ol>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'ReportesCalcoPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'ReportesCalcoPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Reportes de Calcomanías'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
@@ -264,13 +259,19 @@ async function ejecutar() {
 
 onMounted(() => { cargarInspectores() })
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>

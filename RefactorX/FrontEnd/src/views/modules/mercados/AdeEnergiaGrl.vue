@@ -10,6 +10,15 @@
         <p>Inicio > Reportes > Adeudos Generales de Energía</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="globalLoading.isLoading.value || adeudos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
@@ -18,10 +27,7 @@
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -44,7 +50,7 @@
               <select class="municipal-form-control" v-model="selectedRec" @change="onRecChange" :disabled="globalLoading.isLoading.value">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -210,13 +216,22 @@
 
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'AdeEnergiaGrl'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - AdeEnergiaGrl'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'AdeEnergiaGrl'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - AdeEnergiaGrl'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 // Composables
 const globalLoading = useGlobalLoading()
@@ -237,7 +252,7 @@ const searchPerformed = ref(false)
 
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 const totalRecords = computed(() => adeudos.value.length)
 
 // Métodos
@@ -253,20 +268,21 @@ const fetchRecaudadoras = async () => {
   await globalLoading.withLoading(async () => {
     error.value = ''
     try {
-      const res = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_recaudadoras',
-          Base: 'padron_licencias',
-          Parametros: []
-        }
-      })
-      if (res.data.eResponse && res.data.eResponse.success === true) {
-        recaudadoras.value = res.data.eResponse.data.result || []
+      const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+      if (res.success) {
+        recaudadoras.value = res.data.result || []
         if (recaudadoras.value.length > 0) {
           showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
         }
       } else {
-        error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
+        error.value = res.message || 'Error al cargar recaudadoras'
         showToast(error.value, 'error')
       }
     } catch (err) {
@@ -286,25 +302,26 @@ const onRecChange = async () => {
     error.value = ''
     let p_nivel_usuario = 1 // Nivel de usuario fijo para este contexto
     try {
-      const res = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_catalogo_mercados',
-          Base: 'padron_licencias',
-          Parametros: [
+      const res = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
             { nombre: 'p_oficina', tipo: 'integer', valor: selectedRec.value },
             { nombre: 'p_nivel_usuario', tipo: 'integer', valor: p_nivel_usuario }
-          ]
-        }
-      })
-      if (res.data.eResponse && res.data.eResponse.success === true) {
-        mercados.value = res.data.eResponse.data.result || []
+          ],
+          '',
+          null,
+          'publico'
+        )
+      if (res.success) {
+        mercados.value = res.data.result || []
         if (mercados.value.length > 0) {
           showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
         } else {
           showToast('No se encontraron mercados para esta oficina', 'info')
         }
       } else {
-        error.value = res.data.eResponse?.message || 'Error al cargar mercados'
+        error.value = res.message || 'Error al cargar mercados'
         showToast(error.value, 'error')
       }
     } catch (err) {
@@ -342,20 +359,21 @@ const buscar = async () => {
     currentPage.value = 1
 
     try {
-      const res = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'getAdeudosEnergiaGrl',
-          Base: 'mercados',
-          Parametros: [
+      const res = await apiService.execute(
+          'getAdeudosEnergiaGrl',
+          'mercados',
+          [
             { nombre: 'p_id_rec', valor: selectedRec.value, tipo: 'string' },
             { nombre: 'p_num_mercado_nvo', valor: selectedMercado.value, tipo: 'integer' },
             { nombre: 'p_axo', valor: axo.value, tipo: 'integer' },
             { nombre: 'p_mes', valor: mes.value, tipo: 'integer' }
-          ]
-        }
-      })
-      if (res.data.eResponse && res.data.eResponse.success === true) {
-        adeudos.value = res.data.eResponse.data.result || []
+          ],
+          '',
+          null,
+          'publico'
+        )
+      if (res.success) {
+        adeudos.value = res.data.result || []
         if (adeudos.value.length > 0) {
           showToast(`Se encontraron ${adeudos.value.length} adeudos`, 'success')
           showFilters.value = false
@@ -363,7 +381,7 @@ const buscar = async () => {
           showToast('No se encontraron adeudos con los criterios especificados', 'info')
         }
       } else {
-        error.value = res.data.eResponse?.message || 'Error al consultar adeudos'
+        error.value = res.message || 'Error al consultar adeudos'
         showToast(error.value, 'error')
       }
     } catch (err) {
@@ -464,37 +482,3 @@ onMounted(() => {
   fetchRecaudadoras()
 })
 </script>
-
-<style scoped>
-/**
- * ESTILOS MUNICIPALES - PRIORIDAD MEDIA
- *
- * Este componente utiliza principalmente las clases globales definidas en municipal-theme.css:
- * - municipal-card: Tarjetas de contenido
- * - municipal-table: Tablas de datos
- * - btn-municipal-*: Botones con estilos municipales (primary, secondary, purple)
- * - municipal-form-control: Inputs y selects
- * - municipal-form-label: Labels de formularios
- *
- * Los estilos scoped a continuación son específicos de este componente y no pueden ser globales.
- */
-
-/* Estilos específicos del componente que complementan las clases municipales */
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.table-row-selected {
-  background-color: #fff3cd !important;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-  cursor: pointer;
-}
-
-.required {
-  color: #dc3545;
-}
-</style>

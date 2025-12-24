@@ -9,16 +9,14 @@
         <h1>Catálogo de Tipos de Empresa</h1>
         <p>Aseo Contratado - Gestión de Tipos de Empresa</p>
       </div>
-      <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
-      </div>
+      <button
+        type="button"
+        class="btn-help-icon"
+        @click="openDocumentation"
+        title="Ayuda"
+      >
+        <font-awesome-icon icon="question-circle" />
+      </button>
       <div class="module-view-actions">
         <button
           class="btn-municipal-primary"
@@ -43,14 +41,14 @@
                 class="municipal-form-control"
                 v-model="filters.search"
                 placeholder="Descripción o código..."
-                @keyup.enter="applyFilter"
+                @keyup.enter="searchTiposEmp"
               />
             </div>
           </div>
           <div class="button-group">
             <button
               class="btn-municipal-primary"
-              @click="applyFilter"
+              @click="searchTiposEmp"
               :disabled="loading"
             >
               <font-awesome-icon icon="search" />
@@ -74,8 +72,8 @@
             </button>
             <button
               class="btn-municipal-primary"
-              @click="exportarCSV"
-              :disabled="loading || filteredData.length === 0"
+              @click="exportarExcel"
+              :disabled="loading || tiposEmp.length === 0"
             >
               <font-awesome-icon icon="file-excel" />
               Exportar
@@ -99,21 +97,19 @@
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
-                  <th>Control</th>
                   <th>Tipo Empresa</th>
                   <th>Descripción</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="paginatedData.length === 0">
-                  <td colspan="4" class="text-center text-muted">
+                <tr v-if="tiposEmp.length === 0">
+                  <td colspan="3" class="text-center text-muted">
                     <font-awesome-icon icon="building-user" size="2x" class="empty-icon" />
                     <p>No se encontraron tipos de empresa registrados</p>
                   </td>
                 </tr>
-                <tr v-else v-for="tipo in paginatedData" :key="tipo.ctrol_emp" class="row-hover">
-                  <td><code>{{ tipo.ctrol_emp }}</code></td>
+                <tr v-else v-for="tipo in tiposEmp" :key="tipo.tipo_empresa" class="row-hover">
                   <td><strong class="text-primary">{{ tipo.tipo_empresa }}</strong></td>
                   <td>{{ tipo.descripcion }}</td>
                   <td>
@@ -198,6 +194,13 @@
         </div>
       </div>
 
+      <!-- Loading overlay -->
+      <div v-if="loading && tiposEmp.length === 0" class="loading-overlay">
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <p>Cargando tipos de empresa...</p>
+        </div>
+      </div>
     </div>
 
     <!-- Modal de creación -->
@@ -205,41 +208,24 @@
       :show="showCreateModal"
       title="Crear Nuevo Tipo de Empresa"
       size="lg"
-      @close="closeCreateModal"
-      :showDefaultFooter="false"
+      @close="showCreateModal = false"
+      @confirm="createTipoEmp"
+      :loading="creatingTipoEmp"
+      confirmText="Crear Tipo"
+      cancelText="Cancelar"
+      :showDefaultFooter="true"
+      :confirmButtonClass="'btn-municipal-primary'"
     >
       <form @submit.prevent="createTipoEmp">
-        <div class="form-group full-width">
-          <label class="municipal-form-label">Tipo Empresa: <span class="required">*</span></label>
-          <input
-            type="text"
-            class="municipal-form-control"
-            v-model="formData.tipo_empresa"
-            maxlength="10"
-            placeholder="Código del tipo"
-            required
-          />
-        </div>
         <div class="form-group full-width">
           <label class="municipal-form-label">Descripción: <span class="required">*</span></label>
           <input
             type="text"
             class="municipal-form-control"
-            v-model="formData.descripcion"
+            v-model="newTipoEmp.descripcion"
             maxlength="100"
-            placeholder="Descripción del tipo de empresa"
             required
           />
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn-municipal-secondary" @click="closeCreateModal" :disabled="guardando">
-            <font-awesome-icon icon="times" />
-            Cancelar
-          </button>
-          <button type="submit" class="btn-municipal-primary" :disabled="guardando">
-            <font-awesome-icon icon="save" />
-            Crear Tipo
-          </button>
         </div>
       </form>
     </Modal>
@@ -247,29 +233,24 @@
     <!-- Modal de edición -->
     <Modal
       :show="showEditModal"
-      :title="`Editar Tipo de Empresa: ${selectedTipoEmp?.tipo_empresa || ''}`"
+      :title="`Editar Tipo de Empresa: ${selectedTipoEmp?.descripcion}`"
       size="lg"
-      @close="closeEditModal"
-      :showDefaultFooter="false"
+      @close="showEditModal = false"
+      @confirm="updateTipoEmp"
+      :loading="updatingTipoEmp"
+      confirmText="Guardar Cambios"
+      cancelText="Cancelar"
+      :showDefaultFooter="true"
+      :confirmButtonClass="'btn-municipal-primary'"
     >
       <form @submit.prevent="updateTipoEmp">
         <div class="form-group full-width">
-          <label class="municipal-form-label">Control:</label>
+          <label class="municipal-form-label">Tipo Empresa:</label>
           <input
             type="text"
             class="municipal-form-control"
-            :value="formData.ctrol_emp"
+            :value="editForm.tipo_empresa"
             disabled
-          />
-        </div>
-        <div class="form-group full-width">
-          <label class="municipal-form-label">Tipo Empresa: <span class="required">*</span></label>
-          <input
-            type="text"
-            class="municipal-form-control"
-            v-model="formData.tipo_empresa"
-            maxlength="10"
-            required
           />
         </div>
         <div class="form-group full-width">
@@ -277,20 +258,10 @@
           <input
             type="text"
             class="municipal-form-control"
-            v-model="formData.descripcion"
+            v-model="editForm.descripcion"
             maxlength="100"
             required
           />
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn-municipal-secondary" @click="closeEditModal" :disabled="guardando">
-            <font-awesome-icon icon="times" />
-            Cancelar
-          </button>
-          <button type="submit" class="btn-municipal-primary" :disabled="guardando">
-            <font-awesome-icon icon="save" />
-            Guardar Cambios
-          </button>
         </div>
       </form>
     </Modal>
@@ -298,7 +269,7 @@
     <!-- Modal de visualización -->
     <Modal
       :show="showViewModal"
-      :title="`Detalles del Tipo de Empresa: ${selectedTipoEmp?.tipo_empresa || ''}`"
+      :title="`Detalles del Tipo de Empresa: ${selectedTipoEmp?.descripcion}`"
       size="lg"
       @close="showViewModal = false"
       :showDefaultFooter="false"
@@ -312,12 +283,8 @@
             </h6>
             <table class="detail-table">
               <tr>
-                <td class="label">Control:</td>
-                <td><code>{{ selectedTipoEmp.ctrol_emp }}</code></td>
-              </tr>
-              <tr>
                 <td class="label">Tipo Empresa:</td>
-                <td><strong>{{ selectedTipoEmp.tipo_empresa }}</strong></td>
+                <td><code>{{ selectedTipoEmp.tipo_empresa }}</code></td>
               </tr>
               <tr>
                 <td class="label">Descripción:</td>
@@ -339,6 +306,14 @@
       </div>
     </Modal>
 
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
   </div>
 
   <!-- Modal de Ayuda -->
@@ -355,13 +330,8 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
-
-// Constantes
-const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
 
 // Composables
 const showDocumentation = ref(false)
@@ -369,61 +339,53 @@ const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
 const { execute } = useApi()
-const { isLoading: loading, showLoading, hideLoading } = useGlobalLoading()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
+const {
+  loading,
+  setLoading,
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
 
 // Estado
 const tiposEmp = ref([])
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
+const totalRecords = ref(0)
 const selectedTipoEmp = ref(null)
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showViewModal = ref(false)
-const guardando = ref(false)
+const creatingTipoEmp = ref(false)
+const updatingTipoEmp = ref(false)
 
 // Filtros
 const filters = ref({
   search: ''
 })
 
-// Formulario
-const formData = ref({
-  ctrol_emp: null,
-  tipo_empresa: '',
+// Formularios
+const newTipoEmp = ref({
   descripcion: ''
 })
 
-// Computed - Filtrado cliente
-const filteredData = computed(() => {
-  let data = [...tiposEmp.value]
-
-  if (filters.value.search) {
-    const searchLower = filters.value.search.toLowerCase()
-    data = data.filter(item =>
-      item.tipo_empresa?.toLowerCase().includes(searchLower) ||
-      item.descripcion?.toLowerCase().includes(searchLower) ||
-      String(item.ctrol_emp).includes(searchLower)
-    )
-  }
-
-  return data
+const editForm = ref({
+  tipo_empresa: null,
+  descripcion: ''
 })
 
-const totalRecords = computed(() => filteredData.value.length)
-
-const totalPages = computed(() => Math.ceil(totalRecords.value / itemsPerPage.value))
-
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return filteredData.value.slice(start, end)
+// Computed
+const totalPages = computed(() => {
+  return Math.ceil(totalRecords.value / itemsPerPage.value)
 })
 
 const visiblePages = computed(() => {
   const pages = []
   const start = Math.max(1, currentPage.value - 2)
   const end = Math.min(totalPages.value, currentPage.value + 2)
+
   for (let i = start; i <= end; i++) {
     pages.push(i)
   }
@@ -431,204 +393,239 @@ const visiblePages = computed(() => {
 })
 
 // Métodos
-async function loadTiposEmp() {
-  showLoading('Cargando tipos de empresa...')
+const loadTiposEmp = async () => {
+  setLoading(true, 'Cargando tipos de empresa...')
 
   try {
-    const response = await execute('sp_tipos_emp_list', BASE_DB, [], '', null, SCHEMA)
+    const response = await execute(
+      'SP_ASEO_TIPOS_EMP_LIST',
+      'aseo_contratado',
+      [
+        { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
+        { nombre: 'p_limit', valor: itemsPerPage.value, tipo: 'integer' },
+        { nombre: 'p_search', valor: filters.value.search || null, tipo: 'string' }
+      ],
+      'guadalajara'
+    )
 
-    if (response?.result) {
+    if (response && response.result) {
       tiposEmp.value = response.result
-      currentPage.value = 1
+      if (tiposEmp.value.length > 0) {
+        totalRecords.value = parseInt(tiposEmp.value[0].total_records) || 0
+      } else {
+        totalRecords.value = 0
+      }
+      showToast('success', 'Tipos de empresa cargados correctamente')
     } else {
       tiposEmp.value = []
+      totalRecords.value = 0
+      showToast('error', 'Error al cargar tipos de empresa')
     }
   } catch (error) {
-    hideLoading()
     handleApiError(error)
     tiposEmp.value = []
+    totalRecords.value = 0
   } finally {
-    hideLoading()
+    setLoading(false)
   }
 }
 
-function applyFilter() {
+const searchTiposEmp = () => {
   currentPage.value = 1
+  loadTiposEmp()
 }
 
-function clearFilters() {
-  filters.value = { search: '' }
+const clearFilters = () => {
+  filters.value = {
+    search: ''
+  }
   currentPage.value = 1
+  loadTiposEmp()
 }
 
-function goToPage(page) {
+const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    loadTiposEmp()
   }
 }
 
-function changePageSize() {
+const changePageSize = () => {
   currentPage.value = 1
+  loadTiposEmp()
 }
 
-function openCreateModal() {
-  formData.value = {
-    ctrol_emp: null,
-    tipo_empresa: '',
+const openCreateModal = () => {
+  newTipoEmp.value = {
     descripcion: ''
   }
   showCreateModal.value = true
 }
 
-function closeCreateModal() {
-  showCreateModal.value = false
-  formData.value = { ctrol_emp: null, tipo_empresa: '', descripcion: '' }
-}
-
-function closeEditModal() {
-  showEditModal.value = false
-  formData.value = { ctrol_emp: null, tipo_empresa: '', descripcion: '' }
-}
-
-async function getNextCtrolEmp() {
-  // Calcular siguiente control basado en datos existentes
-  if (tiposEmp.value.length === 0) return 1
-  const maxCtrol = Math.max(...tiposEmp.value.map(t => t.ctrol_emp || 0))
-  return maxCtrol + 1
-}
-
-async function createTipoEmp() {
-  // Validación
-  if (!formData.value.tipo_empresa?.trim()) {
-    showToast('Ingrese el tipo de empresa', 'warning')
-    return
-  }
-  if (!formData.value.descripcion?.trim()) {
-    showToast('Ingrese la descripción', 'warning')
+const createTipoEmp = async () => {
+  if (!newTipoEmp.value.descripcion) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Campo requerido',
+      text: 'La descripción es obligatoria',
+      confirmButtonColor: '#ea8215'
+    })
     return
   }
 
-  // 1. SweetAlert2 confirmación
   const confirmResult = await Swal.fire({
-    title: 'Crear Tipo de Empresa',
-    html: `<p>¿Desea crear el tipo <strong>${formData.value.tipo_empresa.toUpperCase()}</strong>?</p>
-           <p>Descripción: ${formData.value.descripcion}</p>`,
     icon: 'question',
+    title: '¿Confirmar creación de tipo de empresa?',
+    html: `
+      <p>Se creará un nuevo tipo de empresa con los siguientes datos:</p>
+      <ul class="list-unstyled-left">
+        <li><strong>Descripción:</strong> ${newTipoEmp.value.descripcion}</li>
+      </ul>
+    `,
     showCancelButton: true,
-    confirmButtonText: 'Sí, crear',
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#667eea',
-    cancelButtonColor: '#6c757d'
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, crear tipo',
+    cancelButtonText: 'Cancelar'
   })
 
   if (!confirmResult.isConfirmed) return
 
-  // 2. Loading
-  showLoading('Creando tipo de empresa...', 'Guardando datos')
-  guardando.value = true
+  creatingTipoEmp.value = true
 
   try {
-    const nextCtrol = await getNextCtrolEmp()
+    const response = await execute(
+      'SP_ASEO_TIPOS_EMP_CREATE',
+      'aseo_contratado',
+      [
+        { nombre: 'p_descripcion', valor: newTipoEmp.value.descripcion },
+        { nombre: 'p_usuario', valor: 'sistema' }
+      ],
+      'guadalajara'
+    )
 
-    const params = [
-      { nombre: 'p_ctrol_emp', valor: nextCtrol, tipo: 'integer' },
-      { nombre: 'p_tipo_empresa', valor: formData.value.tipo_empresa.trim().toUpperCase(), tipo: 'string' },
-      { nombre: 'p_descripcion', valor: formData.value.descripcion.trim(), tipo: 'string' }
-    ]
+    if (response && response.result && response.result[0]?.success) {
+      showCreateModal.value = false
+      loadTiposEmp()
 
-    const response = await execute('sp_tipos_emp_create', BASE_DB, params, '', null, SCHEMA)
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Tipo de empresa creado!',
+        text: 'El tipo de empresa ha sido creado exitosamente',
+        confirmButtonColor: '#ea8215',
+        timer: 2000
+      })
 
-    if (response?.result?.[0]?.success === false) {
-      showToast(response.result[0].message || 'Error al crear', 'warning')
+      showToast('success', 'Tipo de empresa creado exitosamente')
     } else {
-      showToast('Tipo de empresa creado correctamente', 'success')
-      closeCreateModal()
-      await loadTiposEmp()
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al crear tipo de empresa',
+        text: response?.result?.[0]?.message || 'Error desconocido',
+        confirmButtonColor: '#ea8215'
+      })
     }
-  } catch (e) {
-    hideLoading()
-    handleApiError(e)
+  } catch (error) {
+    handleApiError(error)
   } finally {
-    hideLoading()
-    guardando.value = false
+    creatingTipoEmp.value = false
   }
 }
 
-function editTipoEmp(tipo) {
+const editTipoEmp = (tipo) => {
   selectedTipoEmp.value = tipo
-  formData.value = {
-    ctrol_emp: tipo.ctrol_emp,
+  editForm.value = {
     tipo_empresa: tipo.tipo_empresa,
     descripcion: tipo.descripcion
   }
   showEditModal.value = true
 }
 
-async function updateTipoEmp() {
-  // Validación
-  if (!formData.value.tipo_empresa?.trim()) {
-    showToast('Ingrese el tipo de empresa', 'warning')
-    return
-  }
-  if (!formData.value.descripcion?.trim()) {
-    showToast('Ingrese la descripción', 'warning')
+const updateTipoEmp = async () => {
+  if (!editForm.value.descripcion) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Campo requerido',
+      text: 'La descripción es obligatoria',
+      confirmButtonColor: '#ea8215'
+    })
     return
   }
 
-  // 1. SweetAlert2 confirmación
   const confirmResult = await Swal.fire({
-    title: 'Actualizar Tipo de Empresa',
-    html: `<p>¿Desea actualizar el tipo <strong>${formData.value.tipo_empresa.toUpperCase()}</strong>?</p>`,
     icon: 'question',
+    title: '¿Confirmar actualización?',
+    html: `
+      <p>Se actualizarán los datos del tipo de empresa:</p>
+      <ul class="list-unstyled-left">
+        <li><strong>Tipo Empresa:</strong> ${editForm.value.tipo_empresa}</li>
+        <li><strong>Descripción:</strong> ${editForm.value.descripcion}</li>
+      </ul>
+    `,
     showCancelButton: true,
-    confirmButtonText: 'Sí, actualizar',
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#667eea',
-    cancelButtonColor: '#6c757d'
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, guardar cambios',
+    cancelButtonText: 'Cancelar'
   })
 
   if (!confirmResult.isConfirmed) return
 
-  // 2. Loading
-  showLoading('Actualizando tipo de empresa...', 'Guardando cambios')
-  guardando.value = true
+  updatingTipoEmp.value = true
 
   try {
-    const params = [
-      { nombre: 'p_ctrol_emp', valor: formData.value.ctrol_emp, tipo: 'integer' },
-      { nombre: 'p_tipo_empresa', valor: formData.value.tipo_empresa.trim().toUpperCase(), tipo: 'string' },
-      { nombre: 'p_descripcion', valor: formData.value.descripcion.trim(), tipo: 'string' }
-    ]
+    const response = await execute(
+      'SP_ASEO_TIPOS_EMP_UPDATE',
+      'aseo_contratado',
+      [
+        { nombre: 'p_tipo_empresa', valor: editForm.value.tipo_empresa },
+        { nombre: 'p_descripcion', valor: editForm.value.descripcion },
+        { nombre: 'p_usuario', valor: 'sistema' }
+      ],
+      'guadalajara'
+    )
 
-    const response = await execute('sp_tipos_emp_update', BASE_DB, params, '', null, SCHEMA)
+    if (response && response.result && response.result[0]?.success) {
+      showEditModal.value = false
+      loadTiposEmp()
 
-    if (response?.result?.[0]?.success === false) {
-      showToast(response.result[0].message || 'Error al actualizar', 'warning')
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Tipo de empresa actualizado!',
+        text: 'Los datos han sido actualizados correctamente',
+        confirmButtonColor: '#ea8215',
+        timer: 2000
+      })
+
+      showToast('success', 'Tipo de empresa actualizado exitosamente')
     } else {
-      showToast('Tipo de empresa actualizado correctamente', 'success')
-      closeEditModal()
-      await loadTiposEmp()
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al actualizar',
+        text: response?.result?.[0]?.message || 'Error desconocido',
+        confirmButtonColor: '#ea8215'
+      })
     }
-  } catch (e) {
-    hideLoading()
-    handleApiError(e)
+  } catch (error) {
+    handleApiError(error)
   } finally {
-    hideLoading()
-    guardando.value = false
+    updatingTipoEmp.value = false
   }
 }
 
-function viewTipoEmp(tipo) {
+const viewTipoEmp = (tipo) => {
   selectedTipoEmp.value = tipo
   showViewModal.value = true
 }
 
-async function confirmDeleteTipoEmp(tipo) {
+const confirmDeleteTipoEmp = async (tipo) => {
   const result = await Swal.fire({
     title: '¿Eliminar tipo de empresa?',
-    html: `<p>¿Está seguro de eliminar el tipo:</p>
-           <p><strong>${tipo.tipo_empresa}</strong> - ${tipo.descripcion}?</p>
-           <p class="text-danger">Esta acción no se puede deshacer</p>`,
+    html: `
+      <p>¿Está seguro de eliminar el tipo de empresa:</p>
+      <p><strong>${tipo.descripcion}</strong>?</p>
+      <p class="text-danger">Esta acción no se puede deshacer</p>
+    `,
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#dc3545',
@@ -642,56 +639,50 @@ async function confirmDeleteTipoEmp(tipo) {
   }
 }
 
-async function deleteTipoEmp(tipo) {
-  showLoading('Eliminando tipo de empresa...', 'Procesando')
-
+const deleteTipoEmp = async (tipo) => {
   try {
-    const params = [
-      { nombre: 'p_ctrol_emp', valor: tipo.ctrol_emp, tipo: 'integer' }
-    ]
+    const response = await execute(
+      'SP_ASEO_TIPOS_EMP_DELETE',
+      'aseo_contratado',
+      [
+        { nombre: 'p_tipo_empresa', valor: tipo.tipo_empresa },
+        { nombre: 'p_usuario', valor: 'sistema' }
+      ],
+      'guadalajara'
+    )
 
-    const response = await execute('sp_tipos_emp_delete', BASE_DB, params, '', null, SCHEMA)
+    if (response && response.result && response.result[0]?.success) {
+      loadTiposEmp()
 
-    if (response?.result?.[0]?.success === false) {
-      showToast(response.result[0].message || 'Error al eliminar', 'warning')
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Tipo de empresa eliminado!',
+        text: 'El tipo de empresa ha sido eliminado',
+        confirmButtonColor: '#ea8215',
+        timer: 2000
+      })
+
+      showToast('success', 'Tipo de empresa eliminado exitosamente')
     } else {
-      showToast('Tipo de empresa eliminado correctamente', 'success')
-      await loadTiposEmp()
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: response?.result?.[0]?.message || 'Error al eliminar el tipo de empresa',
+        confirmButtonColor: '#ea8215'
+      })
     }
   } catch (error) {
-    hideLoading()
     handleApiError(error)
-  } finally {
-    hideLoading()
   }
 }
 
-function exportarCSV() {
-  if (filteredData.value.length === 0) {
-    showToast('No hay datos para exportar', 'warning')
-    return
-  }
-
-  const headers = ['Control', 'Tipo Empresa', 'Descripción']
-  const rows = filteredData.value.map(item => [
-    item.ctrol_emp,
-    item.tipo_empresa,
-    item.descripcion
-  ])
-
-  const csvContent = '\ufeff' + [headers.join(','), ...rows.map(r => r.map(c => `"${c || ''}"`).join(','))].join('\n')
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  const url = URL.createObjectURL(blob)
-  link.setAttribute('href', url)
-  link.setAttribute('download', `tipos_empresa_${new Date().toISOString().split('T')[0]}.csv`)
-  link.style.visibility = 'hidden'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-
-  showToast(`Exportados ${filteredData.value.length} registros`, 'success')
+const exportarExcel = async () => {
+  await Swal.fire({
+    title: 'Exportar a Excel',
+    text: 'Funcionalidad en desarrollo',
+    icon: 'info',
+    confirmButtonColor: '#ea8215'
+  })
 }
 
 // Lifecycle

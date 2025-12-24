@@ -9,12 +9,19 @@
         <p>Inicio > Configuración > Fechas de Descuento</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="openEditModal" :disabled="loading || !selectedRow">
           <font-awesome-icon icon="edit" /> Modificar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -102,7 +109,7 @@
           </form>
         </div>
         <div class="municipal-modal-footer">
-          <button class="btn-municipal-success" @click="save" :disabled="loading || !isFormValid">
+          <button class="btn-municipal-primary" @click="save" :disabled="loading || !isFormValid">
             <font-awesome-icon icon="save" /> Guardar
           </button>
           <button class="btn-municipal-secondary" @click="closeModal" :disabled="loading">
@@ -120,12 +127,51 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'FechaDescuento'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - FechaDescuento'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'FechaDescuento'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - FechaDescuento'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import Swal from 'sweetalert2'
+
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -166,7 +212,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione un mes de la tabla y haga clic en Modificar para actualizar las fechas de descuento y recargos.')
+  showToast('Seleccione un mes de la tabla y haga clic en Modificar para actualizar las fechas de descuento y recargos.', 'info')
 }
 
 const getMesNombre = (mes) => {
@@ -177,20 +223,21 @@ const fetchRows = async () => {
   showLoading('Cargando Fechas de Descuento', 'Preparando configuración del sistema...')
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_fechadescuento_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse.success) {
-      rows.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_fechadescuento_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      rows.value = res.data.result || []
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar fechas de descuento')
+      showToast(res.message || 'Error al cargar fechas de descuento', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al cargar datos')
+    showToast('Error de conexión al cargar datos', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -203,7 +250,7 @@ const selectRow = (row) => {
 
 const openEditModal = () => {
   if (!selectedRow.value) {
-    showToast('warning', 'Seleccione un mes de la tabla')
+    showToast('Seleccione un mes de la tabla', 'warning')
     return
   }
   editForm.value = {
@@ -220,7 +267,7 @@ const closeModal = () => {
 
 const save = async () => {
   if (!isFormValid.value) {
-    showToast('warning', 'Complete todos los campos requeridos')
+    showToast('Complete todos los campos requeridos', 'warning')
     return
   }
   if (!confirm(`¿Está seguro de actualizar las fechas para ${getMesNombre(editForm.value.mes)}?`)) {
@@ -228,33 +275,34 @@ const save = async () => {
   }
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_fechadescuento_update',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_mes', Valor: parseInt(editForm.value.mes) },
-          { Nombre: 'p_fecha_descuento', Valor: editForm.value.fecha_descuento },
-          { Nombre: 'p_fecha_recargos', Valor: editForm.value.fecha_recargos },
-          { Nombre: 'p_id_usuario', Valor: parseInt(userId.value) }
-        ]
-      }
-    })
-    if (res.data.eResponse.success) {
-      const result = res.data.eResponse.data.result[0]
+    const res = await apiService.execute(
+          'sp_fechadescuento_update',
+          'mercados',
+          [
+          { nombre: 'p_mes', valor: parseInt(editForm.value.mes) },
+          { nombre: 'p_fecha_descuento', valor: editForm.value.fecha_descuento },
+          { nombre: 'p_fecha_recargos', valor: editForm.value.fecha_recargos },
+          { nombre: 'p_id_usuario', valor: parseInt(userId.value) }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      const result = res.data.result[0]
       if (result.success) {
-        showToast('success', result.message || 'Fecha de descuento actualizada exitosamente')
+        showToast(result.message || 'Fecha de descuento actualizada exitosamente', 'success')
         showModal.value = false
         selectedRow.value = null
         await fetchRows()
       } else {
-        showToast('error', result.message || 'Error al actualizar')
+        showToast(result.message || 'Error al actualizar', 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al guardar')
+      showToast(res.message || 'Error al guardar', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al guardar')
+    showToast('Error de conexión al guardar', 'error')
   } finally {
     loading.value = false
   }
@@ -280,88 +328,3 @@ onMounted(() => {
   fetchRows()
 })
 </script>
-
-<style scoped>
-.empty-icon {
-  color: #6c757d;
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
-
-.row-selected {
-  background-color: #e7f3ff !important;
-  border-left: 3px solid var(--municipal-blue);
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1050;
-}
-
-.municipal-modal {
-  background: white;
-  border-radius: 8px;
-  max-width: 600px;
-  width: 90%;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.municipal-modal-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #e0e0e0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, var(--municipal-blue) 0%, var(--municipal-blue-dark) 100%);
-  color: white;
-  border-radius: 8px 8px 0 0;
-}
-
-.municipal-modal-header h5 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.modal-close-btn {
-  background: transparent;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.modal-close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.municipal-modal-body {
-  padding: 1.5rem;
-}
-
-.municipal-modal-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #e0e0e0;
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-</style>

@@ -10,14 +10,20 @@
         <p>Mercados > Reporte de Pagos Agrupados por Año</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || pagos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -28,7 +34,7 @@
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+            <font-awesome-icon :icon="showFilters ? 'angle-up' : 'angle-down'" class="ms-2" />
           </h5>
         </div>
 
@@ -39,7 +45,7 @@
               <select class="municipal-form-control" v-model="selectedOficina" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -157,7 +163,7 @@
             </div>
             <div class="pagination-controls">
               <label class="me-2">Registros por página:</label>
-              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
+              <select v-model.number="itemsPerPage" class="municipal-form-control" style="width: auto;">
                 <option :value="10">10</option>
                 <option :value="25">25</option>
                 <option :value="50">50</option>
@@ -166,11 +172,11 @@
             </div>
             <div class="pagination-buttons">
               <button @click="prevPage" :disabled="currentPage === 1" class="btn-municipal-secondary btn-sm">
-                <font-awesome-icon icon="chevron-left" />
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span>Página {{ currentPage }} de {{ totalPages }}</span>
               <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-municipal-secondary btn-sm">
-                <font-awesome-icon icon="chevron-right" />
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>
@@ -192,24 +198,27 @@
       </div>
     </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptPagosAno'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptPagosAno'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptPagosAno'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptPagosAno'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 // Composables
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const showFilters = ref(true)
@@ -226,13 +235,6 @@ const searchPerformed = ref(false)
 // Paginación
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
-
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
 
 // Computed
 const mercadosFiltrados = computed(() => {
@@ -291,31 +293,6 @@ const mostrarAyuda = () => {
   showToast('info', 'Seleccione una oficina para consultar los pagos agrupados por año. Opcionalmente puede filtrar por año específico y mercado.')
 }
 
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
-}
-
 const formatCurrency = (value) => {
   if (!value) return '$0.00'
   return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value)
@@ -328,15 +305,16 @@ const formatNumber = (value) => {
 const fetchRecaudadoras = async () => {
   try {
     showLoading('Cargando recaudadoras', 'Por favor espere...')
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse.success) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
     }
   } catch (err) {
     console.error('Error al cargar recaudadoras:', err)
@@ -348,15 +326,16 @@ const fetchRecaudadoras = async () => {
 const fetchMercados = async () => {
   try {
     showLoading('Cargando mercados', 'Por favor espere...')
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_reporte_catalogo_mercados',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse.success) {
-      mercados.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_reporte_catalogo_mercados',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      mercados.value = res.data.result || []
     }
   } catch (err) {
     console.error('Error al cargar mercados:', err)
@@ -368,7 +347,7 @@ const fetchMercados = async () => {
 const buscar = async () => {
   if (!selectedOficina.value) {
     error.value = 'Debe seleccionar una oficina'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -395,30 +374,31 @@ const buscar = async () => {
       parametros.push({ nombre: 'p_mercado', valor: null, tipo: 'integer' })
     }
 
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_rpt_pagos_ano',
-        Base: 'mercados',
-        Parametros: parametros
-      }
-    })
+    const res = await apiService.execute(
+          'sp_rpt_pagos_ano',
+          'mercados',
+          parametros,
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      pagos.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      pagos.value = res.data.result || []
       if (pagos.value.length > 0) {
-        showToast('success', `Se encontraron ${pagos.value.length} registros de pagos`)
+        showToast(`Se encontraron ${pagos.value.length} registros de pagos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron pagos con los criterios especificados')
+        showToast('No se encontraron pagos con los criterios especificados', 'info')
       }
     } else {
-      error.value = res.data.eResponse.message || 'Error al consultar pagos'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al consultar pagos'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al consultar pagos'
     console.error('Error al buscar:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -432,12 +412,12 @@ const limpiarFiltros = () => {
   pagos.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (pagos.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -469,10 +449,10 @@ const exportarExcel = () => {
     link.click()
     URL.revokeObjectURL(url)
 
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
     console.error('Error al exportar:', err)
-    showToast('error', 'Error al exportar el archivo')
+    showToast('Error al exportar el archivo', 'error')
   }
 }
 

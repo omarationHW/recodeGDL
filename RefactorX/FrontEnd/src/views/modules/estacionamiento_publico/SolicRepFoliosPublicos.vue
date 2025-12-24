@@ -14,11 +14,13 @@
         <p>Consulta de folios por estado y rango de fechas</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -96,7 +98,7 @@
 
       <!-- Seccion de Resultados -->
       <div class="form-section">
-        <div class="section-header" :class="getHeaderClass()">
+        <div class="section-header header-with-badge" :class="getHeaderClass()">
           <div class="section-icon"><font-awesome-icon icon="table" /></div>
           <div class="section-title-group">
             <h3>Resultados del Reporte</h3>
@@ -204,7 +206,7 @@
 
           <!-- Estado vacio -->
           <div v-if="rows.length === 0" class="empty-state-panel">
-            <div class="empty-icon-container">
+            <div class="empty-icon-container empty-state-icon">
               <font-awesome-icon icon="clipboard-list" size="3x" />
             </div>
             <h4>Solicitud de Reporte de Folios</h4>
@@ -245,46 +247,27 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - SolicRepFoliosPublicos">
-      <h3>Solicitud de Reporte de Folios</h3>
-      <p>Este modulo permite consultar folios segun su estado en un rango de fechas.</p>
-      <h4>Tipos de Reporte:</h4>
-      <ul>
-        <li><strong>01 - Adeudos:</strong> Folios con pagos pendientes</li>
-        <li><strong>02 - Pagados:</strong> Folios que ya fueron pagados (incluye descuentos)</li>
-        <li><strong>03 - Cancelados:</strong> Folios que fueron cancelados</li>
-        <li><strong>04 - Condonados:</strong> Folios con condonacion aplicada</li>
-        <li><strong>05 - Cancelados y Condonados:</strong> Ambos estados combinados</li>
-        <li><strong>06 - Descuentos Otorgados:</strong> Relacion de descuentos aplicados con detalle de autoridad</li>
-      </ul>
-      <h4>Instrucciones:</h4>
-      <ol>
-        <li>Seleccione el tipo de reporte deseado</li>
-        <li>Para opciones 1-5, opcionalmente filtre por clave de infraccion</li>
-        <li>Ingrese el rango de fechas (maximo 31 dias)</li>
-        <li>Presione "Ejecutar Reporte"</li>
-        <li>Puede exportar los resultados a CSV usando el boton correspondiente</li>
-      </ol>
-      <h4>Nota:</h4>
-      <p>La opcion 06 (Descuentos Otorgados) no requiere filtro por infraccion, ya que muestra todos los descuentos en el periodo seleccionado.</p>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'SolicRepFoliosPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'SolicRepFoliosPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Solicitud de Reporte de Folios'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
@@ -542,13 +525,19 @@ async function ejecutar() {
   }
 }
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Inicializacion
 onMounted(() => {

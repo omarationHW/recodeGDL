@@ -10,14 +10,20 @@
         <p>Inicio > Mercados > Datos Individuales</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-secondary" @click="$router.back()">
           <font-awesome-icon icon="arrow-left" />
           Regresar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -174,7 +180,10 @@
                       <span class="info-value">{{ tianguis.MotivoDescuento }}</span>
                     </div>
                   </div>
-                </template>
+                
+  <DocumentationModal :show="showAyuda" :component-name="'DatosIndividuales'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - DatosIndividuales'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'DatosIndividuales'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - DatosIndividuales'" @close="showDocumentacion = false" />
+</template>
               </div>
             </div>
           </div>
@@ -320,6 +329,11 @@ import { useRoute } from 'vue-router'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import axios from 'axios'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const route = useRoute()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -348,21 +362,15 @@ const formatCurrency = (val) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Consulta completa de datos de un local de mercado')
+  showToast('Consulta completa de datos de un local de mercado', 'info')
 }
 
 const api = async (operacion, parametros, base = 'mercados') => {
-  const resp = await axios.post('/api/generic', {
-    eRequest: {
-      Operacion: operacion,
-      Base: base,
-      Parametros: parametros
-    }
-  })
-  if (!resp.data?.eResponse?.success) {
-    throw new Error(resp.data?.eResponse?.message || 'Error API')
+  const resp = await apiService.execute(operacion, base, parametros, '', null, 'publico')
+  if (!resp.success) {
+    throw new Error(resp.message || 'Error API')
   }
-  return resp.data.eResponse?.data?.result || []
+  return resp.data.data.result || []
 }
 
 const limpiarError = () => {
@@ -371,7 +379,7 @@ const limpiarError = () => {
 
 const buscarLocal = () => {
   if (!searchIdLocal.value) {
-    showToast('warning', 'Por favor ingrese un ID de local')
+    showToast('Por favor ingrese un ID de local', 'warning')
     return
   }
   cargarDatos(searchIdLocal.value)
@@ -385,7 +393,7 @@ const cargarDatos = async (id_local) => {
   try {
     // 1. Datos principales
     let res = await api('sp_get_datos_individuales', [
-      { Nombre: 'p_id_local', Valor: id_local }
+      { nombre: 'p_id_local', valor: id_local }
     ], 'mercados')
 
     if (!res || res.length === 0) {
@@ -396,54 +404,54 @@ const cargarDatos = async (id_local) => {
 
     // 2. Mercado
     res = await api('sp_get_mercado', [
-      { Nombre: 'p_oficina', Valor: datos.value.oficina },
-      { Nombre: 'p_num_mercado', Valor: datos.value.num_mercado }
+      { nombre: 'p_oficina', valor: datos.value.oficina },
+      { nombre: 'p_num_mercado', valor: datos.value.num_mercado }
     ])
     mercado.value = res[0] || {}
 
     // 3. Usuario
     res = await api('sp_get_usuario', [
-      { Nombre: 'p_id_usuario', Valor: datos.value.id_usuario }
+      { nombre: 'p_id_usuario', valor: datos.value.id_usuario }
     ])
     usuario.value = res[0] || {}
 
     // 4. Cuota
     res = await api('sp_get_cuota', [
-      { Nombre: 'p_axo', Valor: new Date().getFullYear() },
-      { Nombre: 'p_categoria', Valor: datos.value.categoria },
-      { Nombre: 'p_seccion', Valor: datos.value.seccion },
-      { Nombre: 'p_clave_cuota', Valor: datos.value.clave_cuota }
+      { nombre: 'p_axo', valor: new Date().getFullYear() },
+      { nombre: 'p_categoria', valor: datos.value.categoria },
+      { nombre: 'p_seccion', valor: datos.value.seccion },
+      { nombre: 'p_clave_cuota', valor: datos.value.clave_cuota }
     ])
     cuota.value = res[0] || {}
 
     // 5. Adeudos
     adeudos.value = await api('sp_get_adeudos_local', [
-      { Nombre: 'p_id_local', Valor: id_local }
+      { nombre: 'p_id_local', valor: id_local }
     ])
 
     // 6. Requerimientos
     requerimientos.value = await api('sp_get_requerimientos_local', [
-      { Nombre: 'p_id_local', Valor: id_local }
+      { nombre: 'p_id_local', valor: id_local }
     ])
 
     // 7. Movimientos
     movimientos.value = await api('sp_get_movimientos_local', [
-      { Nombre: 'p_id_local', Valor: id_local }
+      { nombre: 'p_id_local', valor: id_local }
     ])
 
     // 8. Tianguis (si aplica)
     if (datos.value.num_mercado === 214) {
       res = await api('sp_get_tianguis', [
-        { Nombre: 'p_folio', Valor: datos.value.local }
+        { nombre: 'p_folio', valor: datos.value.local }
       ])
       tianguis.value = res[0] || null
     }
 
     datosLoaded.value = true
-    showToast('success', 'Datos cargados correctamente')
+    showToast('Datos cargados correctamente', 'success')
   } catch (e) {
     error.value = e.message || 'Error al cargar datos'
-    showToast('error', error.value)
+    showToast(error.value, 'error')
     datosLoaded.value = false
   } finally {
     hideLoading()

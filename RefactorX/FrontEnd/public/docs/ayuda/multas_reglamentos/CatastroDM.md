@@ -1,134 +1,134 @@
-﻿# CatastroDM
-
-## DescripciÃ³n General
-
-**CategorÃ­a:** Data Module
-
-**PropÃ³sito:** MÃ³dulo de datos y conexiones del sistema de RecaudaciÃ³n de Guadalajara.
-
-**Usuarios:** Personal de recaudaciÃ³n, personal administrativo, supervisores del Ã¡rea de catastro y funcionarios municipales.
-
-## Proceso Administrativo
-
-### Funcionalidad Principal
-
-Este mÃ³dulo forma parte del sistema integral de recaudaciÃ³n catastral y tiene como objetivo MÃ³dulo de datos y conexiones.toLowerCase().
-
-### InformaciÃ³n Requerida
-
-El mÃ³dulo requiere los siguientes datos para su operaciÃ³n:
-
-- InformaciÃ³n de la base de datos (tablas y consultas)
-
-### Validaciones
-
-El sistema realiza validaciones para garantizar la integridad de la informaciÃ³n:
-
-- ValidaciÃ³n de campos obligatorios
-- ValidaciÃ³n de formatos de datos (RFC, CURP, importes)
-- VerificaciÃ³n de permisos de usuario segÃºn nivel
-- Control de duplicidad de registros
-- ValidaciÃ³n de periodos y fechas
-- VerificaciÃ³n de saldos y adeudos
-
-## Tablas de Base de Datos
-
-### Tablas Principales
-- **c_movcta**: Tabla principal del mÃ³dulo
-
-### Consultas (TQuery)
-- **avaluosQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **c_recaudQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **catastroQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **convctaQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **detsaldosQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **regpropQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **reqpredialQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **saldosQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **ubicacionQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **usuariosQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **valoresQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **Saldosanio**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **QuerySaldos**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **C_CajerosQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- **notarioQry**: Consulta para obtenciÃ³n/actualizaciÃ³n de datos
-- ... y 7 consultas adicionales
-
-## Stored Procedures
-Este mÃ³dulo no utiliza procedimientos almacenados especÃ­ficos.
-
-## Impacto y Repercusiones
-
-### Registros Afectados
-
-### Documentos Generados
-- Registros en base de datos
-- BitÃ¡cora de movimientos para auditorÃ­a
-
-### Validaciones de Negocio
-
-- VerificaciÃ³n de permisos de usuario segÃºn nivel de acceso
-- Control de fechas y periodos fiscales vÃ¡lidos
-- ValidaciÃ³n de importes y cÃ¡lculos automÃ¡ticos
-- VerificaciÃ³n de estatus de registros (vigente/baja/cancelado)
-- Control de autorizaciÃ³n para operaciones sensibles
-- ValidaciÃ³n de fundamentos legales aplicables
-
-## Flujo de Trabajo
-
-### Proceso TÃ­pico
-
-1. **Inicio:** El usuario accede al mÃ³dulo desde el menÃº principal del sistema
-2. **SelecciÃ³n:** Se seleccionan los parÃ¡metros necesarios (contribuyente, periodo, tipo, etc.)
-3. **ValidaciÃ³n:** El sistema valida la informaciÃ³n ingresada y permisos del usuario
-4. **Procesamiento:** Se ejecutan los cÃ¡lculos, consultas o actualizaciones correspondientes
-5. **Resultado:** Se generan los reportes, actualizaciones o consultas solicitadas
-6. **ConfirmaciÃ³n:** El sistema confirma la operaciÃ³n exitosa y registra en bitÃ¡cora
-
-### Casos Especiales
-
-## Notas Importantes
-
-### Consideraciones Especiales
-
-- Este mÃ³dulo es parte del sistema integral de recaudaciÃ³n catastral
-- Requiere conexiÃ³n activa a la base de datos
-- Todos los movimientos son registrados en bitÃ¡cora de auditorÃ­a
-- Se recomienda realizar respaldos antes de operaciones masivas
-- Cumplimiento de marco legal y normativo municipal vigente
-
-### Restricciones
-
-- Acceso restringido segÃºn perfil de usuario
-- No permite eliminaciÃ³n de registros histÃ³ricos sin autorizaciÃ³n
-- Requiere cierre de periodo para operaciones financieras crÃ­ticas
-- Operaciones sensibles requieren doble validaciÃ³n
-- Control estricto de fechas retroactivas
-
-### Permisos Necesarios
-- **Nivel requerido:** SegÃºn configuraciÃ³n del sistema
-- ValidaciÃ³n mediante tabla de permisos por usuario
-- Registro de accesos en bitÃ¡cora del sistema
-- Trazabilidad completa de operaciones
-
-### Recomendaciones
-
-- Verificar cuidadosamente la informaciÃ³n antes de confirmar cambios
-- Utilizar los filtros de bÃºsqueda para agilizar consultas
-- Revisar los reportes generados antes de impresiÃ³n masiva
-- Mantener actualizados los datos de contribuyentes
-- Consultar con supervisor ante situaciones no contempladas
-- Contactar al administrador del sistema ante dudas o problemas tÃ©cnicos
-
-## InformaciÃ³n TÃ©cnica
-
-**MÃ³dulo:** CatastroDM.pas
-**CategorÃ­a del Sistema:** Data Module
-**Tablas identificadas:** 1 tabla(s)
-**Consultas identificadas:** 22 consulta(s)
-**Stored Procedures:** 0 procedimiento(s)
-
----
-
-*Documento generado automÃ¡ticamente para el Sistema de RecaudaciÃ³n Catastral de Guadalajara*
-*Ãšltima actualizaciÃ³n: 04/11/2025*
+﻿# CatastroDM
+
+## Descripción General
+
+**Categoría:** Data Module
+
+**Propósito:** Módulo de datos y conexiones del sistema de Recaudación de Guadalajara.
+
+**Usuarios:** Personal de recaudación, personal administrativo, supervisores del área de catastro y funcionarios municipales.
+
+## Proceso Administrativo
+
+### Funcionalidad Principal
+
+Este módulo forma parte del sistema integral de recaudación catastral y tiene como objetivo Módulo de datos y conexiones.toLowerCase().
+
+### Información Requerida
+
+El módulo requiere los siguientes datos para su operación:
+
+- Información de la base de datos (tablas y consultas)
+
+### Validaciones
+
+El sistema realiza validaciones para garantizar la integridad de la información:
+
+- Validación de campos obligatorios
+- Validación de formatos de datos (RFC, CURP, importes)
+- Verificación de permisos de usuario según nivel
+- Control de duplicidad de registros
+- Validación de periodos y fechas
+- Verificación de saldos y adeudos
+
+## Tablas de Base de Datos
+
+### Tablas Principales
+- **c_movcta**: Tabla principal del módulo
+
+### Consultas (TQuery)
+- **avaluosQry**: Consulta para obtención/actualización de datos
+- **c_recaudQry**: Consulta para obtención/actualización de datos
+- **catastroQry**: Consulta para obtención/actualización de datos
+- **convctaQry**: Consulta para obtención/actualización de datos
+- **detsaldosQry**: Consulta para obtención/actualización de datos
+- **regpropQry**: Consulta para obtención/actualización de datos
+- **reqpredialQry**: Consulta para obtención/actualización de datos
+- **saldosQry**: Consulta para obtención/actualización de datos
+- **ubicacionQry**: Consulta para obtención/actualización de datos
+- **usuariosQry**: Consulta para obtención/actualización de datos
+- **valoresQry**: Consulta para obtención/actualización de datos
+- **Saldosanio**: Consulta para obtención/actualización de datos
+- **QuerySaldos**: Consulta para obtención/actualización de datos
+- **C_CajerosQry**: Consulta para obtención/actualización de datos
+- **notarioQry**: Consulta para obtención/actualización de datos
+- ... y 7 consultas adicionales
+
+## Stored Procedures
+Este módulo no utiliza procedimientos almacenados específicos.
+
+## Impacto y Repercusiones
+
+### Registros Afectados
+
+### Documentos Generados
+- Registros en base de datos
+- Bitácora de movimientos para auditoría
+
+### Validaciones de Negocio
+
+- Verificación de permisos de usuario según nivel de acceso
+- Control de fechas y periodos fiscales válidos
+- Validación de importes y cálculos automáticos
+- Verificación de estatus de registros (vigente/baja/cancelado)
+- Control de autorización para operaciones sensibles
+- Validación de fundamentos legales aplicables
+
+## Flujo de Trabajo
+
+### Proceso Típico
+
+1. **Inicio:** El usuario accede al módulo desde el menú principal del sistema
+2. **Selección:** Se seleccionan los parámetros necesarios (contribuyente, periodo, tipo, etc.)
+3. **Validación:** El sistema valida la información ingresada y permisos del usuario
+4. **Procesamiento:** Se ejecutan los cálculos, consultas o actualizaciones correspondientes
+5. **Resultado:** Se generan los reportes, actualizaciones o consultas solicitadas
+6. **Confirmación:** El sistema confirma la operación exitosa y registra en bitácora
+
+### Casos Especiales
+
+## Notas Importantes
+
+### Consideraciones Especiales
+
+- Este módulo es parte del sistema integral de recaudación catastral
+- Requiere conexión activa a la base de datos
+- Todos los movimientos son registrados en bitácora de auditoría
+- Se recomienda realizar respaldos antes de operaciones masivas
+- Cumplimiento de marco legal y normativo municipal vigente
+
+### Restricciones
+
+- Acceso restringido según perfil de usuario
+- No permite eliminación de registros históricos sin autorización
+- Requiere cierre de periodo para operaciones financieras críticas
+- Operaciones sensibles requieren doble validación
+- Control estricto de fechas retroactivas
+
+### Permisos Necesarios
+- **Nivel requerido:** Según configuración del sistema
+- Validación mediante tabla de permisos por usuario
+- Registro de accesos en bitácora del sistema
+- Trazabilidad completa de operaciones
+
+### Recomendaciones
+
+- Verificar cuidadosamente la información antes de confirmar cambios
+- Utilizar los filtros de búsqueda para agilizar consultas
+- Revisar los reportes generados antes de impresión masiva
+- Mantener actualizados los datos de contribuyentes
+- Consultar con supervisor ante situaciones no contempladas
+- Contactar al administrador del sistema ante dudas o problemas técnicos
+
+## Información Técnica
+
+**Módulo:** CatastroDM.pas
+**Categoría del Sistema:** Data Module
+**Tablas identificadas:** 1 tabla(s)
+**Consultas identificadas:** 22 consulta(s)
+**Stored Procedures:** 0 procedimiento(s)
+
+---
+
+*Documento generado automáticamente para el Sistema de Recaudación Catastral de Guadalajara*
+*Última actualización: 04/11/2025*

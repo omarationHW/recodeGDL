@@ -10,14 +10,20 @@
         <p>Inicio > Mercados > Reporte de Pagos</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || report.length === 0">
           <font-awesome-icon icon="file-excel" />
           Excel
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -28,7 +34,7 @@
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+            <font-awesome-icon :icon="showFilters ? 'angle-up' : 'angle-down'" class="ms-2" />
           </h5>
         </div>
 
@@ -50,7 +56,7 @@
               <select class="municipal-form-control" v-model="selectedRec" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -158,24 +164,26 @@
         </div>
       </div>
     </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptPagosLocales'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptPagosLocales'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptPagosLocales'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptPagosLocales'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const showFilters = ref(true)
@@ -190,13 +198,6 @@ const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
 
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
-
 // Computed
 const totalImporte = computed(() => {
   return report.value.reduce((sum, row) => sum + Number(row.importe_pago || 0), 0)
@@ -208,59 +209,35 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione un rango de fechas y una oficina para generar el reporte de pagos')
-}
-
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
+  showToast('Ayuda: Seleccione un rango de fechas y una oficina para generar el reporte de pagos', 'info')
 }
 
 const fetchRecaudadoras = async () => {
   loading.value = true
   error.value = ''
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success === true) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al cargar recaudadoras'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar recaudadoras'
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -269,13 +246,13 @@ const fetchRecaudadoras = async () => {
 const buscar = async () => {
   if (!fechaDesde.value || !fechaHasta.value || !selectedRec.value) {
     error.value = 'Debe seleccionar fecha desde, fecha hasta y oficina'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (fechaDesde.value > fechaHasta.value) {
     error.value = 'La fecha desde no puede ser mayor a la fecha hasta'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -285,34 +262,35 @@ const buscar = async () => {
   searchPerformed.value = true
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_rpt_pagos_locales',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_fecha_desde', Valor: fechaDesde.value },
-          { Nombre: 'p_fecha_hasta', Valor: fechaHasta.value },
-          { Nombre: 'p_oficina', Valor: selectedRec.value }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+          'sp_rpt_pagos_locales',
+          'mercados',
+          [
+          { nombre: 'p_fecha_desde', valor: fechaDesde.value },
+          { nombre: 'p_fecha_hasta', valor: fechaHasta.value },
+          { nombre: 'p_oficina', valor: selectedRec.value }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      report.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      report.value = res.data.result || []
       if (report.value.length > 0) {
-        showToast('success', `Se encontraron ${report.value.length} pagos`)
+        showToast(`Se encontraron ${report.value.length} pagos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron pagos para los filtros seleccionados')
+        showToast('No se encontraron pagos para los filtros seleccionados', 'info')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al generar reporte'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al generar reporte'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al generar reporte'
     console.error('Error al generar reporte:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -325,16 +303,16 @@ const limpiarFiltros = () => {
   report.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (report.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
   // TODO: Implementar exportación a Excel
-  showToast('info', 'Funcionalidad de exportación Excel en desarrollo')
+  showToast('Funcionalidad de exportación Excel en desarrollo', 'info')
 }
 
 // Utilidades
@@ -364,32 +342,3 @@ onMounted(async () => {
   }
 })
 </script>
-
-<style scoped>
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.text-end {
-  text-align: right;
-}
-
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-}
-
-.required {
-  color: #dc3545;
-}
-
-.municipal-table td.text-end,
-.municipal-table th.text-end {
-  text-align: right;
-}
-</style>

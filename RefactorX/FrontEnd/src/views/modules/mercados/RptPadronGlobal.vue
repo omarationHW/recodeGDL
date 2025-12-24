@@ -9,12 +9,19 @@
         <p>Inicio > Reportes > Padrón Global</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="!resultados.length">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="!resultados.length">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -138,17 +145,17 @@
             </div>
             <div class="pagination-controls">
               <button class="btn-pagination" @click="previousPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="pagination-current">Página {{ currentPage }} de {{ totalPages }}</span>
               <button class="btn-pagination" @click="nextPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
             <div class="items-per-page">
               <label>
                 Registros por página:
-                <select v-model.number="pageSize" class="form-select form-select-sm">
+                <select v-model.number="pageSize" class="municipal-form-control" style="width: auto;">
                   <option :value="10">10</option>
                   <option :value="25">25</option>
                   <option :value="50">50</option>
@@ -171,14 +178,25 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptPadronGlobal'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptPadronGlobal'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptPadronGlobal'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptPadronGlobal'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 const filters = ref({
   year: new Date().getFullYear(),
@@ -191,7 +209,6 @@ const loading = ref(false)
 const busquedaRealizada = ref(false)
 const currentPage = ref(1)
 const pageSize = ref(25)
-const toast = ref({ show: false, type: 'info', message: '' })
 
 const meses = ref([
   { value: 1, label: 'Enero' }, { value: 2, label: 'Febrero' }, { value: 3, label: 'Marzo' },
@@ -217,20 +234,6 @@ const nextPage = () => {
   if (currentPage.value < totalPages.value) currentPage.value++
 }
 
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => hideToast(), 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = { success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' }
-  return icons[type] || 'info-circle'
-}
-
 const mostrarAyuda = () => {
   showToast('info', 'Consulte el padrón global de locales por año, mes y estatus. Puede exportar los resultados a Excel.')
 }
@@ -241,31 +244,32 @@ const consultar = async () => {
   busquedaRealizada.value = false
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_padron_global',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_year', Valor: parseInt(filters.value.year) },
-          { Nombre: 'p_month', Valor: parseInt(filters.value.month) },
-          { Nombre: 'p_status', Valor: filters.value.status }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_padron_global',
+          'mercados',
+          [
+          { nombre: 'p_year', valor: parseInt(filters.value.year) },
+          { nombre: 'p_month', valor: parseInt(filters.value.month) },
+          { nombre: 'p_status', valor: filters.value.status }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      resultados.value = response.data.eResponse.data.result
+    if (response?.success && response?.data?.result) {
+      resultados.value = response.data.result
       busquedaRealizada.value = true
       currentPage.value = 1
-      showToast('success', `Se encontraron ${resultados.value.length} locales`)
+      showToast(`Se encontraron ${resultados.value.length} locales`, 'success')
     } else {
       resultados.value = []
       busquedaRealizada.value = true
-      showToast('info', 'No se encontraron locales con los criterios especificados')
+      showToast('No se encontraron locales con los criterios especificados', 'info')
     }
   } catch (error) {
     console.error('Error al consultar:', error)
-    showToast('error', 'Error al consultar el padrón global')
+    showToast('Error al consultar el padrón global', 'error')
     resultados.value = []
   } finally {
     loading.value = false
@@ -333,11 +337,10 @@ const exportarExcel = () => {
   a.click()
   window.URL.revokeObjectURL(url)
 
-  showToast('success', 'Reporte exportado exitosamente')
+  showToast('Reporte exportado exitosamente', 'success')
 }
 
 onMounted(() => {
   // Component ready
 })
 </script>
-

@@ -10,7 +10,16 @@
         <p>Mercados - Administración del Catálogo de Mercados</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="showModal('create')">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="showModal('create')">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
@@ -18,10 +27,7 @@
           <font-awesome-icon icon="sync" />
           Refrescar
         </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
+        
       </div>
     </div>
 
@@ -58,7 +64,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in rows" :key="row.id_mercado"
+                <tr v-for="row in paginatedRows" :key="row.id_mercado"
                     :class="{ 'table-active': selectedRow?.id_mercado === row.id_mercado }"
                     @click="selectedRow = row">
                   <td>{{ row.id_mercado }}</td>
@@ -84,6 +90,80 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Controles de paginación -->
+          <div v-if="rows.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, rows.length) }}
+                de {{ rows.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
           </div>
 
           <!-- Sin datos -->
@@ -142,7 +222,7 @@
               <font-awesome-icon icon="times" />
               Cancelar
             </button>
-            <button type="button" class="btn-municipal-success" @click="submitForm" :disabled="loading">
+            <button type="button" class="btn-municipal-primary" @click="submitForm" :disabled="loading">
               <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
               <font-awesome-icon icon="save" v-if="!loading" />
               Guardar
@@ -153,16 +233,27 @@
     </div>
     <div v-if="showFormModal" class="modal-backdrop fade show"></div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'CatalogoMercados'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CatalogoMercados'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CatalogoMercados'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CatalogoMercados'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import apiService from '@/services/apiService';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import { useToast } from '@/composables/useToast';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading();
+const { showToast } = useToast();
 
 const router = useRouter();
 
@@ -172,6 +263,11 @@ const selectedRow = ref(null);
 const loading = ref(false);
 const showFormModal = ref(false);
 const formMode = ref('create');
+
+// Paginación
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+
 const form = ref({
   id_mercado: null,
   oficina: '',
@@ -181,21 +277,44 @@ const form = ref({
   zona: ''
 });
 
-// Toast
-const showToast = (type, message) => {
-  Swal.fire({
-    toast: true,
-    position: 'top-end',
-    icon: type,
-    title: message,
-    showConfirmButton: false,
-    timer: 3000
-  });
+// Computed para paginación
+const totalPages = computed(() => {
+  return Math.ceil(rows.value.length / itemsPerPage.value);
+});
+
+const paginatedRows = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return rows.value.slice(start, end);
+});
+
+const visiblePages = computed(() => {
+  const pages = [];
+  const maxVisible = 5;
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2));
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1);
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+
+  return pages;
+});
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
 };
 
-// Cerrar
-const cerrar = () => {
-  router.push('/mercados');
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize);
+  currentPage.value = 1;
 };
 
 // Cargar datos
@@ -203,22 +322,24 @@ async function fetchData() {
   showLoading('Cargando Catálogo de Mercados', 'Preparando listado de mercados...');
   loading.value = true;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_catalogo_mercados_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_catalogo_mercados_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      rows.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      rows.value = response.data.result || [];
+      currentPage.value = 1; // Resetear a la primera página
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
+      showToast(response.message || 'Error al cargar datos', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al cargar mercados');
+    showToast('Error al cargar mercados', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -257,7 +378,7 @@ function closeModal() {
 // Guardar
 async function submitForm() {
   if (!form.value.oficina || !form.value.num_mercado_nvo || !form.value.descripcion) {
-    showToast('warning', 'Complete los campos requeridos');
+    showToast('Complete los campos requeridos', 'warning');
     return;
   }
 
@@ -266,37 +387,38 @@ async function submitForm() {
     const sp = formMode.value === 'create' ? 'sp_catalogo_mercados_create' : 'sp_catalogo_mercados_update';
     const params = formMode.value === 'create'
       ? [
-          { Nombre: 'p_oficina', Valor: form.value.oficina, tipo: 'integer' },
-          { Nombre: 'p_num_mercado_nvo', Valor: form.value.num_mercado_nvo, tipo: 'integer' },
-          { Nombre: 'p_descripcion', Valor: form.value.descripcion },
-          { Nombre: 'p_domicilio', Valor: form.value.domicilio || null },
-          { Nombre: 'p_zona', Valor: form.value.zona || null, tipo: 'integer' }
+          { nombre: 'p_oficina', valor: form.value.oficina, tipo: 'integer' },
+          { nombre: 'p_num_mercado_nvo', valor: form.value.num_mercado_nvo, tipo: 'integer' },
+          { nombre: 'p_descripcion', valor: form.value.descripcion },
+          { nombre: 'p_domicilio', valor: form.value.domicilio || null },
+          { nombre: 'p_zona', valor: form.value.zona || null, tipo: 'integer' }
         ]
       : [
-          { Nombre: 'p_id_mercado', Valor: form.value.id_mercado, tipo: 'integer' },
-          { Nombre: 'p_descripcion', Valor: form.value.descripcion },
-          { Nombre: 'p_domicilio', Valor: form.value.domicilio || null },
-          { Nombre: 'p_zona', Valor: form.value.zona || null, tipo: 'integer' }
+          { nombre: 'p_id_mercado', valor: form.value.id_mercado, tipo: 'integer' },
+          { nombre: 'p_descripcion', valor: form.value.descripcion },
+          { nombre: 'p_domicilio', valor: form.value.domicilio || null },
+          { nombre: 'p_zona', valor: form.value.zona || null, tipo: 'integer' }
         ];
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: sp,
-        Base: 'mercados',
-        Parametros: params
-      }
-    });
+    const response = await apiService.execute(
+      sp,
+      'mercados',
+      params,
+      '',
+      null,
+      'publico'
+    );
 
-    if (response.data?.eResponse?.success) {
-      showToast('success', formMode.value === 'create' ? 'Mercado creado' : 'Mercado actualizado');
+    if (response.success) {
+      showToast(formMode.value === 'create' ? 'Mercado creado' : 'Mercado actualizado', 'success');
       closeModal();
       fetchData();
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al guardar');
+      showToast(response.message || 'Error al guardar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al guardar mercado');
+    showToast('Error al guardar mercado', 'error');
   } finally {
     loading.value = false;
   }
@@ -319,28 +441,52 @@ async function deleteRow(row) {
 
   loading.value = true;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_catalogo_mercados_delete',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_mercado', Valor: row.id_mercado, tipo: 'integer' }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_catalogo_mercados_delete',
+          'mercados',
+          [
+          { nombre: 'p_id_mercado', valor: row.id_mercado, tipo: 'integer' }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      showToast('success', 'Mercado eliminado');
+    if (response.success) {
+      showToast('Mercado eliminado', 'success');
       fetchData();
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
+      showToast(response.message || 'Error al eliminar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al eliminar mercado');
+    showToast('Error al eliminar mercado', 'error');
   } finally {
     loading.value = false;
   }
+}
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Catálogo de Mercados',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del módulo:</h6>
+        <p>Este módulo permite administrar el catálogo de mercados del municipio.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Haga clic en "Agregar" para registrar un nuevo mercado</li>
+          <li>Los campos de Oficina y Número de Mercado no pueden modificarse después de crear el registro</li>
+          <li>Puede editar o eliminar mercados usando los botones de la tabla</li>
+          <li>Use "Refrescar" para actualizar el listado</li>
+        </ol>
+        <p><strong>Nota:</strong> La eliminación de un mercado puede afectar otros módulos relacionados.</p>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

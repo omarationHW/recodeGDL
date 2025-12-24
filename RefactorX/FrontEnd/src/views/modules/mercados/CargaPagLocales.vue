@@ -10,15 +10,16 @@
         <p>Mercados - Registro de Pagos de Renta por Local</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
           <font-awesome-icon icon="question-circle" />
-          Ayuda
+          <span>Ayuda</span>
         </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+        
+        </div>
     </div>
 
     <div class="module-view-content">
@@ -38,7 +39,7 @@
                 :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -53,8 +54,13 @@
               </select>
             </div>
             <div class="col-md-2 mb-3">
-              <label class="municipal-form-label">Categoría</label>
-              <input type="text" class="municipal-form-control" v-model="form.categoria" disabled />
+              <label class="municipal-form-label">Categoría *</label>
+              <select class="municipal-form-control" v-model="form.categoria" :disabled="loading">
+                <option value="">Seleccione...</option>
+                <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                  {{ cat.categoria }} - {{ cat.descripcion }}
+                </option>
+              </select>
             </div>
             <div class="col-md-2 mb-3">
               <label class="municipal-form-label">Sección *</label>
@@ -149,7 +155,7 @@
                 :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -171,7 +177,7 @@
           </div>
 
           <div class="d-flex justify-content-end gap-2">
-            <button class="btn-municipal-success" @click="grabarPagos" :disabled="!hayPagosValidos || loading">
+            <button class="btn-municipal-primary" @click="grabarPagos" :disabled="!hayPagosValidos || loading">
               <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
               <font-awesome-icon icon="save" v-if="!loading" />
               Grabar Pagos
@@ -193,12 +199,15 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'CargaPagLocales'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CargaPagLocales'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CargaPagLocales'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CargaPagLocales'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
@@ -207,6 +216,11 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 library.add(
   faStoreAlt, faSearch, faList, faSave, faTimes,
@@ -217,7 +231,7 @@ const router = useRouter();
 const { showLoading, hideLoading } = useGlobalLoading();
 
 // Helper para mostrar toasts
-const showToast = (icon, title) => {
+const showToast = (title, icon) => {
   Swal.fire({
     toast: true,
     position: 'top-end',
@@ -234,8 +248,13 @@ const loading = ref(false);
 const recaudadoras = ref([]);
 const mercados = ref([]);
 const secciones = ref([]);
+const categorias = ref([]);
 const cajas = ref([]);
 const adeudos = ref([]);
+
+// Paginación
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
 
 // Formulario de búsqueda
 const form = ref({
@@ -267,28 +286,51 @@ const hayPagosValidos = computed(() => {
 onMounted(() => {
   cargarRecaudadoras();
   cargarSecciones();
+  cargarCategorias();
 });
 
 // Cargar recaudadoras
 async function cargarRecaudadoras() {
   showLoading('Cargando recaudadoras', 'Por favor espere');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-      recaudadoras.value = response.data.eResponse.data.result;
+    if (response.success && response.data?.result) {
+      recaudadoras.value = response.data.result;
     }
   } catch (error) {
     console.error('Error al cargar recaudadoras:', error);
-    showToast('error', 'Error al cargar recaudadoras');
+    showToast('Error al cargar recaudadoras', 'error');
   } finally {
     hideLoading();
+  }
+}
+
+// Cargar categorías
+async function cargarCategorias() {
+  try {
+    const response = await apiService.execute(
+          'sp_categoria_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
+
+    if (response.success && response.data?.result) {
+      categorias.value = response.data.result;
+    }
+  } catch (error) {
+    console.error('Error al cargar categorías:', error);
+    showToast('Error al cargar categorías', 'error');
   }
 }
 
@@ -296,20 +338,21 @@ async function cargarRecaudadoras() {
 async function cargarSecciones() {
   showLoading('Cargando secciones', 'Por favor espere');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_secciones',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_get_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-      secciones.value = response.data.eResponse.data.result;
+    if (response.success && response.data?.result) {
+      secciones.value = response.data.result;
     }
   } catch (error) {
     console.error('Error al cargar secciones:', error);
-    showToast('error', 'Error al cargar secciones');
+    showToast('Error al cargar secciones', 'error');
   } finally {
     hideLoading();
   }
@@ -328,25 +371,26 @@ async function onOficinaChange() {
 
     let oficinaParam = parseInt(form.value.oficina);
     let nivelUsuario = 1; // TODO: Obtener el nivel de usuario de la sesión
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_catalogo_mercados',
-        Base: 'padron_licencias',
-        Parametros: [
+    const response = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
           { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
           { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
-        ]
-      }
-    });
+        ],
+          '',
+          null,
+          'publico'
+        );
 
 
 
-    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-      mercados.value = response.data.eResponse.data.result;
+    if (response.success && response.data?.result) {
+      mercados.value = response.data.result;
     }
   } catch (error) {
     console.error('Error al cargar mercados:', error);
-    showToast('error', 'Error al cargar mercados');
+    showToast('Error al cargar mercados', 'error');
   } finally {
     hideLoading();
   }
@@ -354,10 +398,7 @@ async function onOficinaChange() {
 
 // Cuando cambia el mercado
 function onMercadoChange() {
-  const mercadoSeleccionado = mercados.value.find(m => m.num_mercado_nvo == form.value.mercado);
-  if (mercadoSeleccionado) {
-    form.value.categoria = mercadoSeleccionado.categoria;
-  }
+  form.value.categoria = '';
 }
 
 // Cuando cambia la oficina de pago
@@ -369,22 +410,23 @@ async function onOficinaPagoChange() {
 
   showLoading('Cargando cajas', 'Por favor espere');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_cajas',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_get_cajas',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(formPago.value.oficina_pago) }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-      cajas.value = response.data.eResponse.data.result;
+    if (response.success && response.data?.result) {
+      cajas.value = response.data.result;
     }
   } catch (error) {
     console.error('Error al cargar cajas:', error);
-    showToast('error', 'Error al cargar cajas');
+    showToast('Error al cargar cajas', 'error');
   } finally {
     hideLoading();
   }
@@ -393,7 +435,7 @@ async function onOficinaPagoChange() {
 // Buscar adeudos
 async function buscarAdeudos() {
   if (!puedesBuscar.value) {
-    showToast('warning', 'Complete todos los campos requeridos');
+    showToast('Complete todos los campos requeridos', 'warning');
     return;
   }
 
@@ -402,37 +444,38 @@ async function buscarAdeudos() {
 
   showLoading('Buscando adeudos', 'Por favor espere');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_adeudos_local',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-          { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado) },
-          { Nombre: 'p_categoria', Valor: parseInt(form.value.categoria) },
-          { Nombre: 'p_seccion', Valor: form.value.seccion },
-          { Nombre: 'p_local', Valor: parseInt(form.value.local) }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_get_adeudos_local',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(form.value.oficina) },
+          { nombre: 'p_mercado', valor: parseInt(form.value.mercado) },
+          { nombre: 'p_categoria', valor: parseInt(form.value.categoria) },
+          { nombre: 'p_seccion', valor: form.value.seccion },
+          { nombre: 'p_local', valor: parseInt(form.value.local) }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-      adeudos.value = response.data.eResponse.data.result.map(a => ({
+    if (response.success && response.data?.result) {
+      adeudos.value = response.data.result.map(a => ({
         ...a,
         partida: ''
       }));
 
       if (adeudos.value.length === 0) {
-        showToast('info', 'No se encontraron adeudos para este local');
+        showToast('No se encontraron adeudos para este local', 'info');
       } else {
-        showToast('success', `Se encontraron ${adeudos.value.length} adeudos`);
+        showToast(`Se encontraron ${adeudos.value.length} adeudos`, 'success');
       }
     } else {
-      showToast('info', 'No se encontraron adeudos');
+      showToast('No se encontraron adeudos', 'info');
     }
   } catch (error) {
     console.error('Error al buscar adeudos:', error);
-    showToast('error', 'Error al buscar adeudos');
+    showToast('Error al buscar adeudos', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -446,13 +489,13 @@ async function grabarPagos() {
   );
 
   if (pagosValidos.length === 0) {
-    showToast('warning', 'Debe capturar al menos una partida');
+    showToast('Debe capturar al menos una partida', 'warning');
     return;
   }
 
   if (!formPago.value.fecha_pago || !formPago.value.oficina_pago ||
     !formPago.value.caja_pago || !formPago.value.operacion_pago) {
-    showToast('warning', 'Complete todos los datos del pago');
+    showToast('Complete todos los datos del pago', 'warning');
     return;
   }
 
@@ -479,31 +522,32 @@ async function grabarPagos() {
       partida: a.partida
     }));
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_insert_pagos_mercado',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_fecha_pago', Valor: formPago.value.fecha_pago },
-          { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) },
-          { Nombre: 'p_caja', Valor: formPago.value.caja_pago },
-          { Nombre: 'p_operacion', Valor: parseInt(formPago.value.operacion_pago) },
-          { Nombre: 'p_usuario', Valor: 1 }, // TODO: Obtener de sesión
-          { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado) },
-          { Nombre: 'p_categoria', Valor: parseInt(form.value.categoria) },
-          { Nombre: 'p_seccion', Valor: form.value.seccion },
-          { Nombre: 'p_pagos', Valor: JSON.stringify(pagosJson) }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_insert_pagos_mercado',
+          'mercados',
+          [
+          { nombre: 'p_fecha_pago', valor: formPago.value.fecha_pago },
+          { nombre: 'p_oficina', valor: parseInt(formPago.value.oficina_pago) },
+          { nombre: 'p_caja', valor: formPago.value.caja_pago },
+          { nombre: 'p_operacion', valor: parseInt(formPago.value.operacion_pago) },
+          { nombre: 'p_usuario', valor: 1 }, // TODO: Obtener de sesión
+          { nombre: 'p_mercado', valor: parseInt(form.value.mercado) },
+          { nombre: 'p_categoria', valor: parseInt(form.value.categoria) },
+          { nombre: 'p_seccion', valor: form.value.seccion },
+          { nombre: 'p_pagos', valor: JSON.stringify(pagosJson) }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      showToast('success', `${pagosValidos.length} pagos grabados correctamente`);
+    if (response.success) {
+      showToast(`${pagosValidos.length} pagos grabados correctamente`, 'success');
       await buscarAdeudos();
     }
   } catch (error) {
     console.error('Error al grabar pagos:', error);
-    showToast('error', 'Error al grabar pagos');
+    showToast('Error al grabar pagos', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -530,6 +574,46 @@ function formatCurrency(value) {
   }).format(value);
 }
 
+// Paginación - Computed
+const paginatedAdeudos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return adeudos.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(adeudos.value.length / itemsPerPage.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Paginación - Métodos
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
+}
+
 // Mostrar ayuda
 function mostrarAyuda() {
   Swal.fire({
@@ -550,10 +634,4 @@ function mostrarAyuda() {
     icon: 'info',
     confirmButtonText: 'Entendido'
   });
-}
-
-// Cerrar
-function cerrar() {
-  router.push('/');
-}
-</script>
+}</script>

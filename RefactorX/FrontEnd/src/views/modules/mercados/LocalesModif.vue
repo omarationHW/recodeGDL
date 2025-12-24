@@ -8,7 +8,18 @@
       <div class="module-view-info">
         <h1>Modificación de Locales</h1>
         <p>Inicio > Mercados > Modificación de Locales</p>
-      </div>
+      
+      <div class="header-actions">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        </div>
+</div>
     </div>
 
     <div class="module-view-content">
@@ -223,7 +234,7 @@
               </div>
             </div>
             <div class="d-flex justify-content-end">
-              <button type="submit" class="btn-municipal-success" :disabled="loading">
+              <button type="submit" class="btn-municipal-primary" :disabled="loading">
                 <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
                 Modificar Local
               </button>
@@ -233,13 +244,22 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'LocalesModif'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - LocalesModif'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'LocalesModif'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - LocalesModif'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const toast = useToast()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -273,111 +293,120 @@ const loadCatalogos = async () => {
   loading.value = true
   try {
     // Cargar recaudadoras - Base: padron_licencias
-    const recRes = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
-    if (recRes.data?.eResponse?.success) {
-      catalogos.value.recaudadoras = recRes.data.eResponse.data.result || []
+    const recRes = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (recRes.success) {
+      catalogos.value.recaudadoras = recRes.data.result || []
     }
 
     // Cargar secciones - Base: padron_licencias
-    const secRes = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_secciones',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
-    if (secRes.data?.eResponse?.success) {
-      catalogos.value.secciones = secRes.data.eResponse.data.result || []
+    const secRes = await apiService.execute(
+          'sp_get_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (secRes.success) {
+      catalogos.value.secciones = secRes.data.result || []
     }
 
     // Cargar giros - Base: padron_licencias
-    const girosRes = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_giros_vigentes',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
-    if (girosRes.data?.eResponse?.success) {
-      catalogos.value.giros = girosRes.data.eResponse.data.result || []
+    const girosRes = await apiService.execute(
+          'sp_get_giros_vigentes',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (girosRes.success) {
+      catalogos.value.giros = girosRes.data.result || []
     }
 
     // Cargar categorías - Base: mercados
-    const catRes = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_categoria_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (catRes.data?.eResponse?.success) {
-      catalogos.value.categorias = catRes.data.eResponse.data.result || []
+    const catRes = await apiService.execute(
+          'sp_categoria_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (catRes.success) {
+      catalogos.value.categorias = catRes.data.result || []
     }
 
     // Cargar cuotas - Base: padron_licencias
-    const cuoRes = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cve_cuota_list',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
-    if (cuoRes.data?.eResponse?.success) {
-      catalogos.value.cuotas = cuoRes.data.eResponse.data.result || []
+    const cuoRes = await apiService.execute(
+          'sp_cve_cuota_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (cuoRes.success) {
+      catalogos.value.cuotas = cuoRes.data.result || []
     }
 
     // Cargar zonas - Base: padron_licencias
-    const zonRes = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_zonas',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
-    if (zonRes.data?.eResponse?.success) {
-      catalogos.value.zonas = zonRes.data.eResponse.data.result || []
+    const zonRes = await apiService.execute(
+          'sp_get_zonas',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (zonRes.success) {
+      catalogos.value.zonas = zonRes.data.result || []
     }
 
     // Cargar sectores - Base: mercados
-    const sectoresRes = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_catalogo_sectores',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (sectoresRes.data?.eResponse?.success) {
-      catalogos.value.sectores = sectoresRes.data.eResponse.data.result || []
+    const sectoresRes = await apiService.execute(
+          'sp_catalogo_sectores',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (sectoresRes.success) {
+      catalogos.value.sectores = sectoresRes.data.result || []
     }
 
     // Cargar movimientos - Base: mercados
-    const movRes = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_movimientos',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (movRes.data?.eResponse?.success) {
-      catalogos.value.movimientos = movRes.data.eResponse.data.result || []
+    const movRes = await apiService.execute(
+          'sp_get_movimientos',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (movRes.success) {
+      catalogos.value.movimientos = movRes.data.result || []
     }
 
     // Cargar bloqueos - Base: mercados
-    const blqRes = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_bloqueos',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (blqRes.data?.eResponse?.success) {
-      catalogos.value.bloqueos = blqRes.data.eResponse.data.result || []
+    const blqRes = await apiService.execute(
+          'sp_get_bloqueos',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (blqRes.success) {
+      catalogos.value.bloqueos = blqRes.data.result || []
     }
   } catch (error) {
     toast.error('Error al cargar catálogos')
@@ -398,19 +427,20 @@ const onRecChange = async () => {
   // Cargar mercados
   try {
     const nivelUsuario = 1 // Usuario con acceso completo
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_catalogo_mercados',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-          { Nombre: 'p_nivel_usuario', Valor: nivelUsuario }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(form.value.oficina) },
+          { nombre: 'p_nivel_usuario', valor: nivelUsuario }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data?.eResponse?.success) {
-      catalogos.value.mercados = res.data.eResponse.data.result || []
+    if (res.success) {
+      catalogos.value.mercados = res.data.result || []
     }
   } catch (error) {
     console.error('Error al cargar mercados:', error)
@@ -433,24 +463,25 @@ const onBuscar = async () => {
   loading.value = true
   local.value = null
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_localesmodif_buscar_local',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-          { Nombre: 'p_num_mercado', Valor: parseInt(form.value.num_mercado) },
-          { Nombre: 'p_categoria', Valor: parseInt(form.value.categoria) },
-          { Nombre: 'p_seccion', Valor: form.value.seccion },
-          { Nombre: 'p_local', Valor: parseInt(form.value.local) },
-          { Nombre: 'p_letra_local', Valor: form.value.letra_local || '' },
-          { Nombre: 'p_bloque', Valor: form.value.bloque || '' }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_localesmodif_buscar_local',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(form.value.oficina) },
+          { nombre: 'p_num_mercado', valor: parseInt(form.value.num_mercado) },
+          { nombre: 'p_categoria', valor: parseInt(form.value.categoria) },
+          { nombre: 'p_seccion', valor: form.value.seccion },
+          { nombre: 'p_local', valor: parseInt(form.value.local) },
+          { nombre: 'p_letra_local', valor: form.value.letra_local || '' },
+          { nombre: 'p_bloque', valor: form.value.bloque || '' }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data?.eResponse?.success && response.data.eResponse.data?.result && response.data.eResponse.data.result.length > 0) {
-      local.value = response.data.eResponse.data.result[0]
+    if (response.success && response.data?.result && response.data.result.length > 0) {
+      local.value = response.data.result[0]
       toast.success('Local encontrado')
     } else {
       toast.warning('No se encontraron resultados para la búsqueda especificada. Verifique los datos ingresados.')
@@ -467,37 +498,38 @@ const onModificar = async () => {
   loading.value = true
   try {
     console.log('Modificando local con datos:', JSON.stringify(local.value, 2, null))
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_localesmodif_modificar_local',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: local.value.id_local },
-          { Nombre: 'p_nombre', Valor: local.value.nombre },
-          { Nombre: 'p_domicilio', Valor: local.value.domicilio || '' },
-          { Nombre: 'p_sector', Valor: local.value.sector },
-          { Nombre: 'p_zona', Valor: parseInt(local.value.zona) },
-          { Nombre: 'p_descripcion_local', Valor: local.value.descripcion_local || '' },
-          { Nombre: 'p_superficie', Valor: parseFloat(local.value.superficie) },
-          { Nombre: 'p_giro', Valor: parseInt(local.value.giro) || 0 },
-          { Nombre: 'p_fecha_alta', Valor: local.value.fecha_alta },
-          { Nombre: 'p_fecha_baja', Valor: local.value.fecha_baja || null },
-          { Nombre: 'p_vigencia', Valor: local.value.vigencia },
-          { Nombre: 'p_clave_cuota', Valor: local.value.clave_cuota },
-          { Nombre: 'p_tipo_movimiento', Valor: parseInt(local.value.tipo_movimiento) },
-          { Nombre: 'p_bloqueo', Valor: parseInt(local.value.bloqueo || 0) },
-          { Nombre: 'p_cve_bloqueo', Valor: local.value.cve_bloqueo || null },
-          { Nombre: 'p_fecha_inicio_bloqueo', Valor: local.value.fecha_inicio_bloqueo || null },
-          { Nombre: 'p_fecha_final_bloqueo', Valor: local.value.fecha_final_bloqueo || null },
-          { Nombre: 'p_observacion', Valor: local.value.observacion || '' }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_localesmodif_modificar_local',
+          'mercados',
+          [
+          { nombre: 'p_id_local', valor: local.value.id_local },
+          { nombre: 'p_nombre', valor: local.value.nombre },
+          { nombre: 'p_domicilio', valor: local.value.domicilio || '' },
+          { nombre: 'p_sector', valor: local.value.sector },
+          { nombre: 'p_zona', valor: parseInt(local.value.zona) },
+          { nombre: 'p_descripcion_local', valor: local.value.descripcion_local || '' },
+          { nombre: 'p_superficie', valor: parseFloat(local.value.superficie) },
+          { nombre: 'p_giro', valor: parseInt(local.value.giro) || 0 },
+          { nombre: 'p_fecha_alta', valor: local.value.fecha_alta },
+          { nombre: 'p_fecha_baja', valor: local.value.fecha_baja || null },
+          { nombre: 'p_vigencia', valor: local.value.vigencia },
+          { nombre: 'p_clave_cuota', valor: local.value.clave_cuota },
+          { nombre: 'p_tipo_movimiento', valor: parseInt(local.value.tipo_movimiento) },
+          { nombre: 'p_bloqueo', valor: parseInt(local.value.bloqueo || 0) },
+          { nombre: 'p_cve_bloqueo', valor: local.value.cve_bloqueo || null },
+          { nombre: 'p_fecha_inicio_bloqueo', valor: local.value.fecha_inicio_bloqueo || null },
+          { nombre: 'p_fecha_final_bloqueo', valor: local.value.fecha_final_bloqueo || null },
+          { nombre: 'p_observacion', valor: local.value.observacion || '' }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data?.eResponse?.success) {
+    if (response.success) {
       toast.success('Local modificado correctamente')
     } else {
-      toast.error(response.data?.eResponse?.message || 'Error al modificar local')
+      toast.error(response.message || 'Error al modificar local')
     }
   } catch (error) {
     toast.error('Error al modificar local')
@@ -516,9 +548,3 @@ onMounted(async () => {
   }
 })
 </script>
-
-<style scoped>
-.required {
-  color: #dc3545;
-}
-</style>

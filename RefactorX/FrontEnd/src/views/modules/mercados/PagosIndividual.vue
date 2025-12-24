@@ -8,7 +8,18 @@
       <div class="module-view-info">
         <h1>Consulta Individual de Pagos del Local</h1>
         <p>Inicio > Mercados > Consulta de Pagos</p>
-      </div>
+      
+      <div class="header-actions">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        </div>
+</div>
     </div>
 
     <div class="module-view-content">
@@ -96,14 +107,23 @@
     </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'PagosIndividual'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - PagosIndividual'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'PagosIndividual'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - PagosIndividual'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import apiService from '@/services/apiService';
+import { ref, computed } from 'vue'
 import axios from 'axios'
-import { useToast } from 'vue-toastification'
+import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const toast = useToast()
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
+
+const { showToast } = useToast()
 const loading = ref(false)
 const pago = ref(null)
 
@@ -118,26 +138,27 @@ const buscarPago = async () => {
   pago.value = null
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'pagos_individual_get',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: parseInt(form.value.id_local) },
-          { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },
-          { Nombre: 'p_periodo', Valor: parseInt(form.value.periodo) }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'pagos_individual_get',
+          'mercados',
+          [
+          { nombre: 'p_id_local', valor: parseInt(form.value.id_local) },
+          { nombre: 'p_axo', valor: parseInt(form.value.axo) },
+          { nombre: 'p_periodo', valor: parseInt(form.value.periodo) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data?.eResponse?.success && response.data.eResponse.data?.result && response.data.eResponse.data.result.length > 0) {
-      pago.value = response.data.eResponse.data.result[0]
-      toast.success('Pago encontrado')
+    if (response.success && response.data?.result && response.data.result.length > 0) {
+      pago.value = response.data.result[0]
+      showToast('Pago encontrado', 'success')
     } else {
-      toast.warning('No se encontró el pago')
+      showToast('No se encontró el pago', 'warning')
     }
   } catch (error) {
-    toast.error('Error al buscar el pago')
+    showToast('Error al buscar el pago', 'error')
     console.error('Error:', error)
   } finally {
     loading.value = false
@@ -158,7 +179,3 @@ const formatCurrency = (value) => {
   }).format(value)
 }
 </script>
-
-<style scoped>
-/* Estilos adicionales si son necesarios */
-</style>

@@ -1,521 +1,324 @@
-<template>
+﻿<template>
   <div class="module-view">
-    <!-- Header del módulo -->
+        <!-- Header del módulo -->
     <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="truck" />
       </div>
       <div class="module-view-info">
-        <h1>Actualización de Unidad Recolectora</h1>
-        <p>Aseo Contratado - Cambio de unidad de recolección por contrato</p>
+        <h1>Actualización de Unidades Recolectoras</h1>
+        <p>Aseo Contratado - Reasignación de unidades de recolección a contratos</p>
+      </div>
+      <button
+        type="button"
+        class="btn-help-icon"
+        @click="mostrarAyuda = true"
+        title="Ayuda"
+      >
+        <font-awesome-icon icon="question-circle" />
+      </button>
+    </div>
+<div class="municipal-card shadow-sm mb-4">
+      <div class="municipal-card-header">
+        <h5>Paso 1: Búsqueda de Contratos</h5>
+      </div>
+      <div class="municipal-card-body">
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <label class="municipal-form-label">Zona</label>
+            <select class="municipal-form-control" v-model="filtros.zona">
+              <option value="">Todas</option>
+              <option v-for="z in zonas" :key="z.ctrol_zona" :value="z.zona">
+                Zona {{ z.zona }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="municipal-form-label">Unidad Actual</label>
+            <select class="municipal-form-control" v-model="filtros.unidadActual">
+              <option value="">Todas</option>
+              <option v-for="u in unidades" :key="u.num_unidad" :value="u.num_unidad">
+                {{ u.nombre_unidad }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="municipal-form-label">Tipo de Aseo</label>
+            <select class="municipal-form-control" v-model="filtros.tipoAseo">
+              <option value="">Todos</option>
+              <option value="D">Doméstico</option>
+              <option value="C">Comercial</option>
+              <option value="I">Industrial</option>
+              <option value="S">Servicios</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="municipal-form-label">&nbsp;</label>
+            <button class="btn-municipal-primary w-100" @click="buscarContratos" :disabled="cargando">
+              <font-awesome-icon icon="search" /> Buscar
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="module-view-content">
-      <!-- Paso 1: Búsqueda de Contrato -->
-      <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5>
-            <font-awesome-icon icon="search" />
-            Paso 1: Búsqueda de Contrato
-          </h5>
+    <div v-if="contratos.length > 0">
+      <div class="municipal-card shadow-sm mb-4">
+        <div class="municipal-card-header bg-light d-flex justify-content-between">
+          <h6 class="mb-0">Contratos Encontrados ({{ contratos.length }})</h6>
+          <div>
+            <button class="btn btn-sm btn-success" @click="seleccionarTodos">
+              <font-awesome-icon icon="check-double" /> Todos
+            </button>
+            <button class="btn btn-sm btn-secondary ms-2" @click="limpiarSeleccion">
+              <font-awesome-icon icon="eraser" /> Limpiar
+            </button>
+          </div>
         </div>
         <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label">Número de Contrato <span class="required">*</span></label>
-              <input
-                type="number"
-                class="municipal-form-control"
-                v-model="numContrato"
-                placeholder="Ingrese número de contrato"
-                @keyup.enter="buscarContrato"
-                :disabled="contratoEncontrado"
-              />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Tipo de Aseo</label>
-              <select
-                class="municipal-form-control"
-                v-model="tipoAseoSeleccionado"
-                :disabled="contratoEncontrado"
-              >
-                <option :value="null">-- Todos --</option>
-                <option v-for="tipo in tiposAseo" :key="tipo.ctrol_aseo" :value="tipo.ctrol_aseo">
-                  {{ tipo.tipo_aseo }} - {{ tipo.descripcion }}
+          <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="municipal-table">
+              <thead class="table-light" style="position: sticky; top: 0;">
+                <tr>
+                  <th style="width: 40px;">
+                    <input type="checkbox" class="form-check-input" v-model="seleccionarTodo"
+                      @change="toggleSeleccionTodos" />
+                  </th>
+                  <th>Contrato</th>
+                  <th>Contribuyente</th>
+                  <th>Zona</th>
+                  <th>Tipo</th>
+                  <th>Unidad Actual</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="contrato in contratos" :key="contrato.control_contrato"
+                    :class="{ 'table-primary': contratosSeleccionados.includes(contrato.control_contrato) }">
+                  <td>
+                    <input type="checkbox" class="form-check-input"
+                      :value="contrato.control_contrato" v-model="contratosSeleccionados" />
+                  </td>
+                  <td>{{ contrato.num_contrato }}</td>
+                  <td>{{ contrato.contribuyente }}</td>
+                  <td>{{ contrato.zona }}</td>
+                  <td>{{ formatTipoAseo(contrato.tipo_aseo) }}</td>
+                  <td>{{ contrato.unidad_actual || 'Sin asignar' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="contratosSeleccionados.length > 0" class="municipal-card">
+        <div class="municipal-card-header">
+        <h5>Paso 2: Asignación de Nueva Unidad ({{ contratosSeleccionados.length }} seleccionados)</h5>
+      </div>
+        <div class="municipal-card-body">
+          <div class="alert alert-info">
+            <font-awesome-icon icon="info-circle" class="me-2" />
+            Esta operación reasignará la unidad recolectora de los contratos seleccionados.
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label class="municipal-form-label">Nueva Unidad *</label>
+              <select class="municipal-form-control" v-model="nuevaUnidad">
+                <option value="">Seleccione una unidad</option>
+                <option v-for="u in unidades" :key="u.num_unidad" :value="u.num_unidad">
+                  {{ u.nombre_unidad }} - {{ u.descripcion }}
                 </option>
               </select>
             </div>
+            <div class="col-md-4">
+              <label class="municipal-form-label">Fecha de Aplicación *</label>
+              <input type="date" class="municipal-form-control" v-model="fechaAplicacion" />
+            </div>
+            <div class="col-md-4">
+              <label class="municipal-form-label">Motivo *</label>
+              <input type="text" class="municipal-form-control" v-model="motivo"
+                placeholder="Ej: Reorganización de rutas" />
+            </div>
           </div>
-          <div class="button-group">
-            <button
-              class="btn-municipal-primary"
-              @click="buscarContrato"
-              :disabled="!numContrato || contratoEncontrado"
-            >
-              <font-awesome-icon icon="search" />
-              Buscar
+
+          <div v-if="nuevaUnidad" class="alert alert-warning">
+            <strong>Unidad a asignar:</strong>
+            {{ obtenerNombreUnidad(nuevaUnidad) }}
+          </div>
+
+          <div class="d-flex justify-content-end">
+            <button class="btn-municipal-secondary me-2" @click="cancelar">
+              <font-awesome-icon icon="times" /> Cancelar
             </button>
-            <button
-              v-if="contratoEncontrado"
-              class="btn-municipal-secondary"
-              @click="limpiarBusqueda"
-            >
-              <font-awesome-icon icon="times" />
-              Nueva Búsqueda
+            <button class="btn-municipal-primary" @click="actualizarUnidades"
+              :disabled="!validarActualizacion()">
+              <font-awesome-icon icon="save" /> Actualizar Unidades
             </button>
           </div>
         </div>
       </div>
-
-      <!-- Estado Vacío - Sin búsqueda -->
-      <div v-if="!contratoEncontrado && !buscando" class="municipal-card">
-        <div class="municipal-card-body">
-          <div class="empty-state">
-            <div class="empty-state-icon">
-              <font-awesome-icon icon="file-contract" />
-            </div>
-            <h4>Buscar Contrato para Actualizar Unidad</h4>
-            <p>Ingrese el número de contrato para cambiar la unidad de recolección asignada</p>
-
-            <div class="steps-guide">
-              <div class="step-item">
-                <div class="step-number">1</div>
-                <div class="step-content">
-                  <strong>Buscar contrato</strong>
-                  <span>Ingrese el número de contrato vigente</span>
-                </div>
-              </div>
-              <div class="step-item">
-                <div class="step-number">2</div>
-                <div class="step-content">
-                  <strong>Verificar datos</strong>
-                  <span>Confirme que es el contrato correcto</span>
-                </div>
-              </div>
-              <div class="step-item">
-                <div class="step-number">3</div>
-                <div class="step-content">
-                  <strong>Seleccionar nueva unidad</strong>
-                  <span>Elija la unidad de recolección a asignar</span>
-                </div>
-              </div>
-              <div class="step-item">
-                <div class="step-number">4</div>
-                <div class="step-content">
-                  <strong>Documentar cambio</strong>
-                  <span>Registre el documento que avala la modificación</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Datos del Contrato Encontrado -->
-      <template v-if="contratoEncontrado">
-        <div class="municipal-card">
-          <div class="municipal-card-header header-success">
-            <h5>
-              <font-awesome-icon icon="check-circle" />
-              Contrato Encontrado - #{{ contrato.num_contrato }}
-            </h5>
-          </div>
-          <div class="municipal-card-body">
-            <div class="info-cards-grid">
-              <!-- Datos del Contrato -->
-              <div class="info-card">
-                <h6 class="info-card-title">
-                  <font-awesome-icon icon="file-contract" class="icon-primary" />
-                  Datos del Contrato
-                </h6>
-                <div class="info-grid">
-                  <div class="info-item">
-                    <span class="info-label">Control:</span>
-                    <span class="info-value"><code>{{ contrato.control_contrato }}</code></span>
-                  </div>
-                  <div class="info-item">
-                    <span class="info-label">Contrato:</span>
-                    <span class="info-value"><strong>{{ contrato.num_contrato }}</strong></span>
-                  </div>
-                  <div class="info-item">
-                    <span class="info-label">Fecha Inicio:</span>
-                    <span class="info-value">{{ formatDate(contrato.fecha_inicio) }}</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="info-label">Estado:</span>
-                    <span class="badge-success">{{ contrato.status_vigencia === 'V' ? 'VIGENTE' : contrato.status_vigencia }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Datos de la Empresa -->
-              <div class="info-card">
-                <h6 class="info-card-title">
-                  <font-awesome-icon icon="building" class="icon-info" />
-                  Empresa
-                </h6>
-                <div class="info-grid">
-                  <div class="info-item">
-                    <span class="info-label">Número:</span>
-                    <span class="info-value">{{ contrato.num_empresa }}</span>
-                  </div>
-                  <div class="info-item full-width">
-                    <span class="info-label">Nombre:</span>
-                    <span class="info-value">{{ contrato.nombre_empresa }}</span>
-                  </div>
-                  <div class="info-item full-width">
-                    <span class="info-label">Tipo:</span>
-                    <span class="info-value">{{ contrato.tipo_empresa }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Tipo de Aseo -->
-              <div class="info-card">
-                <h6 class="info-card-title">
-                  <font-awesome-icon icon="recycle" class="icon-success" />
-                  Tipo de Aseo
-                </h6>
-                <div class="info-grid">
-                  <div class="info-item">
-                    <span class="info-label">Código:</span>
-                    <span class="info-value"><code>{{ contrato.tipo_aseo }}</code></span>
-                  </div>
-                  <div class="info-item full-width">
-                    <span class="info-label">Descripción:</span>
-                    <span class="info-value">{{ contrato.descripcion_aseo }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Unidad Actual -->
-              <div class="info-card highlight-warning">
-                <h6 class="info-card-title">
-                  <font-awesome-icon icon="truck" class="icon-warning" />
-                  Unidad de Recolección Actual
-                </h6>
-                <div class="info-grid">
-                  <div class="info-item">
-                    <span class="info-label">Clave:</span>
-                    <span class="info-value"><strong>{{ contrato.cve_recolec || 'Sin asignar' }}</strong></span>
-                  </div>
-                  <div class="info-item full-width">
-                    <span class="info-label">Descripción:</span>
-                    <span class="info-value">{{ contrato.descripcion_recolec || 'N/A' }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Paso 2: Actualización de Unidad -->
-        <div class="municipal-card">
-          <div class="municipal-card-header">
-            <h5>
-              <font-awesome-icon icon="edit" />
-              Paso 2: Asignación de Nueva Unidad
-            </h5>
-          </div>
-          <div class="municipal-card-body">
-            <div class="alert-info-box">
-              <font-awesome-icon icon="info-circle" />
-              <span>Seleccione la nueva unidad de recolección y registre el documento que avala el cambio.</span>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label">Nueva Unidad de Recolección <span class="required">*</span></label>
-                <select class="municipal-form-control" v-model="nuevaUnidad">
-                  <option :value="null">-- Seleccione una unidad --</option>
-                  <option
-                    v-for="unidad in unidadesDisponibles"
-                    :key="unidad.control_unidad"
-                    :value="unidad.control_unidad"
-                  >
-                    {{ unidad.num_unidad }} - {{ unidad.tipo_unidad }}
-                    <template v-if="unidad.capacidad">(Cap: {{ unidad.capacidad }})</template>
-                  </option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label class="municipal-form-label">Cantidad de Unidades</label>
-                <input
-                  type="number"
-                  class="municipal-form-control"
-                  v-model="cantidadUnidades"
-                  min="1"
-                  placeholder="1"
-                />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="municipal-form-label">Documento que Avala <span class="required">*</span></label>
-                <input
-                  type="text"
-                  class="municipal-form-control"
-                  v-model="documento"
-                  placeholder="Ej: OFICIO-2025-001"
-                />
-              </div>
-
-              <div class="form-group">
-                <label class="municipal-form-label">Ejercicio</label>
-                <input
-                  type="number"
-                  class="municipal-form-control"
-                  v-model="ejercicio"
-                  :min="2020"
-                  :max="new Date().getFullYear() + 1"
-                />
-              </div>
-            </div>
-
-            <div class="form-group full-width">
-              <label class="municipal-form-label">Descripción / Motivo del Cambio <span class="required">*</span></label>
-              <textarea
-                class="municipal-form-control"
-                v-model="conceptoDocumento"
-                rows="3"
-                placeholder="Describa el motivo del cambio de unidad de recolección..."
-              ></textarea>
-            </div>
-
-            <!-- Preview del cambio -->
-            <div v-if="nuevaUnidad" class="alert-warning-box">
-              <font-awesome-icon icon="exchange-alt" />
-              <div class="change-preview">
-                <strong>Cambio a realizar:</strong>
-                <div class="change-badges">
-                  <span class="badge-secondary">{{ contrato.cve_recolec || 'Sin asignar' }}</span>
-                  <font-awesome-icon icon="arrow-right" class="arrow-icon" />
-                  <span class="badge-primary">{{ obtenerNombreUnidad(nuevaUnidad) }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Botones de acción -->
-            <div class="button-group button-group-right">
-              <button class="btn-municipal-secondary" @click="limpiarBusqueda">
-                <font-awesome-icon icon="times" />
-                Cancelar
-              </button>
-              <button
-                class="btn-municipal-success"
-                @click="actualizarUnidad"
-                :disabled="!puedeActualizar"
-              >
-                <font-awesome-icon icon="save" />
-                Actualizar Unidad
-              </button>
-            </div>
-          </div>
-        </div>
-      </template>
     </div>
+
+    <DocumentationModal v-if="mostrarAyuda" :show="mostrarAyuda" @close="mostrarAyuda = false"
+      title="Actualización de Unidades Recolectoras">
+      <h6>Descripción</h6>
+      <p>Permite reasignar masivamente la unidad recolectora de múltiples contratos.</p>
+      <h6>Proceso</h6>
+      <ol>
+        <li>Buscar contratos por zona, unidad actual o tipo de aseo</li>
+        <li>Seleccionar los contratos a modificar</li>
+        <li>Asignar nueva unidad recolectora</li>
+        <li>Confirmar la actualización</li>
+      </ol>
+      <h6>Casos de Uso</h6>
+      <ul>
+        <li>Reorganización de rutas de recolección</li>
+        <li>Cambio de unidad por mantenimiento</li>
+        <li>Optimización de zonas de servicio</li>
+      </ul>
+    </DocumentationModal>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
-const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
+const { handleError } = useLicenciasErrorHandler()
+const { showToast } = useToast()
 
-const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
-
-// Estado de búsqueda
-const numContrato = ref(null)
-const tipoAseoSeleccionado = ref(null)
-const buscando = ref(false)
-
-// Catálogos
-const tiposAseo = ref([])
+const cargando = ref(false)
+const mostrarAyuda = ref(false)
+const contratos = ref([])
+const zonas = ref([])
 const unidades = ref([])
+const contratosSeleccionados = ref([])
+const seleccionarTodo = ref(false)
+const nuevaUnidad = ref('')
+const fechaAplicacion = ref(new Date().toISOString().split('T')[0])
+const motivo = ref('')
 
-// Contrato encontrado
-const contrato = ref(null)
-const contratoEncontrado = computed(() => contrato.value !== null)
-
-// Datos para actualización
-const nuevaUnidad = ref(null)
-const cantidadUnidades = ref(1)
-const documento = ref('')
-const conceptoDocumento = ref('')
-const ejercicio = ref(new Date().getFullYear())
-
-// Unidades disponibles (excluyendo la actual)
-const unidadesDisponibles = computed(() => {
-  if (!contrato.value) return unidades.value
-  return unidades.value.filter(u => u.control_unidad !== contrato.value.ctrol_recolec)
+const filtros = ref({
+  zona: '',
+  unidadActual: '',
+  tipoAseo: ''
 })
 
-// Validación para poder actualizar
-const puedeActualizar = computed(() => {
-  return nuevaUnidad.value &&
-         documento.value.trim() &&
-         conceptoDocumento.value.trim() &&
-         cantidadUnidades.value > 0
-})
-
-// Cargar catálogos al montar
-onMounted(async () => {
-  await cargarCatalogos()
-})
-
-const cargarCatalogos = async () => {
+const buscarContratos = async () => {
+  cargando.value = true
   try {
-    showLoading('Cargando catálogos...')
-
-    const [resTipos, resUnidades] = await Promise.all([
-      execute('sp_aseo_tipos_aseo_list', BASE_DB, [], '', null, SCHEMA),
-      execute('sp_aseo_unidades_list', BASE_DB, [
-        { nombre: 'p_num_unidad', valor: null, tipo: 'string' }
-      ], '', null, SCHEMA)
-    ])
-
-    tiposAseo.value = resTipos || []
-    unidades.value = resUnidades || []
-  } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al cargar catálogos')
-  } finally {
-    hideLoading()
-  }
-}
-
-const buscarContrato = async () => {
-  if (!numContrato.value) {
-    showToast('Ingrese el número de contrato', 'warning')
-    return
-  }
-
-  try {
-    showLoading('Buscando contrato...')
-    buscando.value = true
-
-    const params = [
-      { nombre: 'p_num_contrato', valor: numContrato.value, tipo: 'integer' },
-      { nombre: 'p_ctrol_aseo', valor: tipoAseoSeleccionado.value, tipo: 'integer' }
-    ]
-
-    const resultado = await execute('sp_aseo_contrato_buscar_por_numero', BASE_DB, params, '', null, SCHEMA)
-
-    if (resultado && resultado.length > 0) {
-      contrato.value = resultado[0]
-      cantidadUnidades.value = contrato.value.cantidad_recolec || 1
-      showToast('Contrato encontrado', 'success')
-    } else {
-      hideLoading()
-      await Swal.fire({
-        icon: 'warning',
-        title: 'Contrato no encontrado',
-        text: 'No existe contrato vigente con ese número. Verifique e intente nuevamente.',
-        confirmButtonColor: '#6c757d'
-      })
+    const params = {
+      p_zona: filtros.value.zona || null,
+      p_unidad_actual: filtros.value.unidadActual || null,
+      p_tipo_aseo: filtros.value.tipoAseo || null
     }
+    const response = await execute('SP_ASEO_CONTRATOS_PARA_UPD_UNIDAD', 'aseo_contratado', params)
+    contratos.value = response || []
+    contratosSeleccionados.value = []
+    showToast(`${contratos.value.length} contrato(s) encontrado(s)`, 'success')
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al buscar contrato')
+    handleError(error, 'Error al buscar contratos')
   } finally {
-    hideLoading()
-    buscando.value = false
+    cargando.value = false
   }
 }
 
-const actualizarUnidad = async () => {
-  if (!puedeActualizar.value) {
-    showToast('Complete todos los campos requeridos', 'warning')
-    return
+const seleccionarTodos = () => {
+  contratosSeleccionados.value = contratos.value.map(c => c.control_contrato)
+  seleccionarTodo.value = true
+}
+
+const limpiarSeleccion = () => {
+  contratosSeleccionados.value = []
+  seleccionarTodo.value = false
+}
+
+const toggleSeleccionTodos = () => {
+  if (seleccionarTodo.value) {
+    seleccionarTodos()
+  } else {
+    limpiarSeleccion()
   }
+}
 
-  const unidadNombre = obtenerNombreUnidad(nuevaUnidad.value)
+const validarActualizacion = () => {
+  if (contratosSeleccionados.value.length === 0) return false
+  if (!nuevaUnidad.value) return false
+  if (!fechaAplicacion.value) return false
+  if (!motivo.value.trim()) return false
+  return true
+}
 
-  const confirmacion = await Swal.fire({
-    icon: 'question',
-    title: '¿Confirmar cambio de unidad?',
-    html: `
-      <p>Se actualizará la unidad de recolección del contrato <strong>#${contrato.value.num_contrato}</strong></p>
-      <p><strong>Nueva unidad:</strong> ${unidadNombre}</p>
-      <p><strong>Documento:</strong> ${documento.value}</p>
-    `,
+const obtenerNombreUnidad = (numUnidad) => {
+  const unidad = unidades.value.find(u => u.num_unidad === numUnidad)
+  return unidad ? `${unidad.nombre_unidad} - ${unidad.descripcion}` : ''
+}
+
+const actualizarUnidades = async () => {
+  const result = await Swal.fire({
+    title: '¿Actualizar Unidades?',
+    html: `Se actualizarán <strong>${contratosSeleccionados.value.length}</strong> contrato(s)<br>
+           Nueva unidad: <strong>${obtenerNombreUnidad(nuevaUnidad.value)}</strong>`,
+    icon: 'warning',
     showCancelButton: true,
+    confirmButtonColor: '#0d6efd',
+    cancelButtonColor: '#6c757d',
     confirmButtonText: 'Sí, actualizar',
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#28a745',
-    cancelButtonColor: '#6c757d'
+    cancelButtonText: 'Cancelar'
   })
 
-  if (!confirmacion.isConfirmed) return
+  if (!result.isConfirmed) return
 
+  cargando.value = true
   try {
-    showLoading('Actualizando unidad...')
-
-    const params = [
-      { nombre: 'p_control_contrato', valor: contrato.value.control_contrato, tipo: 'integer' },
-      { nombre: 'p_ctrol_recolec', valor: nuevaUnidad.value, tipo: 'integer' },
-      { nombre: 'p_cantidad_recolec', valor: cantidadUnidades.value, tipo: 'integer' },
-      { nombre: 'p_usuario', valor: 1, tipo: 'integer' },
-      { nombre: 'p_documento', valor: documento.value, tipo: 'string' },
-      { nombre: 'p_concepto', valor: conceptoDocumento.value, tipo: 'string' }
-    ]
-
-    const resultado = await execute('sp_aseo_contrato_actualizar_unidad', BASE_DB, params, '', null, SCHEMA)
-
-    hideLoading()
-
-    if (resultado && resultado[0]?.actualizado) {
-      await Swal.fire({
-        icon: 'success',
-        title: 'Unidad actualizada',
-        text: 'La unidad de recolección ha sido actualizada correctamente.',
-        confirmButtonColor: '#28a745'
-      })
-      limpiarBusqueda()
-    } else {
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: resultado?.[0]?.mensaje || 'No se pudo actualizar la unidad',
-        confirmButtonColor: '#dc3545'
-      })
+    const params = {
+      p_contratos: contratosSeleccionados.value.join(','),
+      p_nueva_unidad: nuevaUnidad.value,
+      p_fecha_aplicacion: fechaAplicacion.value,
+      p_motivo: motivo.value
     }
+    await execute('SP_ASEO_ACTUALIZAR_UNIDADES_CONTRATOS', 'aseo_contratado', params)
+
+    await Swal.fire('¡Actualizado!', 'Las unidades han sido actualizadas correctamente', 'success')
+
+    await buscarContratos()
+    cancelar()
   } catch (error) {
-    hideLoading()
-    hideLoading()
-    handleApiError(error, 'Error al actualizar unidad')
+    handleError(error, 'Error al actualizar unidades')
+  } finally {
+    cargando.value = false
   }
 }
 
-const limpiarBusqueda = () => {
-  numContrato.value = null
-  tipoAseoSeleccionado.value = null
-  contrato.value = null
-  nuevaUnidad.value = null
-  cantidadUnidades.value = 1
-  documento.value = ''
-  conceptoDocumento.value = ''
-  ejercicio.value = new Date().getFullYear()
+const cancelar = () => {
+  contratosSeleccionados.value = []
+  nuevaUnidad.value = ''
+  fechaAplicacion.value = new Date().toISOString().split('T')[0]
+  motivo.value = ''
+  seleccionarTodo.value = false
 }
 
-const obtenerNombreUnidad = (controlUnidad) => {
-  const unidad = unidades.value.find(u => u.control_unidad === controlUnidad)
-  return unidad ? `${unidad.num_unidad} - ${unidad.tipo_unidad}` : ''
+const formatTipoAseo = (tipo) => {
+  const tipos = { 'D': 'Dom', 'C': 'Com', 'I': 'Ind', 'S': 'Ser' }
+  return tipos[tipo] || tipo
 }
 
-const formatDate = (date) => {
-  if (!date) return 'N/A'
-  return new Date(date).toLocaleDateString('es-MX')
-}
+onMounted(async () => {
+  try {
+    const [respZonas, respUnidades] = await Promise.all([
+      execute('SP_ASEO_ZONAS_LIST', 'aseo_contratado', {}),
+      execute('SP_ASEO_UNIDADES_LIST', 'aseo_contratado', {})
+    ])
+    zonas.value = respZonas || []
+    unidades.value = respUnidades || []
+  } catch (error) {
+    console.error('Error al cargar catálogos:', error)
+  }
+})
 </script>
-

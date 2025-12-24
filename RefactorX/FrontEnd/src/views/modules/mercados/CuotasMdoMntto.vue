@@ -9,12 +9,19 @@
         <p>Inicio > Catálogos > Cuotas Mercado Mntto</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo" :disabled="loading">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="abrirModalNuevo" :disabled="loading">
           <font-awesome-icon icon="plus" /> Nuevo
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -66,7 +73,7 @@
                   <td class="text-center">{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
                   <td>{{ cuota.id_cuotas }}</td>
                   <td>{{ cuota.axo }}</td>
-                  <td class="text-center"><span class="badge-primary">{{ cuota.categoria }}</span></td>
+                  <td class="text-center"><span class="badge-secondary">{{ cuota.categoria }}</span></td>
                   <td class="text-center"><span class="badge-info">{{ cuota.seccion }}</span></td>
                   <td class="text-center">{{ cuota.clave_cuota }}</td>
                   <td class="text-end"><strong>{{ formatCurrency(cuota.importe_cuota) }}</strong></td>
@@ -285,12 +292,50 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'CuotasMdoMntto'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CuotasMdoMntto'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CuotasMdoMntto'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CuotasMdoMntto'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import Swal from 'sweetalert2'
+
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -396,27 +441,42 @@ const mostrarAyuda = () => {
 const cargarCatalogos = async () => {
   try {
     // Cargar categorías
-    const resCat = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_categorias', Base: 'mercados', Parametros: [] }
-    })
-    if (resCat.data.eResponse.success) {
-      categorias.value = resCat.data.eResponse.data.result || []
+    const resCat = await apiService.execute(
+          'sp_get_categorias',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (resCat.success) {
+      categorias.value = resCat.data.result || []
     }
 
     // Cargar secciones
-    const resSec = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_secciones', Base: 'mercados', Parametros: [] }
-    })
-    if (resSec.data.eResponse.success) {
-      secciones.value = resSec.data.eResponse.data.result || []
+    const resSec = await apiService.execute(
+          'sp_get_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (resSec.success) {
+      secciones.value = resSec.data.result || []
     }
 
     // Cargar claves de cuota
-    const resCve = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_claves_cuota', Base: 'mercados', Parametros: [] }
-    })
-    if (resCve.data.eResponse.success) {
-      clavesCuota.value = resCve.data.eResponse.data.result || []
+    const resCve = await apiService.execute(
+          'sp_get_claves_cuota',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (resCve.success) {
+      clavesCuota.value = resCve.data.result || []
     }
   } catch (err) {
     showToast('error', 'Error al cargar catálogos')
@@ -427,22 +487,23 @@ const cargarCatalogos = async () => {
 const cargarCuotas = async () => {
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'cuotasmdo_listar',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
+    const res = await apiService.execute(
+          'cuotasmdo_listar',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      cuotas.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      cuotas.value = res.data.result || []
       currentPage.value = 1
       if (cuotas.value.length > 0) {
         showToast('success', `Se cargaron ${cuotas.value.length} cuotas`)
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar cuotas')
+      showToast('error', res.message || 'Error al cargar cuotas')
     }
   } catch (err) {
     showToast('error', 'Error de conexión al cargar cuotas')
@@ -494,32 +555,26 @@ const guardarCuota = async () => {
   try {
     const operacion = isEdit.value ? 'cuotasmdo_actualizar' : 'cuotasmdo_insertar'
     const parametros = isEdit.value ? [
-      { Nombre: 'p_id_cuotas', Valor: parseInt(form.value.id_cuotas) },
-      { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },
-      { Nombre: 'p_categoria', Valor: parseInt(form.value.categoria) },
-      { Nombre: 'p_seccion', Valor: form.value.seccion },
-      { Nombre: 'p_clave_cuota', Valor: parseInt(form.value.clave_cuota) },
-      { Nombre: 'p_importe', Valor: parseFloat(form.value.importe) },
-      { Nombre: 'p_id_usuario', Valor: parseInt(form.value.id_usuario) }
+      { nombre: 'p_id_cuotas', valor: parseInt(form.value.id_cuotas) },
+      { nombre: 'p_axo', valor: parseInt(form.value.axo) },
+      { nombre: 'p_categoria', valor: parseInt(form.value.categoria) },
+      { nombre: 'p_seccion', valor: form.value.seccion },
+      { nombre: 'p_clave_cuota', valor: parseInt(form.value.clave_cuota) },
+      { nombre: 'p_importe', valor: parseFloat(form.value.importe) },
+      { nombre: 'p_id_usuario', valor: parseInt(form.value.id_usuario) }
     ] : [
-      { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },
-      { Nombre: 'p_categoria', Valor: parseInt(form.value.categoria) },
-      { Nombre: 'p_seccion', Valor: form.value.seccion },
-      { Nombre: 'p_clave_cuota', Valor: parseInt(form.value.clave_cuota) },
-      { Nombre: 'p_importe', Valor: parseFloat(form.value.importe) },
-      { Nombre: 'p_id_usuario', Valor: parseInt(form.value.id_usuario) }
+      { nombre: 'p_axo', valor: parseInt(form.value.axo) },
+      { nombre: 'p_categoria', valor: parseInt(form.value.categoria) },
+      { nombre: 'p_seccion', valor: form.value.seccion },
+      { nombre: 'p_clave_cuota', valor: parseInt(form.value.clave_cuota) },
+      { nombre: 'p_importe', valor: parseFloat(form.value.importe) },
+      { nombre: 'p_id_usuario', valor: parseInt(form.value.id_usuario) }
     ]
 
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: operacion,
-        Base: 'mercados',
-        Parametros: parametros
-      }
-    })
+    const res = await apiService.execute(operacion, 'mercados', parametros, '', null, 'publico')
 
-    if (res.data.eResponse.success) {
-      const result = res.data.eResponse.data.result
+    if (res.success) {
+      const result = res.data.result
       if (result && result.length > 0 && result[0][operacion.replace('cuotasmdo_', '')]) {
         showToast('success', isEdit.value ? 'Cuota actualizada exitosamente' : 'Cuota creada exitosamente')
         cerrarModal()
@@ -528,7 +583,7 @@ const guardarCuota = async () => {
         showToast('error', 'La cuota ya existe con esos parámetros')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al guardar cuota')
+      showToast('error', res.message || 'Error al guardar cuota')
     }
   } catch (err) {
     showToast('error', 'Error de conexión al guardar cuota')
@@ -553,18 +608,19 @@ const eliminarCuota = async () => {
 
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'cuotasmdo_eliminar',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_cuotas', Valor: parseInt(cuotaAEliminar.value.id_cuotas) }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+          'cuotasmdo_eliminar',
+          'mercados',
+          [
+          { nombre: 'p_id_cuotas', valor: parseInt(cuotaAEliminar.value.id_cuotas) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      const result = res.data.eResponse.data.result
+    if (res.success) {
+      const result = res.data.result
       if (result && result.length > 0 && result[0].eliminar) {
         showToast('success', 'Cuota eliminada exitosamente')
         cancelarEliminar()
@@ -573,7 +629,7 @@ const eliminarCuota = async () => {
         showToast('error', 'No se pudo eliminar la cuota')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al eliminar cuota')
+      showToast('error', res.message || 'Error al eliminar cuota')
     }
   } catch (err) {
     showToast('error', 'Error de conexión al eliminar cuota')
@@ -610,117 +666,3 @@ onMounted(async () => {
   }
 })
 </script>
-
-<style scoped>
-.empty-icon {
-  color: #6c757d;
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
-
-.badge-primary {
-  background: var(--municipal-blue);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.badge-info {
-  background: #17a2b8;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.btn-municipal-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
-
-.btn-municipal-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-  color: #000;
-  border: none;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-warning:hover {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
-}
-
-.btn-municipal-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-  color: white;
-  border: none;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-danger:hover {
-  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-}
-
-.required {
-  color: #dc3545;
-}
-
-.bg-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
-}
-
-/* Estilos para modal overlay - asegurar que aparezca sobre todo */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1050;
-  animation: fadeIn 0.2s ease-in-out;
-}
-
-.modal-dialog {
-  z-index: 1051;
-  max-width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  animation: slideDown 0.3s ease-in-out;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-50px);
-    opacity: 0;
-  }
-
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-</style>

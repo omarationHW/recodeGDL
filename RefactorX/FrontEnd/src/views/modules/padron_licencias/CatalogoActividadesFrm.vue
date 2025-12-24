@@ -26,10 +26,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -47,37 +48,38 @@
           </h5>
         </div>
 
+        <!-- Filtros - Basado en Delphi: c_actividades_lic -->
         <div v-show="showFilters" class="municipal-card-body">
           <div class="form-row">
             <div class="form-group">
-              <label class="municipal-form-label">Genérico:</label>
+              <label class="municipal-form-label">ID Actividad:</label>
               <input
                 type="number"
                 class="municipal-form-control"
-                v-model.number="filters.generico"
-                placeholder="Código genérico"
+                v-model.number="filters.id_actividad"
+                placeholder="ID"
                 @keyup.enter="buscar"
               />
             </div>
 
             <div class="form-group">
-              <label class="municipal-form-label">Uso:</label>
+              <label class="municipal-form-label">ID Giro:</label>
               <input
                 type="number"
                 class="municipal-form-control"
-                v-model.number="filters.uso"
-                placeholder="Código de uso"
+                v-model.number="filters.id_giro"
+                placeholder="ID del giro"
                 @keyup.enter="buscar"
               />
             </div>
 
             <div class="form-group">
-              <label class="municipal-form-label">Concepto:</label>
+              <label class="municipal-form-label">Descripción:</label>
               <input
                 type="text"
                 class="municipal-form-control"
-                v-model="filters.concepto"
-                placeholder="Buscar por concepto"
+                v-model="filters.descripcion"
+                placeholder="Buscar por descripción"
                 @keyup.enter="buscar"
               />
             </div>
@@ -113,23 +115,24 @@
         <div class="municipal-card-body table-container">
           <div class="table-responsive">
             <table class="municipal-table">
+              <!-- Basado en Delphi: DBGridActividades con columnas de c_actividades_lic -->
               <thead class="municipal-table-header">
                 <tr>
                   <th class="th-center th-w-10">
                     <font-awesome-icon icon="hashtag" class="me-1" />
-                    Genérico
+                    ID
                   </th>
                   <th class="th-center th-w-10">
-                    <font-awesome-icon icon="hashtag" class="me-1" />
-                    Uso
+                    <font-awesome-icon icon="layer-group" class="me-1" />
+                    Giro
                   </th>
-                  <th class="th-center th-w-10">
-                    <font-awesome-icon icon="hashtag" class="me-1" />
-                    Actividad
-                  </th>
-                  <th class="th-w-55">
+                  <th class="th-w-45">
                     <font-awesome-icon icon="align-left" class="me-2" />
-                    Concepto
+                    Descripción
+                  </th>
+                  <th class="th-center th-w-10">
+                    <font-awesome-icon icon="toggle-on" class="me-1" />
+                    Vigente
                   </th>
                   <th class="th-center th-w-15">
                     <font-awesome-icon icon="cogs" class="me-1" />
@@ -138,37 +141,52 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="loading">
-                  <td colspan="5" class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                      <span class="visually-hidden">Cargando...</span>
+                <tr v-if="actividades.length === 0 && !hasSearched">
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <div class="empty-state-icon">
+                        <font-awesome-icon icon="tasks" size="3x" />
+                      </div>
+                      <h4>Catálogo de Actividades</h4>
+                      <p>Utiliza el botón "Buscar" o "Actualizar" para consultar el catálogo completo de actividades comerciales</p>
                     </div>
                   </td>
                 </tr>
-                <tr v-else-if="actividades.length === 0">
-                  <td colspan="5" class="empty-state">
-                    <div class="empty-state-content">
-                      <font-awesome-icon icon="inbox" class="empty-state-icon" />
-                      <p class="empty-state-text">No se encontraron actividades con los filtros seleccionados</p>
-                      <p class="empty-state-hint">Intenta ajustar los filtros de búsqueda o presiona "Actualizar"</p>
+                <tr v-else-if="actividades.length === 0 && hasSearched">
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <div class="empty-state-icon">
+                        <font-awesome-icon icon="inbox" size="3x" />
+                      </div>
+                      <h4>Sin resultados</h4>
+                      <p>No se encontraron actividades con los criterios especificados</p>
                     </div>
                   </td>
                 </tr>
-                <tr v-else v-for="actividad in actividades" :key="`${actividad.generico}-${actividad.uso}-${actividad.actividad}`" class="clickable-row">
+                <tr
+                  v-else
+                  v-for="actividad in actividades"
+                  :key="actividad.id_actividad"
+                  @click="selectedRow = actividad"
+                  :class="{ 'table-row-selected': selectedRow === actividad }"
+                  class="row-hover"
+                >
                   <td class="text-center">
-                    <span class="badge badge-light-secondary">{{ actividad.generico }}</span>
+                    <span class="badge badge-light-secondary">{{ actividad.id_actividad }}</span>
                   </td>
                   <td class="text-center">
-                    <span class="badge badge-light-info">{{ actividad.uso }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge badge-light-primary">{{ actividad.actividad }}</span>
+                    <span class="badge badge-light-info">{{ actividad.id_giro || '-' }}</span>
                   </td>
                   <td>
                     <div class="giro-name">
                       <font-awesome-icon icon="file-alt" class="giro-icon" />
-                      <span class="giro-text">{{ actividad.concepto }}</span>
+                      <span class="giro-text">{{ actividad.descripcion }}</span>
                     </div>
+                  </td>
+                  <td class="text-center">
+                    <span :class="actividad.vigente === 'V' ? 'badge badge-success' : 'badge badge-secondary'">
+                      {{ actividad.vigente === 'V' ? 'Vigente' : 'Cancelado' }}
+                    </span>
                   </td>
                   <td class="text-center">
                     <div class="btn-group-actions">
@@ -179,11 +197,12 @@
                         <font-awesome-icon icon="edit" />
                       </button>
                       <button
+                        v-if="actividad.vigente === 'V'"
                         @click.stop="confirmarEliminar(actividad)"
                         class="btn-table btn-table-danger"
-                        title="Eliminar"
+                        title="Cancelar"
                       >
-                        <font-awesome-icon icon="trash" />
+                        <font-awesome-icon icon="ban" />
                       </button>
                     </div>
                   </td>
@@ -243,6 +262,28 @@
           </div>
         </div>
       </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'CatalogoActividadesFrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Catálogo de Actividades'"
+        @close="showDocModal = false"
+      />
     </div>
 
     <!-- Modal para detalle/edición/creación -->
@@ -265,97 +306,97 @@
           {{ modalTitle }}
         </h5>
       </template>
+      <!-- Basado en Delphi: PanelCampos con EditActividad, EditObservaciones, DBComboBoxGiro, ComboBoxEstatus -->
       <template #default>
         <div class="giro-modal-content">
-          <!-- Sección: Códigos de Clasificación -->
-          <div class="modal-section">
-            <div class="section-header">
-              <font-awesome-icon icon="hashtag" class="section-icon" />
-              <h6 class="section-title">Códigos de Clasificación</h6>
-            </div>
-
-            <div class="modal-grid-3">
-              <div class="form-group-modal">
-                <label class="form-label-modal">
-                  <font-awesome-icon icon="layer-group" class="label-icon" />
-                  Genérico <span class="text-danger">*</span>
-                </label>
-                <input
-                  type="number"
-                  class="form-input-modal"
-                  v-model.number="actividadForm.generico"
-                  :readonly="modoEdicion !== 'crear'"
-                  :disabled="modoEdicion !== 'crear'"
-                  placeholder="Código genérico"
-                />
-                <div class="form-hint" v-if="modoEdicion === 'crear'">Código de categoría genérica</div>
-              </div>
-
-              <div class="form-group-modal">
-                <label class="form-label-modal">
-                  <font-awesome-icon icon="th-large" class="label-icon" />
-                  Uso <span class="text-danger">*</span>
-                </label>
-                <input
-                  type="number"
-                  class="form-input-modal"
-                  v-model.number="actividadForm.uso"
-                  :readonly="modoEdicion !== 'crear'"
-                  :disabled="modoEdicion !== 'crear'"
-                  placeholder="Código de uso"
-                />
-                <div class="form-hint" v-if="modoEdicion === 'crear'">Código de tipo de uso</div>
-              </div>
-
-              <div class="form-group-modal">
-                <label class="form-label-modal">
-                  <font-awesome-icon icon="tag" class="label-icon" />
-                  Actividad <span class="text-danger">*</span>
-                </label>
-                <input
-                  type="number"
-                  class="form-input-modal"
-                  v-model.number="actividadForm.actividad"
-                  :readonly="modoEdicion !== 'crear'"
-                  :disabled="modoEdicion !== 'crear'"
-                  placeholder="Código de actividad"
-                />
-                <div class="form-hint" v-if="modoEdicion === 'crear'">Código específico de actividad</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sección: Descripción -->
+          <!-- Sección: Datos de la Actividad -->
           <div class="modal-section">
             <div class="section-header">
               <font-awesome-icon icon="file-alt" class="section-icon" />
-              <h6 class="section-title">Descripción de la Actividad</h6>
+              <h6 class="section-title">Datos de la Actividad</h6>
             </div>
 
-            <div class="form-group-modal">
-              <label class="form-label-modal">
-                <font-awesome-icon icon="align-left" class="label-icon" />
-                Concepto <span class="text-danger">*</span>
-              </label>
-              <textarea
-                class="form-input-modal"
-                v-model="actividadForm.concepto"
-                :readonly="modoEdicion === 'ver'"
-                :disabled="modoEdicion === 'ver'"
-                placeholder="Descripción completa del concepto de la actividad comercial o industrial"
-                rows="5"
-                maxlength="120"
-              ></textarea>
-              <div class="form-hint">
-                <span>Máximo 120 caracteres</span>
-                <span class="float-end">
-                  <strong>{{ actividadForm.concepto.length }}</strong>/120
-                </span>
+            <div class="modal-grid-2">
+              <div class="form-group-modal" v-if="modoEdicion !== 'crear'">
+                <label class="form-label-modal">
+                  <font-awesome-icon icon="hashtag" class="label-icon" />
+                  ID Actividad
+                </label>
+                <input
+                  type="number"
+                  class="form-input-modal"
+                  v-model.number="actividadForm.id_actividad"
+                  readonly
+                  disabled
+                />
+              </div>
+
+              <div class="form-group-modal">
+                <label class="form-label-modal">
+                  <font-awesome-icon icon="layer-group" class="label-icon" />
+                  Giro
+                </label>
+                <input
+                  type="number"
+                  class="form-input-modal"
+                  v-model.number="actividadForm.id_giro"
+                  :readonly="modoEdicion === 'ver'"
+                  :disabled="modoEdicion === 'ver'"
+                  placeholder="ID del giro"
+                />
+                <div class="form-hint">Código del giro asociado (opcional)</div>
+              </div>
+
+              <div class="form-group-modal" style="grid-column: 1 / -1;">
+                <label class="form-label-modal">
+                  <font-awesome-icon icon="align-left" class="label-icon" />
+                  Actividad (Descripción) <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  class="form-input-modal"
+                  v-model="actividadForm.descripcion"
+                  :readonly="modoEdicion === 'ver'"
+                  :disabled="modoEdicion === 'ver'"
+                  placeholder="Descripción de la actividad"
+                  maxlength="250"
+                />
+              </div>
+
+              <div class="form-group-modal" style="grid-column: 1 / -1;">
+                <label class="form-label-modal">
+                  <font-awesome-icon icon="comment-alt" class="label-icon" />
+                  Observaciones
+                </label>
+                <input
+                  type="text"
+                  class="form-input-modal"
+                  v-model="actividadForm.observaciones"
+                  :readonly="modoEdicion === 'ver'"
+                  :disabled="modoEdicion === 'ver'"
+                  placeholder="Observaciones adicionales"
+                  maxlength="100"
+                />
+              </div>
+
+              <div class="form-group-modal">
+                <label class="form-label-modal">
+                  <font-awesome-icon icon="toggle-on" class="label-icon" />
+                  Estatus <span class="text-danger">*</span>
+                </label>
+                <select
+                  class="form-input-modal"
+                  v-model="actividadForm.vigente"
+                  :disabled="modoEdicion === 'ver'"
+                >
+                  <option value="V">Vigente</option>
+                  <option value="C">Cancelado</option>
+                </select>
               </div>
             </div>
           </div>
 
-          <!-- Sección: Información Adicional (solo en modo ver) -->
+          <!-- Sección: Información del Sistema (solo en modo ver) -->
           <div v-if="modoEdicion === 'ver'" class="modal-section">
             <div class="section-header">
               <font-awesome-icon icon="info-circle" class="section-icon" />
@@ -365,24 +406,12 @@
             <div class="info-grid">
               <div class="info-item">
                 <div class="info-label">
-                  <font-awesome-icon icon="barcode" class="me-1" />
-                  Código Completo
-                </div>
-                <div class="info-value">
-                  <span class="badge badge-light-primary">
-                    {{ actividadForm.generico }}.{{ actividadForm.uso }}.{{ actividadForm.actividad }}
-                  </span>
-                </div>
-              </div>
-
-              <div class="info-item">
-                <div class="info-label">
-                  <font-awesome-icon icon="calendar-alt" class="me-1" />
+                  <font-awesome-icon icon="toggle-on" class="me-1" />
                   Estado
                 </div>
                 <div class="info-value">
-                  <span class="badge badge-success">
-                    ✅ Activo en el Sistema
+                  <span :class="actividadForm.vigente === 'V' ? 'badge badge-success' : 'badge badge-secondary'">
+                    {{ actividadForm.vigente === 'V' ? 'Vigente' : 'Cancelado' }}
                   </span>
                 </div>
               </div>
@@ -390,11 +419,11 @@
               <div class="info-item">
                 <div class="info-label">
                   <font-awesome-icon icon="database" class="me-1" />
-                  Esquema
+                  Tabla
                 </div>
                 <div class="info-value">
                   <span class="badge badge-light-info">
-                    comun.c_actividades
+                    publico.c_actividades_lic
                   </span>
                 </div>
               </div>
@@ -431,21 +460,6 @@
         </button>
       </template>
     </Modal>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <div class="toast-content">
-        <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" />
-          {{ toast.duration }}
-        </span>
-      </div>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
 </template>
 
@@ -454,6 +468,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
@@ -472,20 +487,23 @@ const modoEdicion = ref('ver') // 'ver', 'editar', 'crear'
 const totalRegistros = ref(0)
 const paginaActual = ref(1)
 const registrosPorPagina = ref(10)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
-// Filtros
+// Filtros - Basado en Delphi: c_actividades_lic
 const filters = ref({
-  generico: null,
-  uso: null,
-  concepto: ''
+  id_actividad: null,
+  id_giro: null,
+  descripcion: ''
 })
 
-// Formulario de actividad
+// Formulario de actividad - Basado en Delphi: c_actividades_lic
 const actividadForm = ref({
-  generico: null,
-  uso: null,
-  actividad: null,
-  concepto: ''
+  id_actividad: null,
+  id_giro: null,
+  descripcion: '',
+  observaciones: '',
+  vigente: 'V'
 })
 
 // Computed
@@ -516,27 +534,37 @@ const modalTitle = computed(() => {
 })
 
 // Métodos
-const toggleFilters = () => {
-  showFilters.value = !showFilters.value
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
 }
 
-const openDocumentation = () => {
-  window.open('/docs/padron_licencias/CatalogoActividades.md', '_blank')
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
+
+const toggleFilters = () => {
+  showFilters.value = !showFilters.value
 }
 
 const aplicarFiltrosYPaginacion = () => {
   let filtered = [...todasLasActividades.value]
 
-  // Aplicar filtros
-  if (filters.value.generico) {
-    filtered = filtered.filter(a => a.generico === filters.value.generico)
+  // Aplicar filtros - Basado en Delphi: c_actividades_lic
+  if (filters.value.id_actividad) {
+    filtered = filtered.filter(a => a.id_actividad === filters.value.id_actividad)
   }
-  if (filters.value.uso) {
-    filtered = filtered.filter(a => a.uso === filters.value.uso)
+  if (filters.value.id_giro) {
+    filtered = filtered.filter(a => a.id_giro === filters.value.id_giro)
   }
-  if (filters.value.concepto) {
-    const concepto = filters.value.concepto.toLowerCase()
-    filtered = filtered.filter(a => a.concepto.toLowerCase().includes(concepto))
+  if (filters.value.descripcion) {
+    const desc = filters.value.descripcion.toLowerCase()
+    filtered = filtered.filter(a => a.descripcion?.toLowerCase().includes(desc))
   }
 
   totalRegistros.value = filtered.length
@@ -550,6 +578,8 @@ const aplicarFiltrosYPaginacion = () => {
 const buscar = async () => {
   const startTime = performance.now()
   showLoading('Cargando actividades...', 'Buscando en el catálogo')
+  hasSearched.value = true
+  selectedRow.value = null
   loading.value = true
 
   try {
@@ -560,7 +590,7 @@ const buscar = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -596,21 +626,22 @@ const buscar = async () => {
 
 const limpiarFiltros = () => {
   filters.value = {
-    generico: null,
-    uso: null,
-    concepto: ''
+    id_actividad: null,
+    id_giro: null,
+    descripcion: ''
   }
+  actividades.value = []
+  todasLasActividades.value = []
+  hasSearched.value = false
   paginaActual.value = 1
-
-  // Si ya hay datos en cache, solo aplicar filtros y paginación
-  if (todasLasActividades.value.length > 0) {
-    aplicarFiltrosYPaginacion()
-  }
+  selectedRow.value = null
+  totalRegistros.value = 0
 }
 
 const cambiarPagina = (nuevaPagina) => {
   if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas.value) {
     paginaActual.value = nuevaPagina
+    selectedRow.value = null
     // Solo aplicar paginación sobre los datos ya cargados
     aplicarFiltrosYPaginacion()
   }
@@ -618,38 +649,45 @@ const cambiarPagina = (nuevaPagina) => {
 
 const cambiarTamanioPagina = () => {
   paginaActual.value = 1
+  selectedRow.value = null
   // Solo aplicar paginación sobre los datos ya cargados
   aplicarFiltrosYPaginacion()
 }
 
 const verDetalle = async (actividad) => {
+  // Basado en Delphi: c_actividades_lic
   actividadForm.value = {
-    generico: actividad.generico,
-    uso: actividad.uso,
-    actividad: actividad.actividad,
-    concepto: actividad.concepto.trim()
+    id_actividad: actividad.id_actividad,
+    id_giro: actividad.id_giro,
+    descripcion: actividad.descripcion?.trim() || '',
+    observaciones: actividad.observaciones?.trim() || '',
+    vigente: actividad.vigente || 'V'
   }
   modoEdicion.value = 'ver'
   mostrarModal.value = true
 }
 
 const editarActividad = async (actividad) => {
+  // Basado en Delphi: BtnModificarClick
   actividadForm.value = {
-    generico: actividad.generico,
-    uso: actividad.uso,
-    actividad: actividad.actividad,
-    concepto: actividad.concepto.trim()
+    id_actividad: actividad.id_actividad,
+    id_giro: actividad.id_giro,
+    descripcion: actividad.descripcion?.trim() || '',
+    observaciones: actividad.observaciones?.trim() || '',
+    vigente: actividad.vigente || 'V'
   }
   modoEdicion.value = 'editar'
   mostrarModal.value = true
 }
 
 const abrirModalNuevo = () => {
+  // Basado en Delphi: BtnAgregarClick
   actividadForm.value = {
-    generico: null,
-    uso: null,
-    actividad: null,
-    concepto: ''
+    id_actividad: null,
+    id_giro: null,
+    descripcion: '',
+    observaciones: '',
+    vigente: 'V'
   }
   modoEdicion.value = 'crear'
   mostrarModal.value = true
@@ -658,10 +696,11 @@ const abrirModalNuevo = () => {
 const cerrarModal = () => {
   mostrarModal.value = false
   actividadForm.value = {
-    generico: null,
-    uso: null,
-    actividad: null,
-    concepto: ''
+    id_actividad: null,
+    id_giro: null,
+    descripcion: '',
+    observaciones: '',
+    vigente: 'V'
   }
 }
 
@@ -674,16 +713,25 @@ const guardarActividad = async () => {
 }
 
 const crearActividad = async () => {
+  // Validar campos requeridos - Basado en Delphi: RevisarCampos
+  if (!actividadForm.value.descripcion?.trim()) {
+    showToast('warning', 'Favor de llenar la actividad')
+    return
+  }
+  if (!actividadForm.value.vigente) {
+    showToast('warning', 'Favor de seleccionar un estatus')
+    return
+  }
+
   // Confirmar antes de crear
   const result = await Swal.fire({
     icon: 'question',
     title: '¿Crear Nueva Actividad?',
     html: `
       <div class="swal-selection-content">
-        <p><strong>Genérico:</strong> ${actividadForm.value.generico}</p>
-        <p><strong>Uso:</strong> ${actividadForm.value.uso}</p>
-        <p><strong>Actividad:</strong> ${actividadForm.value.actividad}</p>
-        <p><strong>Concepto:</strong> ${actividadForm.value.concepto}</p>
+        <p><strong>Descripción:</strong> ${actividadForm.value.descripcion}</p>
+        <p><strong>Giro:</strong> ${actividadForm.value.id_giro || 'Sin asignar'}</p>
+        <p><strong>Estatus:</strong> ${actividadForm.value.vigente === 'V' ? 'Vigente' : 'Cancelado'}</p>
       </div>
     `,
     showCancelButton: true,
@@ -696,32 +744,33 @@ const crearActividad = async () => {
   if (!result.isConfirmed) return
 
   showLoading('Creando actividad...', 'Guardando información')
-  // NO modificar loading.value para que la tabla NO se oculte
 
   try {
+    // Basado en Delphi: BtnAceptarClick en modo Insert
     const response = await execute(
       'sp_catalogo_actividades_create',
       'padron_licencias',
       [
-        { nombre: 'p_generico', valor: actividadForm.value.generico, tipo: 'integer' },
-        { nombre: 'p_uso', valor: actividadForm.value.uso, tipo: 'integer' },
-        { nombre: 'p_actividad', valor: actividadForm.value.actividad, tipo: 'integer' },
-        { nombre: 'p_concepto', valor: actividadForm.value.concepto, tipo: 'character varying' }
+        { nombre: 'p_id_giro', valor: actividadForm.value.id_giro, tipo: 'integer' },
+        { nombre: 'p_descripcion', valor: actividadForm.value.descripcion.trim(), tipo: 'string' },
+        { nombre: 'p_observaciones', valor: actividadForm.value.observaciones || '', tipo: 'string' },
+        { nombre: 'p_vigente', valor: actividadForm.value.vigente, tipo: 'string' },
+        { nombre: 'p_usuario', valor: 'SISTEMA', tipo: 'string' }
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
 
-    if (response && response.result && response.result[0]?.success) {
-      showToast('success', 'Actividad creada exitosamente')
+    if (response && response.result && response.result.length > 0) {
+      const nueva = response.result[0]
+      showToast('success', `Actividad "${actividadForm.value.descripcion}" creada con ID #${nueva.id_actividad}`)
       cerrarModal()
-      // NO refrescar la consulta automáticamente
+      buscar() // Recargar lista
     } else {
-      const message = response?.result?.[0]?.message || 'Error desconocido'
-      showToast('error', message)
+      showToast('error', 'Error al crear la actividad')
     }
   } catch (error) {
     hideLoading()
@@ -730,14 +779,21 @@ const crearActividad = async () => {
 }
 
 const actualizarActividad = async () => {
+  // Validar campos requeridos
+  if (!actividadForm.value.descripcion?.trim()) {
+    showToast('warning', 'La descripción es requerida')
+    return
+  }
+
   // Confirmar antes de actualizar
   const result = await Swal.fire({
     icon: 'question',
     title: '¿Guardar Cambios?',
     html: `
       <div class="swal-selection-content">
-        <p><strong>Código:</strong> ${actividadForm.value.generico}.${actividadForm.value.uso}.${actividadForm.value.actividad}</p>
-        <p><strong>Concepto Nuevo:</strong> ${actividadForm.value.concepto}</p>
+        <p><strong>ID:</strong> ${actividadForm.value.id_actividad}</p>
+        <p><strong>Descripción:</strong> ${actividadForm.value.descripcion}</p>
+        <p><strong>Estatus:</strong> ${actividadForm.value.vigente === 'V' ? 'Vigente' : 'Cancelado'}</p>
       </div>
     `,
     showCancelButton: true,
@@ -750,32 +806,33 @@ const actualizarActividad = async () => {
   if (!result.isConfirmed) return
 
   showLoading('Actualizando actividad...', 'Guardando cambios')
-  // NO modificar loading.value para que la tabla NO se oculte
 
   try {
+    // Basado en Delphi: BtnAceptarClick en modo Edit
     const response = await execute(
       'sp_catalogo_actividades_update',
       'padron_licencias',
       [
-        { nombre: 'p_generico', valor: actividadForm.value.generico, tipo: 'integer' },
-        { nombre: 'p_uso', valor: actividadForm.value.uso, tipo: 'integer' },
-        { nombre: 'p_actividad', valor: actividadForm.value.actividad, tipo: 'integer' },
-        { nombre: 'p_concepto', valor: actividadForm.value.concepto, tipo: 'character varying' }
+        { nombre: 'p_id_actividad', valor: actividadForm.value.id_actividad, tipo: 'integer' },
+        { nombre: 'p_id_giro', valor: actividadForm.value.id_giro, tipo: 'integer' },
+        { nombre: 'p_descripcion', valor: actividadForm.value.descripcion.trim(), tipo: 'string' },
+        { nombre: 'p_observaciones', valor: actividadForm.value.observaciones || '', tipo: 'string' },
+        { nombre: 'p_vigente', valor: actividadForm.value.vigente, tipo: 'string' },
+        { nombre: 'p_usuario', valor: 'SISTEMA', tipo: 'string' }
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
 
-    if (response && response.result && response.result[0]?.success) {
+    if (response && response.result && response.result.length > 0) {
       showToast('success', 'Actividad actualizada exitosamente')
       cerrarModal()
-      // NO refrescar la consulta automáticamente
+      buscar() // Recargar lista
     } else {
-      const message = response?.result?.[0]?.message || 'Error desconocido'
-      showToast('error', message)
+      showToast('error', 'Error al actualizar la actividad')
     }
   } catch (error) {
     hideLoading()
@@ -784,59 +841,62 @@ const actualizarActividad = async () => {
 }
 
 const confirmarEliminar = async (actividad) => {
+  // En Delphi original el botón Borrar está deshabilitado
+  // Implementamos como cancelación (cambiar vigente a 'C')
   const result = await Swal.fire({
-    title: '¿Confirmar eliminación?',
+    title: '¿Cancelar Actividad?',
     html: `
       <div class="text-start">
-        <p><strong>Genérico:</strong> ${actividad.generico}</p>
-        <p><strong>Uso:</strong> ${actividad.uso}</p>
-        <p><strong>Actividad:</strong> ${actividad.actividad}</p>
-        <p><strong>Concepto:</strong> ${actividad.concepto}</p>
+        <p><strong>ID:</strong> ${actividad.id_actividad}</p>
+        <p><strong>Descripción:</strong> ${actividad.descripcion}</p>
+        <p class="text-warning mt-2">Nota: La actividad será marcada como Cancelada</p>
       </div>
     `,
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d33',
     cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar'
+    confirmButtonText: 'Sí, cancelar',
+    cancelButtonText: 'No'
   })
 
   if (result.isConfirmed) {
-    await eliminarActividad(actividad)
+    await cancelarActividad(actividad)
   }
 }
 
-const eliminarActividad = async (actividad) => {
-  showLoading('Eliminando actividad...', 'Procesando')
-  // NO modificar loading.value para que la tabla NO se oculte
+const cancelarActividad = async (actividad) => {
+  showLoading('Cancelando actividad...', 'Procesando')
 
   try {
+    // Usar el SP update para cambiar vigente a 'C' (Cancelado)
     const response = await execute(
-      'sp_catalogo_actividades_delete',
+      'sp_catalogo_actividades_update',
       'padron_licencias',
       [
-        { nombre: 'p_generico', valor: actividad.generico, tipo: 'integer' },
-        { nombre: 'p_uso', valor: actividad.uso, tipo: 'integer' },
-        { nombre: 'p_actividad', valor: actividad.actividad, tipo: 'integer' }
+        { nombre: 'p_id_actividad', valor: actividad.id_actividad, tipo: 'integer' },
+        { nombre: 'p_id_giro', valor: actividad.id_giro, tipo: 'integer' },
+        { nombre: 'p_descripcion', valor: actividad.descripcion, tipo: 'string' },
+        { nombre: 'p_observaciones', valor: actividad.observaciones || '', tipo: 'string' },
+        { nombre: 'p_vigente', valor: 'C', tipo: 'string' },
+        { nombre: 'p_usuario', valor: 'SISTEMA', tipo: 'string' }
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
 
-    if (response && response.result && response.result[0]?.success) {
-      showToast('success', 'Actividad eliminada exitosamente')
-      // NO refrescar la consulta automáticamente
+    if (response && response.result && response.result.length > 0) {
+      showToast('success', 'Actividad cancelada exitosamente')
+      buscar() // Recargar lista
     } else {
-      const message = response?.result?.[0]?.message || 'Error desconocido'
-      showToast('error', message)
+      showToast('error', 'Error al cancelar la actividad')
     }
   } catch (error) {
     hideLoading()
-    handleApiError(error, 'Error al eliminar actividad')
+    handleApiError(error, 'Error al cancelar actividad')
   }
 }
 

@@ -10,19 +10,21 @@
         <p>Mercados - Carga Especial de Pagos Realizados por Diversos</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button
           class="btn-municipal-purple"
           @click="mostrarAyuda"
         >
           <font-awesome-icon icon="question-circle" />
           Ayuda
-        </button>
-        <button
-          class="btn-municipal-danger"
-          @click="cerrar"
-        >
-          <font-awesome-icon icon="times" />
-          Cerrar
         </button>
       </div>
     </div>
@@ -59,7 +61,7 @@
                   Buscar
                 </button>
                 <button
-                  class="btn-municipal-success"
+                  class="btn-municipal-primary"
                   @click="cargarPagos"
                   :disabled="!hayPagosValidos || loading"
                 >
@@ -161,12 +163,15 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'CargaDiversosEsp'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CargaDiversosEsp'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CargaDiversosEsp'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CargaDiversosEsp'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
@@ -175,6 +180,11 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 library.add(
   faFileImport, faSearch, faList, faSave, faTimes,
@@ -185,7 +195,7 @@ const router = useRouter();
 const { showLoading, hideLoading } = useGlobalLoading();
 
 // Helper para mostrar toasts
-const showToast = (icon, title) => {
+const showToast = (title, icon) => {
   Swal.fire({
     toast: true,
     position: 'top-end',
@@ -211,7 +221,7 @@ const hayPagosValidos = computed(() => {
 // Buscar adeudos
 async function buscarAdeudos() {
   if (!fechaPago.value) {
-    showToast('warning', 'Seleccione una fecha de pago');
+    showToast('Seleccione una fecha de pago', 'warning');
     return;
   }
 
@@ -221,33 +231,34 @@ async function buscarAdeudos() {
 
   try {
     showLoading('Buscando adeudos', 'Por favor espere');
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_adeudos_diversos_esp',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_fecha_pago', Valor: fechaPago.value }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_get_adeudos_diversos_esp',
+          'mercados',
+          [
+          { nombre: 'p_fecha_pago', valor: fechaPago.value }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-      adeudos.value = response.data.eResponse.data.result;
+    if (response.success && response.data?.result) {
+      adeudos.value = response.data.result;
       // Inicializar array de pagos con partidas vacías
       pagos.value = adeudos.value.map(() => ({ partida: '' }));
 
       if (adeudos.value.length === 0) {
-        showToast('info', 'No se encontraron adeudos para esta fecha');
+        showToast('No se encontraron adeudos para esta fecha', 'info');
       } else {
-        showToast('success', `Se encontraron ${adeudos.value.length} adeudos`);
+        showToast(`Se encontraron ${adeudos.value.length} adeudos`, 'success');
       }
     } else {
       adeudos.value = [];
-      showToast('info', 'No se encontraron adeudos');
+      showToast('No se encontraron adeudos', 'info');
     }
   } catch (error) {
     console.error('Error al buscar adeudos:', error);
-    showToast('error', 'Error al buscar adeudos');
+    showToast('Error al buscar adeudos', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -265,7 +276,7 @@ async function cargarPagos() {
     .filter(p => p.partida && p.partida.trim() !== '' && p.partida !== '0');
 
   if (pagosValidos.length === 0) {
-    showToast('warning', 'No hay pagos válidos para grabar');
+    showToast('No hay pagos válidos para grabar', 'warning');
     return;
   }
 
@@ -284,26 +295,27 @@ async function cargarPagos() {
 
   try {
     showLoading('Cargando pagos', 'Por favor espere');
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cargar_pagos_diversos_esp',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_pagos', Valor: JSON.stringify(pagosValidos) },
-          { Nombre: 'p_id_usuario', Valor: 1 }, // TODO: Obtener de sesión
-          { Nombre: 'p_fecha_pago', Valor: fechaPago.value }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_cargar_pagos_diversos_esp',
+          'mercados',
+          [
+          { nombre: 'p_pagos', valor: JSON.stringify(pagosValidos) },
+          { nombre: 'p_id_usuario', valor: 1 }, // TODO: Obtener de sesión
+          { nombre: 'p_fecha_pago', valor: fechaPago.value }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      showToast('success', `${pagosValidos.length} pagos cargados correctamente`);
+    if (response.success) {
+      showToast(`${pagosValidos.length} pagos cargados correctamente`, 'success');
       // Recargar adeudos
       await buscarAdeudos();
     }
   } catch (error) {
     console.error('Error al cargar pagos:', error);
-    showToast('error', 'Error al cargar pagos');
+    showToast('Error al cargar pagos', 'error');
   } finally {
     loading.value = false;
     hideLoading();
@@ -353,11 +365,4 @@ function mostrarAyuda() {
     icon: 'info',
     confirmButtonText: 'Entendido'
   });
-}
-
-// Cerrar
-function cerrar() {
-  router.push('/');
-}
-</script>
-
+}</script>

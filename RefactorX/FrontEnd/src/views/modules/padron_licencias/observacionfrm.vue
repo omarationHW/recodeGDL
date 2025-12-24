@@ -18,8 +18,13 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button class="btn-municipal-help" @click="openDocumentation" title="Ayuda">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -105,25 +110,13 @@
             <font-awesome-icon icon="list" />
             Lista de Observaciones
           </h5>
-          <span class="badge-purple">{{ totalRegistros.toLocaleString() }} registros</span>
+          <div class="header-right">
+            <span class="badge-purple" v-if="observaciones.length > 0">
+              {{ totalRegistros.toLocaleString() }} registros
+            </span>
+          </div>
         </div>
         <div class="municipal-card-body">
-          <!-- Selector de items por página -->
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="page-size-selector">
-              <label>
-                Mostrar
-                <select v-model.number="itemsPerPage" @change="aplicarFiltrosYPaginacion" class="form-select-sm">
-                  <option :value="10">10</option>
-                  <option :value="25">25</option>
-                  <option :value="50">50</option>
-                  <option :value="100">100</option>
-                </select>
-                registros
-              </label>
-            </div>
-          </div>
-
           <div class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
@@ -138,7 +131,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="obs in observaciones" :key="obs.id_observacion" class="clickable-row">
+                <tr
+                  v-for="obs in observaciones"
+                  :key="obs.id_observacion"
+                  @click="selectedRow = obs"
+                  :class="{ 'table-row-selected': selectedRow === obs }"
+                  class="row-hover"
+                >
                   <td style="text-align: center;">
                     <code class="text-primary"><strong>{{ obs.id_observacion }}</strong></code>
                   </td>
@@ -165,13 +164,13 @@
                   </td>
                   <td style="text-align: center;">
                     <div class="btn-group-actions">
-                      <button class="btn-action btn-action-view" @click="verObservacion(obs)" title="Ver">
+                      <button class="btn-action btn-action-view" @click.stop="verObservacion(obs)" title="Ver">
                         <font-awesome-icon icon="eye" />
                       </button>
-                      <button class="btn-action btn-action-edit" @click="editarObservacion(obs)" title="Editar">
+                      <button class="btn-action btn-action-edit" @click.stop="editarObservacion(obs)" title="Editar">
                         <font-awesome-icon icon="edit" />
                       </button>
-                      <button class="btn-action btn-action-delete" @click="confirmarEliminar(obs)" title="Eliminar">
+                      <button class="btn-action btn-action-delete" @click.stop="confirmarEliminar(obs)" title="Eliminar">
                         <font-awesome-icon icon="trash" />
                       </button>
                     </div>
@@ -182,67 +181,107 @@
           </div>
 
           <!-- Paginación -->
-          <div class="pagination-container">
+          <div class="pagination-controls">
             <div class="pagination-info">
-              Mostrando {{ ((paginaActual - 1) * itemsPerPage) + 1 }} a {{ Math.min(paginaActual * itemsPerPage, totalRegistros) }} de {{ totalRegistros.toLocaleString() }} registros
+              <span class="text-muted">
+                Mostrando {{ ((paginaActual - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(paginaActual * itemsPerPage, totalRegistros) }}
+                de {{ formatNumber(totalRegistros) }} registros
+              </span>
             </div>
-            <nav class="pagination-nav">
-              <button
-                @click="cambiarPagina(1)"
-                :disabled="paginaActual === 1"
-                class="pagination-button"
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
               >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button class="btn-municipal-secondary btn-sm" @click="cambiarPagina(1)" :disabled="paginaActual === 1">
                 <font-awesome-icon icon="angle-double-left" />
               </button>
-              <button
-                @click="cambiarPagina(paginaActual - 1)"
-                :disabled="paginaActual === 1"
-                class="pagination-button"
-              >
+              <button class="btn-municipal-secondary btn-sm" @click="cambiarPagina(paginaActual - 1)" :disabled="paginaActual === 1">
                 <font-awesome-icon icon="angle-left" />
               </button>
-
               <button
                 v-for="pagina in visiblePages"
                 :key="pagina"
+                class="btn-sm"
+                :class="pagina === paginaActual ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
                 @click="cambiarPagina(pagina)"
-                :class="['pagination-button', { 'active': pagina === paginaActual }]"
               >
                 {{ pagina }}
               </button>
-
-              <button
-                @click="cambiarPagina(paginaActual + 1)"
-                :disabled="paginaActual === totalPaginas"
-                class="pagination-button"
-              >
+              <button class="btn-municipal-secondary btn-sm" @click="cambiarPagina(paginaActual + 1)" :disabled="paginaActual === totalPaginas">
                 <font-awesome-icon icon="angle-right" />
               </button>
-              <button
-                @click="cambiarPagina(totalPaginas)"
-                :disabled="paginaActual === totalPaginas"
-                class="pagination-button"
-              >
+              <button class="btn-municipal-secondary btn-sm" @click="cambiarPagina(totalPaginas)" :disabled="paginaActual === totalPaginas">
                 <font-awesome-icon icon="angle-double-right" />
               </button>
-            </nav>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Estado vacío -->
-      <div v-if="observaciones.length === 0 && !loading" class="municipal-card">
+      <!-- Empty State - Sin búsqueda -->
+      <div v-if="observaciones.length === 0 && !hasSearched" class="municipal-card">
+        <div class="municipal-card-body">
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="comment-alt" size="3x" />
+            </div>
+            <h4>Catálogo de Observaciones</h4>
+            <p>Presiona "Actualizar" para cargar las observaciones o "Nuevo" para crear una</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State - Sin resultados -->
+      <div v-else-if="observaciones.length === 0 && hasSearched" class="municipal-card">
         <div class="municipal-card-body">
           <div class="empty-state">
             <div class="empty-state-icon">
               <font-awesome-icon icon="inbox" size="3x" />
             </div>
-            <h5>No hay observaciones registradas</h5>
-            <p>Presiona "Actualizar" para cargar las observaciones o "Nuevo" para crear una</p>
+            <h4>Sin resultados</h4>
+            <p>No se encontraron observaciones con los criterios especificados</p>
           </div>
         </div>
       </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'observacionfrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Catálogo de Observaciones'"
+        @close="showDocModal = false"
+      />
     </div>
+    <!-- /module-view-content -->
 
     <!-- Modal Crear -->
     <Modal :show="mostrarModalCrear" title="Nueva Observación" size="lg" @close="cerrarModal">
@@ -411,15 +450,8 @@
         </button>
       </template>
     </Modal>
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'observacionfrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
   </div>
+  <!-- /module-view -->
 </template>
 
 <script setup>
@@ -431,13 +463,28 @@ import Modal from '@/components/common/Modal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
@@ -448,6 +495,8 @@ const observaciones = ref([])
 const totalRegistros = ref(0)
 const paginaActual = ref(1)
 const itemsPerPage = ref(10)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 const filtros = ref({
   id_observacion: null,
@@ -473,23 +522,15 @@ const totalPaginas = computed(() => Math.ceil(totalRegistros.value / itemsPerPag
 
 const visiblePages = computed(() => {
   const pages = []
-  const current = paginaActual.value
-  const total = totalPaginas.value
-
-  let startPage = Math.max(1, current - 2)
-  let endPage = Math.min(total, current + 2)
-
-  if (current <= 3) {
-    endPage = Math.min(5, total)
+  const maxVisible = 5
+  let startPage = Math.max(1, paginaActual.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPaginas.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
   }
-  if (current >= total - 2) {
-    startPage = Math.max(1, total - 4)
-  }
-
   for (let i = startPage; i <= endPage; i++) {
     pages.push(i)
   }
-
   return pages
 })
 
@@ -501,6 +542,8 @@ const toggleFilters = () => {
 const buscar = async () => {
   const startTime = performance.now()
   showLoading('Cargando observaciones...', 'Consultando catálogo')
+  hasSearched.value = true
+  selectedRow.value = null
   loading.value = true
   showFilters.value = false
 
@@ -511,7 +554,7 @@ const buscar = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -568,8 +611,16 @@ const aplicarFiltrosYPaginacion = () => {
 const cambiarPagina = (pagina) => {
   if (pagina >= 1 && pagina <= totalPaginas.value) {
     paginaActual.value = pagina
+    selectedRow.value = null
     aplicarFiltrosYPaginacion()
   }
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  paginaActual.value = 1
+  selectedRow.value = null
+  aplicarFiltrosYPaginacion()
 }
 
 const limpiarFiltros = () => {
@@ -580,6 +631,8 @@ const limpiarFiltros = () => {
     observacion: ''
   }
   paginaActual.value = 1
+  selectedRow.value = null
+  hasSearched.value = false
   aplicarFiltrosYPaginacion()
   showToast('info', 'Filtros limpiados')
 }
@@ -655,7 +708,7 @@ const crearObservacion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -696,7 +749,7 @@ const actualizarObservacion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -734,7 +787,7 @@ const confirmarEliminar = async (obs) => {
       [{ nombre: 'p_id_observacion', valor: obs.id_observacion, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -771,6 +824,10 @@ const formatDate = (dateString) => {
   } catch (error) {
     return 'Fecha inválida'
   }
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
 }
 </script>
 

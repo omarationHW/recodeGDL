@@ -10,6 +10,15 @@
         <p>Inicio > Mercados > Condonaciones Energía</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel"
           :disabled="loading || condonaciones.length === 0">
           <font-awesome-icon icon="file-excel" />
@@ -20,10 +29,7 @@
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -49,7 +55,7 @@
               <select class="municipal-form-control" v-model="form.oficina" @change="cargarMercados" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -264,12 +270,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'ConsCondonacionEnergia'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - ConsCondonacionEnergia'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'ConsCondonacionEnergia'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - ConsCondonacionEnergia'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -311,7 +326,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione al menos una Oficina Recaudadora. Los demás campos son opcionales para búsquedas más amplias.')
+  showToast('Ayuda: Seleccione al menos una Oficina Recaudadora. Los demás campos son opcionales para búsquedas más amplias.', 'info')
 }
 
 const showToast = (type, message) => {
@@ -378,26 +393,27 @@ const cargarRecaudadoras = async () => {
   loading.value = true
   error.value = ''
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
-    if (response.data.eResponse?.success) {
-      recaudadoras.value = response.data.eResponse.data.result || []
+    const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (response?.success) {
+      recaudadoras.value = response.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
       }
     } else {
-      error.value = response.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', error.value)
+      error.value = response?.message || 'Error al cargar recaudadoras'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar recaudadoras'
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -415,32 +431,33 @@ const cargarMercados = async () => {
     const nivelUsuario = 1
     const oficinaParam = form.value.oficina || null
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_catalogo_mercados',
-        Base: 'padron_licencias',
-        Parametros: [
+    const response = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
           { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
           { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
-        ]
-      }
-    })
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data.eResponse && response.data.eResponse.success === true) {
-      mercados.value = response.data.eResponse.data.result || []
+    if (response && response.success === true) {
+      mercados.value = response.data.result || []
       if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+        showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
       } else {
-        showToast('info', 'No se encontraron mercados para esta oficina')
+        showToast('No se encontraron mercados para esta oficina', 'info')
       }
     } else {
-      error.value = response.data.eResponse?.message || 'Error al cargar mercados'
-      showToast('error', error.value)
+      error.value = response?.message || 'Error al cargar mercados'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar mercados'
     console.error('Error al cargar mercados:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -448,25 +465,26 @@ const cargarMercados = async () => {
 
 const cargarSecciones = async () => {
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_secciones',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
-    if (response.data.eResponse?.success) {
-      secciones.value = response.data.eResponse.data.result || []
+    const response = await apiService.execute(
+          'sp_get_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (response?.success) {
+      secciones.value = response.data.result || []
     }
   } catch (error) {
-    showToast('error', 'Error al cargar secciones')
+    showToast('Error al cargar secciones', 'error')
   }
 }
 
 const buscarCondonaciones = async () => {
   // Solo la oficina es obligatoria
   if (!form.value.oficina) {
-    showToast('warning', 'Debe seleccionar una Oficina Recaudadora')
+    showToast('Debe seleccionar una Oficina Recaudadora', 'warning')
     return
   }
 
@@ -477,26 +495,27 @@ const buscarCondonaciones = async () => {
   condonaciones.value = []
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_condonacion_energia',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-          { Nombre: 'p_num_mercado', Valor: form.value.num_mercado ? parseInt(form.value.num_mercado) : null },
-          { Nombre: 'p_categoria', Valor: 1 },
-          { Nombre: 'p_seccion', Valor: form.value.seccion || null },
-          { Nombre: 'p_local', Valor: form.value.local ? parseInt(form.value.local) : null },
-          { Nombre: 'p_letra_local', Valor: form.value.letra_local || null },
-          { Nombre: 'p_bloque', Valor: form.value.bloque || null }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_cons_condonacion_energia',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(form.value.oficina) },
+          { nombre: 'p_num_mercado', valor: form.value.num_mercado ? parseInt(form.value.num_mercado) : null },
+          { nombre: 'p_categoria', valor: 1 },
+          { nombre: 'p_seccion', valor: form.value.seccion || null },
+          { nombre: 'p_local', valor: form.value.local ? parseInt(form.value.local) : null },
+          { nombre: 'p_letra_local', valor: form.value.letra_local || null },
+          { nombre: 'p_bloque', valor: form.value.bloque || null }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
     searched.value = true
 
-    if (response.data.eResponse?.success && response.data.eResponse?.data) {
-      condonaciones.value = response.data.eResponse.data.result || []
+    if (response?.success && response?.data) {
+      condonaciones.value = response.data.result || []
 
       if (condonaciones.value.length > 0) {
         // Si hay un solo local, mostrar su info
@@ -519,19 +538,19 @@ const buscarCondonaciones = async () => {
           ? `Se encontraron ${condonaciones.value.length} condonaciones (${criterios.join(', ')})`
           : `Se encontraron ${condonaciones.value.length} condonaciones en toda la oficina`
 
-        showToast('success', msg)
+        showToast(msg, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron condonaciones con los criterios especificados')
+        showToast('No se encontraron condonaciones con los criterios especificados', 'info')
       }
     } else {
-      error.value = response.data.eResponse?.message || 'Error en la búsqueda'
-      showToast('error', error.value)
+      error.value = response?.message || 'Error en la búsqueda'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = err.response?.data?.message || 'Error al buscar condonaciones'
     console.error('Error al buscar condonaciones:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -551,45 +570,24 @@ const limpiarFiltros = () => {
   condonaciones.value = []
   searched.value = false
   error.value = ''
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (condonaciones.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
   // TODO: Implementar exportación a Excel
-  showToast('info', 'Funcionalidad de exportación Excel en desarrollo')
+  showToast('Funcionalidad de exportación Excel en desarrollo', 'info')
 }
 
 const imprimir = () => {
   if (condonaciones.value.length === 0) {
-    showToast('warning', 'No hay datos para imprimir')
+    showToast('No hay datos para imprimir', 'warning')
     return
   }
   // TODO: Implementar impresión
-  showToast('info', 'Funcionalidad de impresión en desarrollo')
+  showToast('Funcionalidad de impresión en desarrollo', 'info')
 }
 </script>
-
-<style scoped>
-/* Los estilos están definidos en municipal-theme.css */
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.text-end {
-  text-align: right;
-}
-
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
-}
-
-.required {
-  color: #dc3545;
-}
-</style>

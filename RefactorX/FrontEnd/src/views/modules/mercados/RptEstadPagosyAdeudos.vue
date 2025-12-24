@@ -24,7 +24,7 @@
               <select v-model="filters.recaudadora" class="municipal-form-control" @change="onRecaudadoraChange" required>
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -191,12 +191,20 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptEstadPagosyAdeudos'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptEstadPagosyAdeudos'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptEstadPagosyAdeudos'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptEstadPagosyAdeudos'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -249,15 +257,16 @@ const paginatedResultados = computed(() => {
 const fetchRecaudadoras = async () => {
   showLoading('Cargando Estadísticas de Pagos y Adeudos', 'Preparando oficinas recaudadoras...');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      recaudadoras.value = response.data.eResponse.data.result;
+    const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success && response?.data?.result) {
+      recaudadoras.value = response.data.result;
     }
   } catch (error) {
     showToast('Error al cargar recaudadoras', 'error');
@@ -276,43 +285,45 @@ const consultar = async () => {
 
   try {
     // Consultar detalle
-    const responseDetalle = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_estad_pagosyadeudos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_rec', Valor: parseInt(filters.value.recaudadora) },
-          { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
-          { Nombre: 'p_mes', Valor: parseInt(filters.value.mes) },
-          { Nombre: 'p_fec3', Valor: filters.value.fechaDesde },
-          { Nombre: 'p_fec4', Valor: filters.value.fechaHasta }
-        ]
-      }
-    });
+    const responseDetalle = await apiService.execute(
+          'sp_estad_pagosyadeudos',
+          'mercados',
+          [
+          { nombre: 'p_id_rec', valor: parseInt(filters.value.recaudadora) },
+          { nombre: 'p_axo', valor: parseInt(filters.value.axo) },
+          { nombre: 'p_mes', valor: parseInt(filters.value.mes) },
+          { nombre: 'p_fec3', valor: filters.value.fechaDesde },
+          { nombre: 'p_fec4', valor: filters.value.fechaHasta }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
     // Consultar resumen
-    const responseResumen = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_estad_pagosyadeudos_resumen',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_rec', Valor: parseInt(filters.value.recaudadora) },
-          { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
-          { Nombre: 'p_mes', Valor: parseInt(filters.value.mes) },
-          { Nombre: 'p_fec3', Valor: filters.value.fechaDesde },
-          { Nombre: 'p_fec4', Valor: filters.value.fechaHasta }
-        ]
-      }
-    });
+    const responseResumen = await apiService.execute(
+          'sp_estad_pagosyadeudos_resumen',
+          'mercados',
+          [
+          { nombre: 'p_id_rec', valor: parseInt(filters.value.recaudadora) },
+          { nombre: 'p_axo', valor: parseInt(filters.value.axo) },
+          { nombre: 'p_mes', valor: parseInt(filters.value.mes) },
+          { nombre: 'p_fec3', valor: filters.value.fechaDesde },
+          { nombre: 'p_fec4', valor: filters.value.fechaHasta }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (responseDetalle.data.eResponse?.success && responseDetalle.data.eResponse?.data?.result) {
-      resultados.value = agruparPorMercado(responseDetalle.data.eResponse.data.result);
+    if (responseDetalle.success && responseDetalle.data.data.result) {
+      resultados.value = agruparPorMercado(responseDetalle.data.result);
       busquedaRealizada.value = true;
       currentPage.value = 1;
     }
 
-    if (responseResumen.data.eResponse?.success && responseResumen.data.eResponse?.data?.result) {
-      resumen.value = responseResumen.data.eResponse.data.result;
+    if (responseResumen.success && responseResumen.data.data.result) {
+      resumen.value = responseResumen.data.result;
     }
 
     if (resultados.value.length === 0) {
@@ -427,27 +438,3 @@ onMounted(() => {
   fetchRecaudadoras();
 });
 </script>
-
-<style scoped>
-@import '@/styles/municipal-theme.css';
-.sticky-top {
-  position: sticky;
-  top: 0;
-  background-color: #f8f9fa;
-  z-index: 10;
-}
-
-@media print {
-  .card-header,
-  .card-footer,
-  .breadcrumb,
-  button,
-  .no-print {
-    display: none !important;
-  }
-
-  table {
-    font-size: 10px;
-  }
-}
-</style>

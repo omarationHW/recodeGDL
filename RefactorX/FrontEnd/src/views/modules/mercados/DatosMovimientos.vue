@@ -10,14 +10,20 @@
         <p>Inicio > Mercados > Movimientos</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-secondary" @click="$router.back()">
           <font-awesome-icon icon="arrow-left" />
           Regresar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -225,12 +231,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'DatosMovimientos'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - DatosMovimientos'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'DatosMovimientos'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - DatosMovimientos'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -301,7 +316,7 @@ const formatCurrency = (val) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Consulta de movimientos históricos de un local de mercado')
+  showToast('Consulta de movimientos históricos de un local de mercado', 'info')
 }
 
 // Función para calcular descripción de vigencia en frontend
@@ -330,7 +345,7 @@ const calcularRenta = (superficie, importeCuota, seccion) => {
 
 const fetchMovimientos = async () => {
   if (!id_local.value) {
-    showToast('warning', 'Ingrese un ID de local')
+    showToast('Ingrese un ID de local', 'warning')
     return
   }
 
@@ -340,16 +355,17 @@ const fetchMovimientos = async () => {
 
   try {
     // 1. Movimientos
-    const movResp = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_movimientos_by_local',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: id_local.value }
-        ]
-      }
-    })
-    let movs = movResp.data?.eResponse?.data?.result || []
+    const movResp = await apiService.execute(
+          'sp_get_movimientos_by_local',
+          'mercados',
+          [
+          { nombre: 'p_id_local', valor: id_local.value }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    let movs = movResp.data?.data.result || []
 
     // 2. Calcular vigdescripcion y renta para cada movimiento
     for (let mov of movs) {
@@ -358,19 +374,20 @@ const fetchMovimientos = async () => {
 
       // Obtener cuota
       try {
-        const cuotaResp = await axios.post('/api/generic', {
-          eRequest: {
-            Operacion: 'sp_get_cuota_by_params',
-            Base: 'mercados',
-            Parametros: [
-              { Nombre: 'p_vaxo', Valor: mov.axo_memo },
-              { Nombre: 'p_vcat', Valor: mov.categoria },
-              { Nombre: 'p_vsec', Valor: mov.seccion },
-              { Nombre: 'p_vcuo', Valor: mov.clave_cuota }
-            ]
-          }
-        })
-        let cuota = cuotaResp.data?.eResponse?.data?.result?.[0]
+        const cuotaResp = await apiService.execute(
+          'sp_get_cuota_by_params',
+          'mercados',
+          [
+              { nombre: 'p_vaxo', valor: mov.axo_memo },
+              { nombre: 'p_vcat', valor: mov.categoria },
+              { nombre: 'p_vsec', valor: mov.seccion },
+              { nombre: 'p_vcuo', valor: mov.clave_cuota }
+            ],
+          '',
+          null,
+          'publico'
+        )
+        let cuota = cuotaResp.data?.data.result?.[0]
 
         // Calcular renta (cálculo en frontend)
         mov.renta = cuota ? calcularRenta(mov.superficie, cuota.importe_cuota, mov.seccion) : null
@@ -384,12 +401,12 @@ const fetchMovimientos = async () => {
     currentPage.value = 1
 
     if (movs.length > 0) {
-      showToast('success', `Se encontraron ${movs.length} movimientos`)
+      showToast(`Se encontraron ${movs.length} movimientos`, 'success')
     } else {
-      showToast('info', 'No se encontraron movimientos')
+      showToast('No se encontraron movimientos', 'info')
     }
   } catch (err) {
-    showToast('error', 'Error al cargar movimientos')
+    showToast('Error al cargar movimientos', 'error')
     console.error(err)
   } finally {
     loading.value = false
@@ -401,24 +418,26 @@ const fetchCatalogs = async () => {
   showLoading('Cargando Movimientos', 'Preparando catálogos del sistema...')
   try {
     // Claves de movimiento
-    const claveMovResp = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_clave_movimientos',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    clavesMov.value = claveMovResp.data?.eResponse?.data?.result || []
+    const claveMovResp = await apiService.execute(
+          'sp_get_clave_movimientos',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    clavesMov.value = claveMovResp.data?.data.result || []
 
     // Claves de cuota
-    const cveCuotaResp = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_cve_cuotas',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    cveCuotas.value = cveCuotaResp.data?.eResponse?.data?.result || []
+    const cveCuotaResp = await apiService.execute(
+          'sp_get_cve_cuotas',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    cveCuotas.value = cveCuotaResp.data?.data.result || []
   } catch (err) {
     console.error('Error al cargar catálogos:', err)
   } finally {

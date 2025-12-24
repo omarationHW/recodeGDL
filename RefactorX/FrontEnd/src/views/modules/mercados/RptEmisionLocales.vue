@@ -9,15 +9,22 @@
         <p>Inicio > Mercados > Emisión de Recibos</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="previsualizar" :disabled="loading">
           <font-awesome-icon icon="search" /> Previsualizar
         </button>
-        <button class="btn-municipal-success" @click="emitirRecibos" :disabled="loading || results.length === 0">
+        <button class="btn-municipal-primary" @click="emitirRecibos" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-invoice-dollar" /> Emitir Recibos
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -33,7 +40,7 @@
               <select v-model="filters.oficina" class="municipal-form-control" @change="onOficinaChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -170,6 +177,9 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptEmisionLocales'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptEmisionLocales'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptEmisionLocales'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptEmisionLocales'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
@@ -178,6 +188,11 @@ import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -276,7 +291,7 @@ const onOficinaChange = async () => {
     showLoading('Cargando mercados...', 'Por favor espere')
     const response = await execute(
       'sp_get_mercados_by_recaudadora',
-      'padron_licencias',
+      'mercados',
       [{ nombre: 'p_id_rec', valor: parseInt(filters.value.oficina), tipo: 'integer' }],
       'guadalajara',
       null,
@@ -295,7 +310,7 @@ const onOficinaChange = async () => {
 
 const previsualizar = async () => {
   if (!filters.value.oficina || !filters.value.mercado) {
-    showToast('warning', 'Por favor complete todos los filtros requeridos')
+    showToast('Por favor complete todos los filtros requeridos', 'warning')
     return
   }
 
@@ -322,11 +337,11 @@ const previsualizar = async () => {
       results.value = response.result
       busquedaRealizada.value = true
       currentPage.value = 1
-      showToast('success', `Se encontraron ${results.value.length} locales`)
+      showToast(`Se encontraron ${results.value.length} locales`, 'success')
     } else {
       results.value = []
       busquedaRealizada.value = true
-      showToast('info', 'No se encontraron locales para emitir')
+      showToast('No se encontraron locales para emitir', 'info')
     }
   } catch (error) {
     console.error('Error al consultar:', error)
@@ -341,7 +356,7 @@ const previsualizar = async () => {
 
 const emitirRecibos = async () => {
   if (!results.value.length) {
-    showToast('warning', 'No hay recibos para emitir')
+    showToast('No hay recibos para emitir', 'warning')
     return
   }
 
@@ -391,7 +406,7 @@ const emitirRecibos = async () => {
         timer: 2000
       })
 
-      showToast('success', 'Recibos emitidos correctamente')
+      showToast('Recibos emitidos correctamente', 'success')
       await previsualizar()
     } else {
       throw new Error('Error en la emisión')

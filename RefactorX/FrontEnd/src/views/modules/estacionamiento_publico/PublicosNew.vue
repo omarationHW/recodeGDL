@@ -17,11 +17,13 @@
         <p>Registro de nuevo contribuyente en el padrón</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentación Técnica">
-          <font-awesome-icon icon="file-code" /> Documentación
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
       <div class="module-view-actions">
@@ -240,45 +242,28 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - Nuevo Estacionamiento">
-      <h3>Alta de Nuevo Estacionamiento Público</h3>
-      <p>Este módulo permite registrar nuevos estacionamientos públicos en el sistema.</p>
-      <h4>Campos Obligatorios:</h4>
-      <ul>
-        <li><strong>Categoría:</strong> Tipo de estacionamiento</li>
-        <li><strong>No. Estacionamiento:</strong> Número único identificador</li>
-        <li><strong>Sector:</strong> J (Juárez), H (Hidalgo), L (Libertad), R (Reforma)</li>
-        <li><strong>Cajones:</strong> Capacidad del estacionamiento</li>
-        <li><strong>Nombre:</strong> Nombre o razón social del contribuyente</li>
-      </ul>
-      <h4>Consulta de Predio:</h4>
-      <p>Puede ingresar la clave catastral para obtener automáticamente los datos de ubicación del predio.</p>
-      <h4>Instrucciones:</h4>
-      <ol>
-        <li>Opcionalmente consulte el predio por clave catastral</li>
-        <li>Complete los campos obligatorios marcados con asterisco (*)</li>
-        <li>Verifique los datos ingresados</li>
-        <li>Haga clic en "Registrar" para guardar</li>
-      </ol>
-    </DocumentationModal>
-
-    <!-- Modal de Documentación Técnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'PublicosNew'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'PublicosNew'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Alta de Estacionamiento Público'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import Swal from 'sweetalert2'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -478,25 +463,25 @@ async function create() {
       { nombre: 'p_fecha_inicial', valor: form.fecha_inicial || today, tipo: 'date' },
       { nombre: 'p_fecha_vencimiento', valor: form.fecha_vencimiento || null, tipo: 'date' },
       { nombre: 'p_rfc', valor: form.rfc || '', tipo: 'string' },
+      { nombre: 'p_solicitud', valor: form.solicitud || 0, tipo: 'integer' },
+      { nombre: 'p_control', valor: form.control || 0, tipo: 'integer' },
       { nombre: 'p_movtos_no', valor: form.movtos_no || 0, tipo: 'integer' },
       { nombre: 'p_movto_cve', valor: 'A', tipo: 'string' },
-      { nombre: 'p_movto_usr', valor: form.movto_usr || 1, tipo: 'integer' },
-      { nombre: 'p_solicitud', valor: form.solicitud || 0, tipo: 'integer' },
-      { nombre: 'p_control', valor: form.control || 0, tipo: 'integer' }
+      { nombre: 'p_movto_usr', valor: form.movto_usr || 1, tipo: 'integer' }
     ]
 
     const resp = await execute('sppubalta', BASE_DB, params, '', null, SCHEMA)
     const r = resp?.result?.[0] || resp?.data?.result?.[0] || resp?.data?.[0] || {}
 
-    if (r?.result === 1) {
-      showToast('success', `Estacionamiento registrado correctamente. ID asignado: ${r.idnvo}`)
+    if (r?.success === true) {
+      showToast('success', `Estacionamiento registrado correctamente. ID asignado: ${r.new_id}`)
 
       // Limpiar formulario después de éxito
       setTimeout(() => {
         resetForm()
       }, 100)
     } else {
-      showToast('error', r?.resultstr || 'No se pudo crear el estacionamiento')
+      showToast('error', r?.message || 'No se pudo crear el estacionamiento')
     }
   } catch (e) {
     handleApiError(e)
@@ -506,12 +491,18 @@ async function create() {
 }
 
 // Documentación y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>

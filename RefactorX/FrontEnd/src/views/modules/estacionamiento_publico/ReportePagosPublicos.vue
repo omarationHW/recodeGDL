@@ -14,11 +14,13 @@
         <p>Folios pagados y adeudos por inspector</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -72,7 +74,7 @@
 
       <!-- Sección de Resultados -->
       <div class="form-section">
-        <div class="section-header section-header-success">
+        <div class="section-header section-header-success header-with-badge">
           <div class="section-icon"><font-awesome-icon icon="table" /></div>
           <div class="section-title-group">
             <h3>Resultados del Reporte</h3>
@@ -120,7 +122,7 @@
                 </tr>
                 <tr v-if="rows.length === 0">
                   <td colspan="11" class="empty-state">
-                    <font-awesome-icon icon="file-invoice-dollar" size="2x" class="empty-icon" />
+                    <font-awesome-icon icon="file-invoice-dollar" size="2x" class="empty-state-icon" />
                     <p>No hay datos para mostrar. Configure los parámetros y ejecute el reporte.</p>
                   </td>
                 </tr>
@@ -151,7 +153,7 @@
                 </tr>
                 <tr v-if="rows.length === 0">
                   <td colspan="2" class="empty-state">
-                    <font-awesome-icon icon="user-tie" size="2x" class="empty-icon" />
+                    <font-awesome-icon icon="user-tie" size="2x" class="empty-state-icon" />
                     <p>No hay adeudos por inspector para la fecha seleccionada.</p>
                   </td>
                 </tr>
@@ -194,24 +196,19 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - ReportePagosPublicos">
-      <h3>Reporte de Pagos Públicos</h3>
-      <p>Este módulo genera reportes de pagos de estacionamientos públicos.</p>
-      <h4>Tipos de Reporte:</h4>
-      <ul>
-        <li><strong>Folios pagados:</strong> Lista detallada de folios pagados en la fecha</li>
-        <li><strong>Adeudos por inspector:</strong> Resumen de adeudos agrupados por inspector</li>
-      </ul>
-    </DocumentationModal>
-
-    <!-- Modal de Documentación Técnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'ReportePagosPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'ReportePagosPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Reporte de Pagos'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
@@ -219,7 +216,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -312,12 +309,18 @@ async function ejecutar() {
 }
 
 // Documentación y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>
@@ -435,7 +438,7 @@ const closeTechDocs = () => showTechDocs.value = false
   color: #6c757d;
 }
 
-.empty-icon {
+.empty-state-icon {
   margin-bottom: 1rem;
   opacity: 0.5;
 }

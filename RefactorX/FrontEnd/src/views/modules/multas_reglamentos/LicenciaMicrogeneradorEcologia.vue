@@ -8,6 +8,16 @@
         <h1>Licencia Microgenerador Ecología</h1>
         <p>Consulta de licencias ecológicas de microgeneración</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -69,11 +79,49 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(r, i) in rows" :key="i">
+                <tr v-for="(r, i) in paginatedRows" :key="i">
                   <td v-for="c in cols" :key="c">{{ r[c] }}</td>
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Pagination Controls -->
+          <div v-if="rows.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ rows.length }} registros
+              </span>
+            </div>
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary"
+                :disabled="currentPage === 1"
+                @click="goToPage(1)">
+                <font-awesome-icon icon="angles-left" />
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                :disabled="currentPage === 1"
+                @click="prevPage">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+              <span class="pagination-page-indicator">
+                Página {{ currentPage }} de {{ totalPages }}
+              </span>
+              <button
+                class="btn-municipal-secondary"
+                :disabled="currentPage === totalPages"
+                @click="nextPage">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(totalPages)">
+                <font-awesome-icon icon="angles-right" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -87,32 +135,88 @@
           </div>
         </div>
       </div>
-    </div>
+    </div>    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'LicenciaMicrogeneradorEcologia'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Licencia Microgenerador Ecología'"
+      @close="showAyuda = false"
+    />
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'LicenciaMicrogeneradorEcologia'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Licencia Microgenerador Ecología'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_LICENCIAMICROGENERADORECOLOGIA'
+const SCHEMA = 'publico'
 
 const filters = ref({ rfc: '' })
 const rows = ref([])
 const cols = ref([])
 const error = ref(null)
 const searched = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// Computed properties para paginación
+const totalPages = computed(() => Math.ceil(rows.value.length / pageSize.value))
+
+const startIndex = computed(() => (currentPage.value - 1) * pageSize.value)
+
+const endIndex = computed(() => {
+  const end = startIndex.value + pageSize.value
+  return end > rows.value.length ? rows.value.length : end
+})
+
+const paginatedRows = computed(() => {
+  return rows.value.slice(startIndex.value, endIndex.value)
+})
+
+// Funciones de paginación
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+function goToPage(page) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
 
 async function consultar() {
+  currentPage.value = 1 // Reset a la primera página al buscar
   error.value = null
   searched.value = false
 
@@ -121,7 +225,7 @@ async function consultar() {
   ]
 
   try {
-    const response = await execute(OP, BASE_DB, params)
+    const response = await execute(OP, BASE_DB, params, '', null, SCHEMA)
     searched.value = true
 
     // Manejar diferentes formatos de respuesta
@@ -150,76 +254,3 @@ async function consultar() {
 }
 </script>
 
-<style scoped>
-.form-text {
-  color: #6c757d;
-  font-size: 0.85rem;
-  margin-top: 4px;
-  display: block;
-}
-
-.table-container {
-  overflow-x: auto;
-}
-
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.municipal-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 0;
-}
-
-.municipal-table-header {
-  background-color: #f8f9fa;
-  border-bottom: 2px solid #dee2e6;
-}
-
-.municipal-table-header th {
-  padding: 12px;
-  text-align: left;
-  font-weight: 600;
-  color: #495057;
-  border-bottom: 2px solid #dee2e6;
-}
-
-.municipal-table tbody tr {
-  border-bottom: 1px solid #dee2e6;
-}
-
-.municipal-table tbody tr:hover {
-  background-color: #f8f9fa;
-}
-
-.municipal-table tbody td {
-  padding: 12px;
-  color: #212529;
-}
-
-.alert-danger {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 8px;
-  padding: 16px;
-  color: #721c24;
-}
-
-.alert-danger svg {
-  margin-right: 8px;
-}
-
-.alert-info {
-  background-color: #d1ecf1;
-  border: 1px solid #bee5eb;
-  border-radius: 8px;
-  padding: 16px;
-  color: #0c5460;
-}
-
-.alert-info svg {
-  margin-right: 8px;
-}
-</style>

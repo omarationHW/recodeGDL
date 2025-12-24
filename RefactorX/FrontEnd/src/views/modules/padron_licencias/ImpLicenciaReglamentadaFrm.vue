@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Impresión de Licencia Reglamentada</h1>
-        <p>Padrón de Licencias - Impresión de Licencias Reglamentadas con Cálculo de Adeudos</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Impresión de Licencias Reglamentadas con Cálculo de Adeudos</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -54,7 +57,7 @@
           <button
             class="btn-municipal-primary"
             @click="searchLicencia"
-            :disabled="loading || !filters.numeroLicencia"
+            :disabled="!filters.numeroLicencia"
           >
             <font-awesome-icon icon="search" />
             Buscar Licencia
@@ -62,7 +65,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -177,7 +179,7 @@
           <button
             class="btn-municipal-primary"
             @click="generatePreview"
-            :disabled="loading || licenciaData.bloqueada"
+            :disabled="licenciaData.bloqueada"
           >
             <font-awesome-icon icon="eye" />
             Vista Previa
@@ -185,7 +187,7 @@
           <button
             class="btn-municipal-success"
             @click="printLicencia"
-            :disabled="loading || licenciaData.bloqueada"
+            :disabled="licenciaData.bloqueada"
           >
             <font-awesome-icon icon="print" />
             Imprimir Licencia
@@ -209,56 +211,57 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'ImpLicenciaReglamentadaFrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Impresión de Licencia Reglamentada'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
 import { ref } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
-
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -266,13 +269,16 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const licenciaData = ref(null)
 const adeudoInfo = ref(null)
 const saldoInfo = ref(null)
 const showPreview = ref(false)
 const previewContent = ref('')
-const loadingMessage = ref('Cargando...')
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Filtros
 const filters = ref({
@@ -287,8 +293,9 @@ const searchLicencia = async () => {
     return
   }
 
-  setLoading(true)
-  loadingMessage.value = 'Buscando licencia...'
+  showLoading('Buscando licencia...', 'Por favor espere')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     // GETLICENCIAREGLAMENTADA
@@ -322,7 +329,7 @@ const searchLicencia = async () => {
     handleApiError(error)
     licenciaData.value = null
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -459,6 +466,8 @@ const clearFilters = () => {
   saldoInfo.value = null
   showPreview.value = false
   previewContent.value = ''
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 // Utilidades

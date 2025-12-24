@@ -9,15 +9,22 @@
         <p>Inicio > Operaciones > Emisión Energía</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="ejecutarEmision" :disabled="loading || !canExecute">
           <font-awesome-icon icon="play" /> Ejecutar Emisión
         </button>
-        <button class="btn-municipal-success" @click="grabarEmision" :disabled="loading || emision.length === 0">
+        <button class="btn-municipal-primary" @click="grabarEmision" :disabled="loading || emision.length === 0">
           <font-awesome-icon icon="save" /> Grabar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -33,7 +40,7 @@
               <select class="municipal-form-control" v-model="selectedRecaudadora" @change="onRecaudadoraChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -96,27 +103,76 @@
             </table>
           </div>
 
-          <!-- Paginación -->
-          <div v-if="emision.length > 0" class="pagination-container">
+          <!-- Controles de paginación -->
+          <div v-if="emision.length > 0" class="pagination-controls">
             <div class="pagination-info">
-              Mostrando {{ paginationStart }} a {{ paginationEnd }} de {{ totalItems }} registros
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, emision.length) }}
+                de {{ emision.length }} registros
+              </span>
             </div>
-            <div class="pagination-controls">
-              <label class="me-2">Registros por página:</label>
-              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
               </select>
             </div>
+
             <div class="pagination-buttons">
-              <button @click="prevPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
               </button>
-              <span>Página {{ currentPage }} de {{ totalPages }}</span>
-              <button @click="nextPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
               </button>
             </div>
           </div>
@@ -137,12 +193,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'EmisionEnergia'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - EmisionEnergia'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'EmisionEnergia'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - EmisionEnergia'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -178,27 +243,33 @@ const totalPages = computed(() => {
   return Math.ceil(emision.value.length / itemsPerPage.value)
 })
 
-const paginationStart = computed(() => {
-  return emision.value.length === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
 })
 
-const paginationEnd = computed(() => {
-  const end = currentPage.value * itemsPerPage.value
-  return end > emision.value.length ? emision.value.length : end
-})
-
-const totalItems = computed(() => emision.value.length)
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
   }
 }
 
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
 }
 
 // Reset página al cambiar emision
@@ -206,7 +277,7 @@ watch(emision, () => {
   currentPage.value = 1
 })
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = { show: true, type, message }
   setTimeout(() => hideToast(), 5000)
 }
@@ -221,21 +292,26 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione recaudadora, mercado, año y periodo. Luego ejecute la emisión para ver los locales. Finalmente grabe la emisión.')
+  showToast('Seleccione recaudadora, mercado, año y periodo. Luego ejecute la emisión para ver los locales. Finalmente grabe la emisión.', 'info')
 }
 
 const fetchRecaudadoras = async () => {
   showLoading('Cargando Emisión de Energía', 'Preparando oficinas recaudadoras...')
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'padron_licencias', Parametros: [] }
-    })
-    if (res.data.eResponse.success) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar recaudadoras')
+    showToast('Error al cargar recaudadoras', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -248,14 +324,19 @@ const onRecaudadoraChange = async () => {
   if (!selectedRecaudadora.value) return
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_mercados', Base: 'mercados', Parametros: [{ Nombre: 'p_oficina', Valor: parseInt(selectedRecaudadora.value) }] }
-    })
-    if (res.data.eResponse.success) {
-      mercados.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_mercados',
+          'mercados',
+          [{ nombre: 'p_oficina', valor: parseInt(selectedRecaudadora.value) }],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      mercados.value = res.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar mercados')
+    showToast('Error al cargar mercados', 'error')
   } finally {
     loading.value = false
   }
@@ -263,37 +344,38 @@ const onRecaudadoraChange = async () => {
 
 const ejecutarEmision = async () => {
   if (!canExecute.value) {
-    showToast('warning', 'Complete todos los campos requeridos')
+    showToast('Complete todos los campos requeridos', 'warning')
     return
   }
   loading.value = true
   emision.value = []
   searched.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'get_emision_energia',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(selectedRecaudadora.value) },
-          { Nombre: 'p_mercado', Valor: parseInt(selectedMercado.value) },
-          { Nombre: 'p_axo', Valor: parseInt(axo.value) },
-          { Nombre: 'p_periodo', Valor: parseInt(periodo.value) }
-        ]
-      }
-    })
-    if (res.data.eResponse.success) {
-      emision.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'get_emision_energia',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(selectedRecaudadora.value) },
+          { nombre: 'p_mercado', valor: parseInt(selectedMercado.value) },
+          { nombre: 'p_axo', valor: parseInt(axo.value) },
+          { nombre: 'p_periodo', valor: parseInt(periodo.value) }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      emision.value = res.data.result || []
       if (emision.value.length > 0) {
-        showToast('success', `Emisión ejecutada: ${emision.value.length} locales encontrados`)
+        showToast(`Emisión ejecutada: ${emision.value.length} locales encontrados`, 'success')
       } else {
-        showToast('info', 'No hay locales con energía para este periodo')
+        showToast('No hay locales con energía para este periodo', 'info')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al ejecutar emisión')
+      showToast(res.message || 'Error al ejecutar emisión', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al ejecutar emisión')
+    showToast('Error de conexión al ejecutar emisión', 'error')
   } finally {
     loading.value = false
   }
@@ -301,7 +383,7 @@ const ejecutarEmision = async () => {
 
 const grabarEmision = async () => {
   if (emision.value.length === 0) {
-    showToast('warning', 'No hay datos para grabar')
+    showToast('No hay datos para grabar', 'warning')
     return
   }
   if (!confirm('¿Está seguro de grabar la emisión de energía? Esta acción no se puede deshacer.')) {
@@ -309,33 +391,34 @@ const grabarEmision = async () => {
   }
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'grabar_emision_energia',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(selectedRecaudadora.value) },
-          { Nombre: 'p_mercado', Valor: parseInt(selectedMercado.value) },
-          { Nombre: 'p_axo', Valor: parseInt(axo.value) },
-          { Nombre: 'p_periodo', Valor: parseInt(periodo.value) },
-          { Nombre: 'p_usuario', Valor: 1 }
-        ]
-      }
-    })
-    if (res.data.eResponse.success) {
-      const result = res.data.eResponse.data.result[0]
+    const res = await apiService.execute(
+          'grabar_emision_energia',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(selectedRecaudadora.value) },
+          { nombre: 'p_mercado', valor: parseInt(selectedMercado.value) },
+          { nombre: 'p_axo', valor: parseInt(axo.value) },
+          { nombre: 'p_periodo', valor: parseInt(periodo.value) },
+          { nombre: 'p_usuario', valor: 1 }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      const result = res.data.result[0]
       if (result.status === 'ok') {
-        showToast('success', result.message)
+        showToast(result.message, 'success')
         emision.value = []
         searched.value = false
       } else {
-        showToast('error', result.message)
+        showToast(result.message, 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al grabar emisión')
+      showToast(res.message || 'Error al grabar emisión', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al grabar emisión')
+    showToast('Error de conexión al grabar emisión', 'error')
   } finally {
     loading.value = false
   }
@@ -357,11 +440,3 @@ onMounted(() => {
   fetchRecaudadoras()
 })
 </script>
-
-<style scoped>
-.empty-icon {
-  color: #6c757d;
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
-</style>

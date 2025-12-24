@@ -9,15 +9,22 @@
         <p>Inicio > Mercados > Ingreso Zonificado</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="consultar" :disabled="loading">
           <font-awesome-icon icon="search" /> Consultar
         </button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -83,7 +90,7 @@
             </div>
             <div class="pagination-controls">
               <label class="me-2">Registros por página:</label>
-              <select v-model.number="pageSize" class="form-select form-select-sm">
+              <select v-model.number="pageSize" class="municipal-form-control" style="width: auto;">
                 <option :value="10">10</option>
                 <option :value="25">25</option>
                 <option :value="50">50</option>
@@ -126,23 +133,25 @@
       </div>
     </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptIngresoZonificado'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptIngresoZonificado'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptIngresoZonificado'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptIngresoZonificado'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 const filters = ref({
   fecdesde: '',
@@ -154,21 +163,6 @@ const loading = ref(false);
 const busquedaRealizada = ref(false);
 const currentPage = ref(1);
 const pageSize = ref(25);
-
-// Toast
-const toast = ref({ show: false, type: 'info', message: '' })
-
-const showToast = (type, message) => {
-  toast.value = { show: true, type, message }
-  setTimeout(() => hideToast(), 5000)
-}
-
-const hideToast = () => { toast.value.show = false }
-
-const getToastIcon = (type) => {
-  const icons = { success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' }
-  return icons[type] || 'info-circle'
-}
 
 // Paginación
 const totalRecords = computed(() => results.value.length)
@@ -205,7 +199,7 @@ const totalIngreso = computed(() => results.value.reduce((sum, r) => sum + (pars
 
 const consultar = async () => {
   if (!filters.value.fecdesde || !filters.value.fechasta) {
-    showToast('warning', 'Por favor complete todos los filtros requeridos');
+    showToast('Por favor complete todos los filtros requeridos', 'warning');
     return;
   }
 
@@ -213,35 +207,36 @@ const consultar = async () => {
   showLoading()
   busquedaRealizada.value = false;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_ingreso_zonificado',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_fecdesde', Valor: filters.value.fecdesde },
-          { Nombre: 'p_fechasta', Valor: filters.value.fechasta }
-        ]
-      }
-    });
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      results.value = response.data.eResponse.data.result;
+    const response = await apiService.execute(
+          'sp_ingreso_zonificado',
+          'mercados',
+          [
+          { nombre: 'p_fecdesde', valor: filters.value.fecdesde },
+          { nombre: 'p_fechasta', valor: filters.value.fechasta }
+        ],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success && response?.data?.result) {
+      results.value = response.data.result;
       busquedaRealizada.value = true;
       currentPage.value = 1;
       if (results.value.length > 0) {
-        showToast('success', `Se encontraron ${results.value.length} zonas con ingresos`)
+        showToast(`Se encontraron ${results.value.length} zonas con ingresos`, 'success')
       } else {
-        showToast('info', 'No se encontraron registros para el período seleccionado')
+        showToast('No se encontraron registros para el período seleccionado', 'info')
       }
     } else {
       results.value = [];
       busquedaRealizada.value = true;
-      showToast('error', 'Error al consultar los datos')
+      showToast('Error al consultar los datos', 'error')
     }
   } catch (error) {
     console.error('Error al consultar:', error);
     results.value = [];
     busquedaRealizada.value = true;
-    showToast('error', 'Error de conexión al consultar')
+    showToast('Error de conexión al consultar', 'error')
   } finally {
     loading.value = false;
     hideLoading()
@@ -255,7 +250,7 @@ const formatCurrency = (value) => {
 
 const exportarExcel = () => {
   if (results.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -271,15 +266,15 @@ const exportarExcel = () => {
     a.download = `ingreso_zonificado_${filters.value.fecdesde}_${filters.value.fechasta}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
     console.error('Error al exportar:', err)
-    showToast('error', 'Error al exportar el archivo')
+    showToast('Error al exportar el archivo', 'error')
   }
 };
 
 const mostrarAyuda = () => {
-  showToast('info', 'Reporte de Ingreso Zonificado - Seleccione el rango de fechas para generar el reporte de ingresos por zona.');
+  showToast('Reporte de Ingreso Zonificado - Seleccione el rango de fechas para generar el reporte de ingresos por zona.', 'info');
 };
 
 onMounted(() => {

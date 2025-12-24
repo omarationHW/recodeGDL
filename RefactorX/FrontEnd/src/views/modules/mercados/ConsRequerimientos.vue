@@ -10,6 +10,15 @@
         <p>Inicio > Consultas > Requerimientos</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel"
           :disabled="loading || requerimientos.length === 0">
           <font-awesome-icon icon="file-excel" />
@@ -20,10 +29,7 @@
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -47,7 +53,7 @@
                 <select v-model="form.oficina" class="municipal-form-control" required @change="cargarMercados" :disabled="loading">
                   <option value="">Seleccione...</option>
                   <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                    {{ rec.id_rec }} - {{ rec.recaudadora }}
+                   {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
@@ -63,7 +69,16 @@
                 </select>
               </div>
 
-              
+              <div class="form-group">
+                <label class="municipal-form-label">Categoría <span class="required">*</span></label>
+                <select v-model="form.categoria" class="municipal-form-control" required :disabled="loading">
+                  <option value="">Seleccione...</option>
+                  <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                    {{ cat.categoria }} - {{ cat.descripcion }}
+                  </option>
+                </select>
+              </div>
+
               <div class="form-group">
                 <label class="municipal-form-label">Sección <span class="required">*</span></label>
                 <select v-model="form.seccion" class="municipal-form-control" required :disabled="loading">
@@ -248,7 +263,7 @@
                     <p>No se encontraron requerimientos para este local</p>
                   </td>
                 </tr>
-                <tr v-else v-for="r in requerimientos" :key="r.id_control"
+                <tr v-else v-for="r in paginatedRequerimientos" :key="r.id_control"
                   @click="selectedReq = r"
                   :class="{ 'table-row-selected': selectedReq?.id_control === r.id_control }"
                   class="row-hover">
@@ -278,6 +293,80 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Controles de paginación para requerimientos -->
+          <div v-if="requerimientos.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPageReq - 1) * itemsPerPageReq) + 1 }}
+                a {{ Math.min(currentPageReq * itemsPerPageReq, requerimientos.length) }}
+                de {{ requerimientos.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPageReq"
+                @change="changePageSizeReq($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPageReq(1)"
+                :disabled="currentPageReq === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPageReq(currentPageReq - 1)"
+                :disabled="currentPageReq === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePagesReq"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPageReq ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPageReq(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPageReq(currentPageReq + 1)"
+                :disabled="currentPageReq === totalPagesReq"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPageReq(totalPagesReq)"
+                :disabled="currentPageReq === totalPagesReq"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -330,7 +419,7 @@
                     <p>No se encontraron periodos para este requerimiento</p>
                   </td>
                 </tr>
-                <tr v-else v-for="(p, idx) in periodos" :key="idx" class="row-hover">
+                <tr v-else v-for="(p, idx) in paginatedPeriodos" :key="idx" class="row-hover">
                   <td><strong>{{ p.axo }}</strong></td>
                   <td>{{ p.periodo }}</td>
                   <td class="text-end">
@@ -358,6 +447,80 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Controles de paginación para periodos -->
+          <div v-if="periodos.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPagePer - 1) * itemsPerPagePer) + 1 }}
+                a {{ Math.min(currentPagePer * itemsPerPagePer, periodos.length) }}
+                de {{ periodos.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPagePer"
+                @change="changePageSizePer($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPagePer(1)"
+                :disabled="currentPagePer === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPagePer(currentPagePer - 1)"
+                :disabled="currentPagePer === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePagesPer"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPagePer ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPagePer(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPagePer(currentPagePer + 1)"
+                :disabled="currentPagePer === totalPagesPer"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPagePer(totalPagesPer)"
+                :disabled="currentPagePer === totalPagesPer"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -372,12 +535,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'ConsRequerimientos'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - ConsRequerimientos'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'ConsRequerimientos'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - ConsRequerimientos'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -400,11 +572,13 @@ const searchPerformed = ref(false)
 const recaudadoras = ref([])
 const mercados = ref([])
 const secciones = ref([])
+const categorias = ref([])
 
 // Formulario
 const form = ref({
   oficina: '',
   num_mercado: '',
+  categoria: '',
   seccion: '',
   local: '',
   letra_local: '',
@@ -417,6 +591,14 @@ const requerimientos = ref([])
 const periodos = ref([])
 const selectedLocal = ref(null)
 const selectedReq = ref(null)
+
+// Paginación para requerimientos
+const currentPageReq = ref(1)
+const itemsPerPageReq = ref(10)
+
+// Paginación para periodos
+const currentPagePer = ref(1)
+const itemsPerPagePer = ref(10)
 
 // Toast
 const toast = ref({
@@ -431,10 +613,10 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ingrese los datos del local para buscar sus requerimientos. Los campos marcados con (*) son obligatorios.')
+  showToast('Ingrese los datos del local para buscar sus requerimientos. Los campos marcados con (*) son obligatorios.', 'info')
 }
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = {
     show: true,
     type,
@@ -477,12 +659,96 @@ const totalPeriodos = computed(() => {
   return { importe, recargos, total: importe + recargos }
 })
 
+// Paginación para requerimientos
+const totalPagesReq = computed(() => Math.ceil(requerimientos.value.length / itemsPerPageReq.value))
+const paginatedRequerimientos = computed(() => {
+  const start = (currentPageReq.value - 1) * itemsPerPageReq.value
+  const end = start + itemsPerPageReq.value
+  return requerimientos.value.slice(start, end)
+})
+const visiblePagesReq = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPageReq.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPagesReq.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+// Paginación para periodos
+const totalPagesPer = computed(() => Math.ceil(periodos.value.length / itemsPerPagePer.value))
+const paginatedPeriodos = computed(() => {
+  const start = (currentPagePer.value - 1) * itemsPerPagePer.value
+  const end = start + itemsPerPagePer.value
+  return periodos.value.slice(start, end)
+})
+const visiblePagesPer = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPagePer.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPagesPer.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+const goToPageReq = (page) => {
+  if (page >= 1 && page <= totalPagesReq.value) {
+    currentPageReq.value = page
+  }
+}
+
+const changePageSizeReq = (newSize) => {
+  itemsPerPageReq.value = parseInt(newSize)
+  currentPageReq.value = 1
+}
+
+const goToPagePer = (page) => {
+  if (page >= 1 && page <= totalPagesPer.value) {
+    currentPagePer.value = page
+  }
+}
+
+const changePageSizePer = (newSize) => {
+  itemsPerPagePer.value = parseInt(newSize)
+  currentPagePer.value = 1
+}
+
+// Cargar categorías
+const cargarCategorias = async () => {
+  try {
+    const res = await apiService.execute(
+          'sp_categoria_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      categorias.value = res.data.result || []
+    }
+  } catch (error) {
+    console.error('Error al cargar categorías:', error)
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
   showLoading('Cargando Consulta de Requerimientos', 'Preparando catálogos del sistema...')
   try {
     await cargarRecaudadoras()
     await cargarSecciones()
+    await cargarCategorias()
   } finally {
     hideLoading()
   }
@@ -492,27 +758,28 @@ const cargarRecaudadoras = async () => {
   loading.value = true
   errorLocales.value = ''
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success === true) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
       }
     } else {
-      errorLocales.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', errorLocales.value)
+      errorLocales.value = res.message || 'Error al cargar recaudadoras'
+      showToast(errorLocales.value, 'error')
     }
   } catch (err) {
     errorLocales.value = 'Error de conexión al cargar recaudadoras'
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', errorLocales.value)
+    showToast(errorLocales.value, 'error')
   } finally {
     loading.value = false
   }
@@ -531,32 +798,33 @@ const cargarMercados = async () => {
     const nivelUsuario = 1 // TODO: Obtener del store de usuario
     const oficinaParam = form.value.oficina || null
 
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_catalogo_mercados',
-        Base: 'padron_licencias',
-        Parametros: [
+    const res = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
           { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
           { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
-        ]
-      }
-    })
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      mercados.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      mercados.value = res.data.result || []
       if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+        showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
       } else {
-        showToast('info', 'No se encontraron mercados para esta oficina')
+        showToast('No se encontraron mercados para esta oficina', 'info')
       }
     } else {
-      errorLocales.value = res.data.eResponse?.message || 'Error al cargar mercados'
-      showToast('error', errorLocales.value)
+      errorLocales.value = res.message || 'Error al cargar mercados'
+      showToast(errorLocales.value, 'error')
     }
   } catch (err) {
     errorLocales.value = 'Error de conexión al cargar mercados'
     console.error('Error al cargar mercados:', err)
-    showToast('error', errorLocales.value)
+    showToast(errorLocales.value, 'error')
   } finally {
     loading.value = false
   }
@@ -570,27 +838,28 @@ const cargarSecciones = async () => {
   errorLocales.value = ''
   try {
 
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_secciones',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
+    const res = await apiService.execute(
+          'sp_get_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      secciones.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      secciones.value = res.data.result || []
       if (secciones.value.length > 0) {
-        showToast('success', `Se cargaron ${secciones.value.length} secciones`)
+        showToast(`Se cargaron ${secciones.value.length} secciones`, 'success')
       }
     } else {
-      errorLocales.value = res.data.eResponse?.message || 'Error al cargar secciones'
-      showToast('error', errorLocales.value)
+      errorLocales.value = res.message || 'Error al cargar secciones'
+      showToast(errorLocales.value, 'error')
     }
   } catch (error) {
     errorLocales.value = 'Error de conexión al cargar secciones'
     console.error('Error al cargar secciones:', error)
-    showToast('error', errorLocales.value)
+    showToast(errorLocales.value, 'error')
   } finally {
     loading.value = false
   }
@@ -599,7 +868,7 @@ const cargarSecciones = async () => {
 const buscarLocales = async () => {
   if (!form.value.oficina || !form.value.num_mercado || !form.value.seccion || !form.value.local) {
     errorLocales.value = 'Debe completar todos los campos obligatorios'
-    showToast('warning', errorLocales.value)
+    showToast(errorLocales.value, 'warning')
     return
   }
 
@@ -622,53 +891,36 @@ const buscarLocales = async () => {
       ? form.value.bloque.trim()
       : null
 
-    const payload = {
-      eRequest: {
-        Operacion: 'sp_get_locales_by_mercado',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-          { Nombre: 'p_num_mercado', Valor: parseInt(form.value.num_mercado) },
-          { Nombre: 'p_categoria', Valor: 1 },
-          { Nombre: 'p_seccion', Valor: form.value.seccion },
-          { Nombre: 'p_local', Valor: parseInt(form.value.local) },
-          { Nombre: 'p_letra_local', Valor: letraLocal },
-          { Nombre: 'p_bloque', Valor: bloque }
-        ]
-      }
-    }
+    const params = [
+      { nombre: 'p_oficina', valor: parseInt(form.value.oficina), tipo: 'integer' },
+      { nombre: 'p_num_mercado', valor: parseInt(form.value.num_mercado), tipo: 'integer' },
+      { nombre: 'p_categoria', valor: 1, tipo: 'integer' },
+      { nombre: 'p_seccion', valor: form.value.seccion, tipo: 'string' },
+      { nombre: 'p_local', valor: parseInt(form.value.local), tipo: 'integer' },
+      { nombre: 'p_letra_local', valor: letraLocal, tipo: 'string' },
+      { nombre: 'p_bloque', valor: bloque, tipo: 'string' }
+    ]
 
-    console.log('=== DEBUG ConsRequerimientos.buscarLocales ===')
-    console.log('Valores originales del formulario:', {
-      letra_local: `"${form.value.letra_local}"`,
-      bloque: `"${form.value.bloque}"`
-    })
-    console.log('Valores procesados:', {
-      letra_local: letraLocal === null ? 'NULL' : `"${letraLocal}"`,
-      bloque: bloque === null ? 'NULL' : `"${bloque}"`
-    })
-    console.log('Payload completo enviado al API:', JSON.stringify(payload, null, 2))
-
-    const response = await axios.post('/api/generic', payload)
+    const response = await apiService.execute('sp_get_locales_by_mercado', 'mercados', params, '', null, 'publico')
 
     console.log('Respuesta completa del API:', response.data)
 
-    if (response.data.eResponse && response.data.eResponse.success === true) {
-      locales.value = response.data.eResponse.data.result || []
+    if (response && response.success === true) {
+      locales.value = response.data.result || []
       if (locales.value.length === 0) {
-        showToast('info', 'No se encontraron locales con los criterios especificados')
+        showToast('No se encontraron locales con los criterios especificados', 'info')
       } else {
-        showToast('success', `Se encontraron ${locales.value.length} locales`)
+        showToast(`Se encontraron ${locales.value.length} locales`, 'success')
         showFilters.value = false
       }
     } else {
-      errorLocales.value = response.data.eResponse?.message || 'Error en la búsqueda'
-      showToast('error', errorLocales.value)
+      errorLocales.value = response?.message || 'Error en la búsqueda'
+      showToast(errorLocales.value, 'error')
     }
   } catch (error) {
     errorLocales.value = error.response?.data?.message || 'Error al buscar locales'
     console.error('Error al buscar locales:', error)
-    showToast('error', errorLocales.value)
+    showToast(errorLocales.value, 'error')
   } finally {
     loading.value = false
     loadingLocales.value = false
@@ -686,31 +938,32 @@ const seleccionarLocal = async (local) => {
   errorRequerimientos.value = ''
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_requerimientos_by_local',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_modulo', Valor: 11 },  // 11 = módulo de mercados
-          { Nombre: 'p_control_otr', Valor: local.id_local }
-        ]
-      }
-    })
-    if (response.data.eResponse && response.data.eResponse.success === true) {
-      requerimientos.value = response.data.eResponse.data.result || []
+    const response = await apiService.execute(
+          'sp_get_requerimientos_by_local',
+          'mercados',
+          [
+          { nombre: 'p_modulo', valor: 11 },  // 11 = módulo de mercados
+          { nombre: 'p_control_otr', valor: local.id_local }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (response && response.success === true) {
+      requerimientos.value = response.data.result || []
       if (requerimientos.value.length === 0) {
-        showToast('info', 'No se encontraron requerimientos para este local')
+        showToast('No se encontraron requerimientos para este local', 'info')
       } else {
-        showToast('success', `Se encontraron ${requerimientos.value.length} requerimientos`)
+        showToast(`Se encontraron ${requerimientos.value.length} requerimientos`, 'success')
       }
     } else {
-      errorRequerimientos.value = response.data.eResponse?.message || 'Error al obtener requerimientos'
-      showToast('error', errorRequerimientos.value)
+      errorRequerimientos.value = response?.message || 'Error al obtener requerimientos'
+      showToast(errorRequerimientos.value, 'error')
     }
   } catch (error) {
     errorRequerimientos.value = 'Error de conexión al cargar requerimientos'
     console.error('Error al cargar requerimientos:', error)
-    showToast('error', errorRequerimientos.value)
+    showToast(errorRequerimientos.value, 'error')
   } finally {
     loading.value = false
     loadingRequerimientos.value = false
@@ -726,30 +979,31 @@ const verPeriodos = async (requerimiento) => {
   errorPeriodos.value = ''
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_periodos_by_requerimiento',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_control_otr', Valor: requerimiento.control_otr }
-        ]
-      }
-    })
-    if (response.data.eResponse && response.data.eResponse.success === true) {
-      periodos.value = response.data.eResponse.data.result || []
+    const response = await apiService.execute(
+          'sp_get_periodos_by_requerimiento',
+          'mercados',
+          [
+          { nombre: 'p_control_otr', valor: requerimiento.control_otr }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (response && response.success === true) {
+      periodos.value = response.data.result || []
       if (periodos.value.length === 0) {
-        showToast('info', 'No se encontraron periodos para este requerimiento')
+        showToast('No se encontraron periodos para este requerimiento', 'info')
       } else {
-        showToast('success', `Se encontraron ${periodos.value.length} periodos`)
+        showToast(`Se encontraron ${periodos.value.length} periodos`, 'success')
       }
     } else {
-      errorPeriodos.value = response.data.eResponse?.message || 'Error al obtener periodos'
-      showToast('error', errorPeriodos.value)
+      errorPeriodos.value = response?.message || 'Error al obtener periodos'
+      showToast(errorPeriodos.value, 'error')
     }
   } catch (error) {
     errorPeriodos.value = 'Error de conexión al cargar periodos'
     console.error('Error al cargar periodos:', error)
-    showToast('error', errorPeriodos.value)
+    showToast(errorPeriodos.value, 'error')
   } finally {
     loading.value = false
     loadingPeriodos.value = false
@@ -775,82 +1029,24 @@ const limpiarFiltros = () => {
   searchPerformed.value = false
   // Recargar secciones
   cargarSecciones()
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (requerimientos.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
   // TODO: Implementar exportación a Excel
-  showToast('info', 'Funcionalidad de exportación en desarrollo')
+  showToast('Funcionalidad de exportación en desarrollo', 'info')
 }
 
 const imprimir = () => {
   if (requerimientos.value.length === 0) {
-    showToast('warning', 'No hay datos para imprimir')
+    showToast('No hay datos para imprimir', 'warning')
     return
   }
   // TODO: Implementar impresión
-  showToast('info', 'Funcionalidad de impresión en desarrollo')
+  showToast('Funcionalidad de impresión en desarrollo', 'info')
 }
 </script>
-
-<style scoped>
-/* Los estilos están definidos en municipal-theme.css */
-/* Estilos adicionales específicos del componente si son necesarios */
-
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.text-end {
-  text-align: right;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
-}
-
-.table-row-selected {
-  background-color: #fff3cd !important;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-  cursor: pointer;
-}
-
-.required {
-  color: #dc3545;
-}
-
-/* Override para columnas numéricas */
-.municipal-table td.text-end,
-.municipal-table th.text-end {
-  text-align: right;
-}
-
-.municipal-table td.text-center,
-.municipal-table th.text-center {
-  text-align: center;
-}
-
-/* Estilo para fila de totales */
-.table-footer-total {
-  background-color: #f8f9fa;
-  font-weight: bold;
-  border-top: 2px solid #dee2e6;
-}
-
-.table-footer-total td {
-  padding: 0.75rem;
-}
-</style>

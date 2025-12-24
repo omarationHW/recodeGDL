@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Formulario "Pagar Hasta"</h1>
-        <p>Padrón de Licencias - Validación de Periodo de Pago (Bimestre y Año)</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Validación de Periodo de Pago (Bimestre y Año)</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -94,7 +97,7 @@
             <button
               type="submit"
               class="btn-municipal-primary"
-              :disabled="loading || !formData.bimestre || !formData.anio"
+              :disabled="!formData.bimestre || !formData.anio"
             >
               <font-awesome-icon icon="check-circle" />
               Validar Periodo
@@ -103,7 +106,6 @@
               type="button"
               class="btn-municipal-secondary"
               @click="clearForm"
-              :disabled="loading"
             >
               <font-awesome-icon icon="times" />
               Limpiar
@@ -112,7 +114,6 @@
               type="button"
               class="btn-municipal-info"
               @click="setCurrentPeriod"
-              :disabled="loading"
             >
               <font-awesome-icon icon="calendar-day" />
               Usar Periodo Actual
@@ -166,20 +167,23 @@
 
     <!-- Historial de Validaciones -->
     <div class="municipal-card" v-if="validationHistory.length > 0">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="history" />
           Historial de Validaciones
-          <span class="badge-purple">{{ validationHistory.length }} registros</span>
         </h5>
-        <button
-          class="btn-municipal-secondary btn-sm"
-          @click="clearHistory"
-          :disabled="loading"
-        >
-          <font-awesome-icon icon="trash" />
-          Limpiar Historial
-        </button>
+        <div class="header-right">
+          <span class="badge-purple" v-if="validationHistory.length > 0">
+            {{ validationHistory.length }} registros
+          </span>
+          <button
+            class="btn-municipal-secondary btn-sm"
+            @click.stop="clearHistory"
+          >
+            <font-awesome-icon icon="trash" />
+            Limpiar Historial
+          </button>
+        </div>
       </div>
 
       <div class="municipal-card-body table-container">
@@ -197,7 +201,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, index) in validationHistory" :key="index" class="clickable-row">
+              <tr
+                v-for="(item, index) in validationHistory"
+                :key="index"
+                @click="selectedRow = item"
+                :class="{ 'table-row-selected': selectedRow === item }"
+                class="row-hover"
+              >
                 <td>{{ validationHistory.length - index }}</td>
                 <td><span class="badge-purple">{{ getBimestreLabel(item.bimestre) }}</span></td>
                 <td><strong>{{ item.anio }}</strong></td>
@@ -222,35 +232,32 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Validando periodo...</p>
-      </div>
-    </div>
-
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'Hastafrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Formulario Pagar Hasta'"
+      @close="showDocModal = false"
     />
+
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -259,23 +266,33 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const currentYear = new Date().getFullYear()
@@ -287,6 +304,8 @@ const formData = ref({
 
 const validationResult = ref(null)
 const validationHistory = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Computed
 const bimestresMeses = {
@@ -310,7 +329,9 @@ const validateForm = async () => {
     return
   }
 
-  setLoading(true, 'Validando periodo...')
+  showLoading('Validando periodo...', 'Validación de Bimestre y Año')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const response = await execute(
@@ -383,7 +404,7 @@ const validateForm = async () => {
       message: 'Error de conexión al validar el periodo'
     }
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -393,6 +414,8 @@ const clearForm = () => {
     anio: null
   }
   validationResult.value = null
+  hasSearched.value = false
+  selectedRow.value = null
   showToast('info', 'Formulario limpiado')
 }
 
@@ -411,6 +434,7 @@ const setCurrentPeriod = () => {
 
 const clearHistory = () => {
   validationHistory.value = []
+  selectedRow.value = null
   showToast('info', 'Historial limpiado')
 }
 

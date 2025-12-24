@@ -10,32 +10,15 @@
         <p>Cementerios - Impresión y actualización de títulos de propiedad</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
       </div>
-    
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="mostrarAyuda = true"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
     </div>
 
     <div class="module-view-content">
@@ -49,6 +32,15 @@
         </div>
         <div class="municipal-card-body">
           <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label required">Fecha del Título</label>
+              <input
+                type="date"
+                class="municipal-form-control"
+                v-model="busqueda.fecha"
+                @keyup.enter="buscarTitulo"
+              />
+            </div>
             <div class="form-group">
               <label class="municipal-form-label required">Folio (Cuenta)</label>
               <input
@@ -74,7 +66,7 @@
             <button
               class="btn-municipal-primary"
               @click="buscarTitulo"
-              :disabled="loading || !busqueda.folio || !busqueda.operacion"
+              :disabled="!busqueda.fecha || !busqueda.folio || !busqueda.operacion"
             >
               <font-awesome-icon icon="search" />
               Buscar Título
@@ -82,7 +74,6 @@
             <button
               class="btn-municipal-secondary"
               @click="limpiarBusqueda"
-              :disabled="loading"
             >
               <font-awesome-icon icon="times" />
               Limpiar
@@ -278,178 +269,226 @@
 
       <!-- Listado de Títulos -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header header-with-badge">
           <h5>
             <font-awesome-icon icon="list" />
             Títulos Registrados
-            <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
           </h5>
-          <div v-if="loading" class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
+          <div class="header-right">
+            <span class="badge-purple" v-if="titulos.length > 0">
+              {{ titulos.length }} registros
+            </span>
           </div>
         </div>
 
-        <div class="municipal-card-body table-container" v-if="!loading">
-          <div class="table-responsive">
-            <table class="municipal-table">
-              <thead class="municipal-table-header">
-                <tr>
-                  <th>Folio</th>
-                  <th>Título</th>
-                  <th>Fecha</th>
-                  <th>Cementerio</th>
-                  <th>Propietario</th>
-                  <th>Ubicación</th>
-                  <th>Beneficiario</th>
-                  <th>Libro/Año/Folio</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="titulo in titulos" :key="`${titulo.control_rcm}-${titulo.titulo}`" class="row-hover">
-                  <td><strong class="text-primary">{{ titulo.control_rcm }}</strong></td>
-                  <td>{{ titulo.titulo }}</td>
-                  <td>
-                    <small class="text-muted">
-                      {{ formatDate(titulo.fecha) }}
-                    </small>
-                  </td>
-                  <td>{{ titulo.cementerio }}</td>
-                  <td>{{ titulo.nombre }}</td>
-                  <td>
-                    <small>C:{{ titulo.clase_alfa }} S:{{ titulo.seccion_alfa }} L:{{ titulo.linea_alfa }} F:{{ titulo.fosa_alfa }}</small>
-                  </td>
-                  <td>{{ titulo.nombre_ben || '-' }}</td>
-                  <td>
-                    <small v-if="titulo.libro">{{ titulo.libro }}/{{ titulo.axo }}/{{ titulo.folio_titulo }}</small>
-                    <small v-else>-</small>
-                  </td>
-                  <td>
-                    <div class="action-buttons">
-                      <button
-                        class="btn-municipal-primary btn-sm"
-                        @click="cargarTitulo(titulo)"
-                        title="Editar"
-                      >
-                        <font-awesome-icon icon="edit" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                <tr v-if="titulos.length === 0">
-                  <td colspan="9" class="text-center text-muted">
-                    No se encontraron títulos
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <div class="municipal-card-body">
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="titulos.length === 0 && !hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="file-contract" size="3x" />
+            </div>
+            <h4>Gestión de Títulos de Fosas</h4>
+            <p>Utilice el formulario de búsqueda para localizar títulos por folio y operación</p>
           </div>
 
-          <!-- Paginación -->
-          <div class="pagination-container" v-if="totalPages > 1">
-            <div class="pagination-info">
-              Página {{ currentPage }} de {{ totalPages }}
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="titulos.length === 0 && hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
             </div>
-            <div class="pagination-controls">
-              <button
-                class="pagination-button"
-                @click="cambiarPagina(currentPage - 1)"
-                :disabled="currentPage === 1"
-              >
-                <font-awesome-icon icon="chevron-left" />
-                Anterior
-              </button>
-              <button
-                class="pagination-button"
-                @click="cambiarPagina(currentPage + 1)"
-                :disabled="currentPage === totalPages"
-              >
-                Siguiente
-                <font-awesome-icon icon="chevron-right" />
-              </button>
-            </div>
+            <h4>Sin resultados</h4>
+            <p>No se encontraron títulos con los criterios especificados</p>
           </div>
-        </div>
 
-        <div v-if="loading" class="text-center py-5">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Cargando...</span>
+          <!-- Tabla con resultados -->
+          <div v-else>
+            <div class="table-responsive">
+              <table class="municipal-table">
+                <thead class="municipal-table-header">
+                  <tr>
+                    <th>Folio</th>
+                    <th>Título</th>
+                    <th>Fecha</th>
+                    <th>Cementerio</th>
+                    <th>Propietario</th>
+                    <th>Ubicación</th>
+                    <th>Beneficiario</th>
+                    <th>Libro/Año/Folio</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="titulo in paginatedTitulos"
+                    :key="`${titulo.control_rcm}-${titulo.titulo}`"
+                    @click="selectedRow = titulo"
+                    :class="{ 'table-row-selected': selectedRow === titulo }"
+                    class="row-hover"
+                  >
+                    <td><strong class="text-primary">{{ titulo.control_rcm }}</strong></td>
+                    <td>{{ titulo.titulo }}</td>
+                    <td>
+                      <small class="text-muted">
+                        {{ formatDate(titulo.fecha) }}
+                      </small>
+                    </td>
+                    <td>{{ titulo.cementerio }}</td>
+                    <td>{{ titulo.nombre }}</td>
+                    <td>
+                      <small>C:{{ titulo.clase_alfa }} S:{{ titulo.seccion_alfa }} L:{{ titulo.linea_alfa }} F:{{ titulo.fosa_alfa }}</small>
+                    </td>
+                    <td>{{ titulo.nombre_ben || '-' }}</td>
+                    <td>
+                      <small v-if="titulo.libro">{{ titulo.libro }}/{{ titulo.axo }}/{{ titulo.folio_titulo }}</small>
+                      <small v-else>-</small>
+                    </td>
+                    <td>
+                      <div class="action-buttons">
+                        <button
+                          class="btn-municipal-primary btn-sm"
+                          @click.stop="cargarTitulo(titulo)"
+                          title="Editar"
+                        >
+                          <font-awesome-icon icon="edit" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Paginación -->
+            <div v-if="titulos.length > 0" class="pagination-controls">
+              <div class="pagination-info">
+                <span class="text-muted">
+                  Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                  a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+                  de {{ formatNumber(totalRecords) }} registros
+                </span>
+              </div>
+
+              <div class="pagination-size">
+                <label class="municipal-form-label me-2">Registros por página:</label>
+                <select
+                  class="municipal-form-control form-control-sm"
+                  :value="itemsPerPage"
+                  @change="changePageSize($event.target.value)"
+                  style="width: auto; display: inline-block;"
+                >
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+
+              <div class="pagination-buttons">
+                <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+                  <font-awesome-icon icon="angle-double-left" />
+                </button>
+                <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+                  <font-awesome-icon icon="angle-left" />
+                </button>
+                <button
+                  v-for="page in visiblePages"
+                  :key="page"
+                  class="btn-sm"
+                  :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                  @click="goToPage(page)"
+                >
+                  {{ page }}
+                </button>
+                <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+                  <font-awesome-icon icon="angle-right" />
+                </button>
+                <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+                  <font-awesome-icon icon="angle-double-right" />
+                </button>
+              </div>
+            </div>
           </div>
-          <p class="mt-3">Cargando títulos...</p>
         </div>
       </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'Titulos'"
+        :moduleName="'cementerios'"
+        :docType="docType"
+        :title="'Gestión de Títulos de Fosas'"
+        @close="showDocModal = false"
+      />
     </div>
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="mostrarAyuda"
-      @close="mostrarAyuda = false"
-      title="Gestión de Títulos de Fosas"
-    >
-      <h6>Descripción</h6>
-      <p>Módulo para la gestión e impresión de títulos de propiedad de fosas en cementerios municipales.</p>
-
-      <h6>Funcionalidades</h6>
-      <ul>
-        <li>Búsqueda de títulos por folio y operación</li>
-        <li>Actualización de datos del beneficiario</li>
-        <li>Registro de libro, año y folio del título impreso</li>
-        <li>Listado de todos los títulos registrados</li>
-        <li>Preparación para impresión de títulos</li>
-      </ul>
-
-      <h6>Instrucciones</h6>
-      <ol>
-        <li>Ingrese el folio (cuenta) y número de operación del pago</li>
-        <li>Haga clic en "Buscar Título" para cargar los datos</li>
-        <li>Complete los datos del beneficiario y título (libro, año, folio)</li>
-        <li>Guarde los datos antes de preparar la impresión</li>
-        <li>Use "Preparar Impresión" para generar el título</li>
-      </ol>
-    </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'Titulos'"
-      :moduleName="'cementerios'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, onMounted, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast } = useToast()
+
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Estado
-const loading = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const guardando = ref(false)
 const titulos = ref([])
 const tituloActual = ref(null)
 const tituloGuardado = ref(false)
-const mostrarAyuda = ref(false)
 
 // Búsqueda
 const busqueda = ref({
   folio: null,
-  operacion: null
+  operacion: null,
+  fecha: new Date().toISOString().split('T')[0] // Fecha actual en formato YYYY-MM-DD
 })
 
 // Paginación
 const currentPage = ref(1)
-const pageSize = ref(10)
-const totalRecords = ref(0)
+const itemsPerPage = ref(10)
 
 // Formulario
 const formData = ref({
@@ -464,7 +503,28 @@ const formData = ref({
 })
 
 // Computed
-const totalPages = computed(() => Math.ceil(totalRecords.value / pageSize.value))
+const totalRecords = computed(() => titulos.value.length)
+const totalPages = computed(() => Math.ceil(totalRecords.value / itemsPerPage.value))
+
+const paginatedTitulos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return titulos.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
+})
 
 const ubicacionFosa = computed(() => {
   if (!tituloActual.value) return ''
@@ -474,56 +534,64 @@ const ubicacionFosa = computed(() => {
 
 // Métodos
 const cargarTitulos = async () => {
-  loading.value = true
+  showLoading('Cargando títulos', 'Obteniendo listado de títulos registrados...')
+  hasSearched.value = true
+  selectedRow.value = null
   try {
     const response = await execute(
-      'sp_cem_listar_titulos',
-      'cementerios',
-      {
-        p_page: currentPage.value,
-        p_page_size: pageSize.value,
-        p_search: null,
-        p_cementerio: null,
-        p_order_by: 'fecha'
-      },
+      'sp_titulos_actualizar_numero',
+      'cementerio',
+      [ { nombre: 'p_recaudadora', valor: filtros.recaudadora, tipo: 'integer' },
+        {   nombre: 'p_recaudadora', valor: filtros.recaudadora, tipo: 'integer' },
+        { nombre: 'p_recaudadora', valor: filtros.recaudadora, tipo: 'integer' },
+        { nombre: 'p_recaudadora', valor: filtros.recaudadora, tipo: 'integer' },
+
+        // p_page: currentPage.value,
+        // p_page_size: itemsPerPage.value,
+        // p_search: null,
+        // p_cementerio: null,
+        // p_order_by: 'fecha'
+      ] ,
       '',
       null,
-      'comun'
+      'public'
     )
 
     if (response && response.result && response.result.length > 0) {
       titulos.value = response.result
-      totalRecords.value = response.result[0].total_records || response.length
     } else {
       titulos.value = []
-      totalRecords.value = 0
     }
   } catch (error) {
-    showToast('Error al cargar títulos: ' + error.message, 'error')
+    handleApiError(error, 'Error al cargar títulos')
     titulos.value = []
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
 const buscarTitulo = async () => {
   if (!busqueda.value.folio || !busqueda.value.operacion) {
-    showToast('Debe ingresar folio y operación', 'warning')
+    showToast('warning', 'Debe ingresar folio y operación')
     return
   }
 
-  loading.value = true
+  showLoading('Buscando título', 'Consultando información del título...')
+  hasSearched.value = true
+  selectedRow.value = null
   try {
     const response = await execute(
-      'sp_cem_buscar_titulo',
-      'cementerios',
-      {
-        p_folio: busqueda.value.folio,
-        p_operacion: busqueda.value.operacion
-      },
+      'sp_titulos_buscar_por_folio_operacion',
+      'cementerio',
+      [
+         { nombre: 'p_fecha', valor: busqueda.value.fecha, tipo: 'date' },
+         { nombre: 'p_folio', valor: busqueda.value.folio, tipo: 'integer' },
+         { nombre: 'p_operacion', valor: busqueda.value.operacion, tipo: 'integer' },
+
+    ],
       '',
       null,
-      'comun'
+      'public'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -544,17 +612,17 @@ const buscarTitulo = async () => {
           partida: result.partida || ''
         }
 
-        showToast(result.mensaje, 'success')
+        showToast('success', result.mensaje)
       } else {
-        showToast(result.mensaje, 'error')
+        showToast('error', result.mensaje)
         tituloActual.value = null
       }
     }
   } catch (error) {
-    showToast('Error al buscar título: ' + error.message, 'error')
+    handleApiError(error, 'Error al buscar título')
     tituloActual.value = null
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -570,15 +638,15 @@ const validarFormulario = () => {
 
 const guardarTitulo = async () => {
   if (!validarFormulario()) {
-    showToast('Por favor complete todos los campos requeridos', 'warning')
+    showToast('warning', 'Por favor complete todos los campos requeridos')
     return
   }
 
   guardando.value = true
   try {
     const response = await execute(
-      'sp_cem_actualizar_titulo_extra',
-      'cementerios',
+      'sp_titulos_actualizar_datos_extra',
+      'cementerio',
       {
         p_control_rcm: tituloActual.value.control_rcm,
         p_titulo: tituloActual.value.titulo,
@@ -594,21 +662,21 @@ const guardarTitulo = async () => {
       },
       '',
       null,
-      'comun'
+      'public'
     )
 
     if (response && response[0]) {
       const result = response.result[0]
       if (result.resultado === 'S') {
-        showToast(result.mensaje, 'success')
+        showToast('success', result.mensaje)
         tituloGuardado.value = true
         cargarTitulos() // Recargar listado
       } else {
-        showToast(result.mensaje, 'error')
+        showToast('error', result.mensaje)
       }
     }
   } catch (error) {
-    showToast('Error al guardar datos del título: ' + error.message, 'error')
+    showToast('error', 'Error al guardar datos del título: ' + error.message)
   } finally {
     guardando.value = false
   }
@@ -625,10 +693,12 @@ const prepararImpresion = () => {
     icon: 'info',
     showCancelButton: true,
     confirmButtonText: 'Preparar',
-    cancelButtonText: 'Cancelar'
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d'
   }).then((result) => {
     if (result.isConfirmed) {
-      showToast('La funcionalidad de impresión se implementará próximamente', 'info')
+      showToast('info', 'La funcionalidad de impresión se implementará próximamente')
     }
   })
 }
@@ -644,10 +714,14 @@ const cargarTitulo = (titulo) => {
 const limpiarBusqueda = () => {
   busqueda.value = {
     folio: null,
-    operacion: null
+    operacion: null,
+    fecha: new Date().toISOString().split('T')[0] // Restablecer a fecha actual
   }
   tituloActual.value = null
   tituloGuardado.value = false
+  hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
   formData.value = {
     libro: null,
     axo: null,
@@ -660,11 +734,20 @@ const limpiarBusqueda = () => {
   }
 }
 
-const cambiarPagina = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-    cargarTitulos()
-  }
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+  selectedRow.value = null
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
 }
 
 const formatDate = (date) => {
@@ -676,13 +759,4 @@ const formatDate = (date) => {
 onMounted(() => {
   cargarTitulos()
 })
-
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
-
 </script>

@@ -10,7 +10,16 @@
         <p>Mercados - Reporte y Administración del Catálogo</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="showModal('create')">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="showModal('create')">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
@@ -18,10 +27,7 @@
           <font-awesome-icon icon="sync" />
           Refrescar
         </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
+        
       </div>
     </div>
 
@@ -75,10 +81,10 @@
                   </td>
                   <td>
                     <div class="button-group button-group-sm">
-                      <button class="btn-municipal-primary btn-sm" @click.stop="showModal('update', row)" title="Editar">
+                      <button class="btn-municipal-primary" @click.stop="showModal('update', row)" title="Editar">
                         <font-awesome-icon icon="edit" />
                       </button>
-                      <button class="btn-municipal-danger btn-sm" @click.stop="deleteRow(row)" title="Eliminar">
+                      <button class="btn-municipal-danger" @click.stop="deleteRow(row)" title="Eliminar">
                         <font-awesome-icon icon="trash" />
                       </button>
                     </div>
@@ -117,7 +123,10 @@
           <font-awesome-icon :icon="formMode === 'create' ? 'plus' : 'edit'" class="me-2" />
           {{ formMode === 'create' ? 'Agregar Mercado' : 'Modificar Mercado' }}
         </h5>
-      </template>
+      
+  <DocumentationModal :show="showAyuda" :component-name="'RptCatalogoMerc'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptCatalogoMerc'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptCatalogoMerc'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptCatalogoMerc'" @close="showDocumentacion = false" />
+</template>
 
       <form @submit.prevent="submitForm">
         <div class="row">
@@ -157,6 +166,7 @@
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -164,6 +174,11 @@ import { useRouter } from 'vue-router';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
 import Modal from '@/components/common/Modal.vue';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const router = useRouter();
 const { showLoading, hideLoading } = useGlobalLoading();
@@ -182,14 +197,7 @@ const form = ref({
   descripcion: '',
   id_zona: '',
   tipo_emision: 'M'
-});
-
-// Cerrar
-const cerrar = () => {
-  router.push('/mercados');
-};
-
-// Helper para tipo emisión
+});// Helper para tipo emisión
 const emisionLabel = (val) => {
   if (val === 'M') return 'Masiva';
   if (val === 'D') return 'Diskette';
@@ -202,19 +210,20 @@ async function fetchData() {
   showLoading('Cargando catálogo de mercados...', 'Por favor espere');
   loading.value = true;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_rpt_catalogo_mercados_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_rpt_catalogo_mercados_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      rows.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      rows.value = response.data.result || [];
       showToast('Datos cargados correctamente', 'success');
     } else {
-      showToast(response.data?.eResponse?.message || 'Error al cargar datos', 'error');
+      showToast(response.message || 'Error al cargar datos', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
@@ -267,33 +276,27 @@ async function submitForm() {
     const sp = formMode.value === 'create' ? 'sp_rpt_catalogo_mercados_create' : 'sp_rpt_catalogo_mercados_update';
     const params = formMode.value === 'create'
       ? [
-          { Nombre: 'p_oficina', Valor: form.value.oficina, tipo: 'integer' },
-          { Nombre: 'p_num_mercado_nvo', Valor: form.value.num_mercado_nvo, tipo: 'integer' },
-          { Nombre: 'p_descripcion', Valor: form.value.descripcion },
-          { Nombre: 'p_id_zona', Valor: form.value.id_zona || null, tipo: 'integer' },
-          { Nombre: 'p_tipo_emision', Valor: form.value.tipo_emision }
+          { nombre: 'p_oficina', valor: form.value.oficina, tipo: 'integer' },
+          { nombre: 'p_num_mercado_nvo', valor: form.value.num_mercado_nvo, tipo: 'integer' },
+          { nombre: 'p_descripcion', valor: form.value.descripcion },
+          { nombre: 'p_id_zona', valor: form.value.id_zona || null, tipo: 'integer' },
+          { nombre: 'p_tipo_emision', valor: form.value.tipo_emision }
         ]
       : [
-          { Nombre: 'p_id_mercado', Valor: form.value.id_mercado, tipo: 'integer' },
-          { Nombre: 'p_descripcion', Valor: form.value.descripcion },
-          { Nombre: 'p_id_zona', Valor: form.value.id_zona || null, tipo: 'integer' },
-          { Nombre: 'p_tipo_emision', Valor: form.value.tipo_emision }
+          { nombre: 'p_id_mercado', valor: form.value.id_mercado, tipo: 'integer' },
+          { nombre: 'p_descripcion', valor: form.value.descripcion },
+          { nombre: 'p_id_zona', valor: form.value.id_zona || null, tipo: 'integer' },
+          { nombre: 'p_tipo_emision', valor: form.value.tipo_emision }
         ];
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: sp,
-        Base: 'mercados',
-        Parametros: params
-      }
-    });
+    const response = await apiService.execute(sp, 'mercados', params, '', null, 'publico');
 
-    if (response.data?.eResponse?.success) {
+    if (response.success) {
       showToast(formMode.value === 'create' ? 'Mercado creado correctamente' : 'Mercado actualizado correctamente', 'success');
       closeModal();
       fetchData();
     } else {
-      showToast(response.data?.eResponse?.message || 'Error al guardar', 'error');
+      showToast(response.message || 'Error al guardar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
@@ -322,21 +325,22 @@ async function deleteRow(row) {
   showLoading('Eliminando mercado...', 'Por favor espere');
   loading.value = true;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_rpt_catalogo_mercados_delete',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_mercado', Valor: row.id_mercado, tipo: 'integer' }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_rpt_catalogo_mercados_delete',
+          'mercados',
+          [
+          { nombre: 'p_id_mercado', valor: row.id_mercado, tipo: 'integer' }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
+    if (response.success) {
       showToast('Mercado eliminado correctamente', 'success');
       fetchData();
     } else {
-      showToast(response.data?.eResponse?.message || 'Error al eliminar', 'error');
+      showToast(response.message || 'Error al eliminar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
@@ -345,6 +349,28 @@ async function deleteRow(row) {
     loading.value = false;
     hideLoading();
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Reporte de CatÃ¡logo de Mercados',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo genera reportes del catÃ¡logo de mercados.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione los filtros deseados
+          <li>Puede exportar a Excel o imprimir
+          <li>El reporte incluye todos los mercados activos y de baja</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

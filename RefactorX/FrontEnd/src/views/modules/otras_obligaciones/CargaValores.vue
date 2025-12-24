@@ -19,11 +19,11 @@
           <font-awesome-icon icon="sync" :spin="loading || loadingTablas" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -232,10 +232,12 @@
 
   <!-- Modal de Ayuda -->
   <DocumentationModal
-    :show="showDocumentation"
+    :show="showDocModal"
     :componentName="'CargaValores'"
     :moduleName="'otras_obligaciones'"
-    @close="closeDocumentation"
+    :docType="docType"
+    :title="'Carga de Valores'"
+    @close="showDocModal = false"
   />
 </template>
 
@@ -252,9 +254,18 @@ import Swal from 'sweetalert2'
 const router = useRouter()
 
 // Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const BASE_DB = 'otras_obligaciones'

@@ -10,15 +10,16 @@
         <p>Mercados - Años Anteriores sin Fecha de Ingreso</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
           <font-awesome-icon icon="question-circle" />
-          Ayuda
+          <span>Ayuda</span>
         </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
-      </div>
+        
+        </div>
     </div>
 
     <div class="module-view-content">
@@ -27,7 +28,7 @@
           <div class="municipal-card-body">
 
             <!-- Selección de Mercado -->
-            <div class="col-md-12">
+            <div class="col-md-1">
               <div class="municipal-card mb-3">
                 <div class="municipal-card-header">
                   <h5>
@@ -161,7 +162,7 @@
             </div>
 
             <div class="d-flex justify-content-end gap-2 mt-3">
-              <button class="btn-municipal-success" @click="cargarPagos" :disabled="!hayPagosValidos || loading">
+              <button class="btn-municipal-primary" @click="cargarPagos" :disabled="!hayPagosValidos || loading">
                 <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
                 <font-awesome-icon icon="save" v-if="!loading" />
                 Cargar Pagos
@@ -184,12 +185,15 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'CargaPagEspecial'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CargaPagEspecial'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CargaPagEspecial'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CargaPagEspecial'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
@@ -199,6 +203,11 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 library.add(
   faCalendarAlt, faStore, faSearch, faList, faSave, faTimes,
@@ -244,16 +253,17 @@ onMounted(() => {
 async function cargarMercados() {
   await globalLoading.withLoading(async () => {
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_catalogo_mercados',
-          Base: 'padron_licencias',
-          Parametros: []
-        }
-      });
+      const response = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-        mercados.value = response.data.eResponse.data.result;
+      if (response.success && response.data?.result) {
+        mercados.value = response.data.result;
       }
     } catch (error) {
       console.error('Error al cargar mercados:', error);
@@ -283,22 +293,23 @@ async function buscarAdeudos() {
 
   try {
     await globalLoading.withLoading(async () => {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_adeudos_local_params',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_oficina', Valor: selectedMercado.value.oficina },
-            { Nombre: 'p_mercado', Valor: selectedMercado.value.num_mercado_nvo },
-            { Nombre: 'p_categoria', Valor: selectedMercado.value.categoria },
-            { Nombre: 'p_seccion', Valor: 'SS' },
-            { Nombre: 'p_local', Valor: parseInt(form.value.local) }
-          ]
-        }
-      });
+      const response = await apiService.execute(
+          'sp_get_adeudos_local_params',
+          'mercados',
+          [
+            { nombre: 'p_oficina', valor: selectedMercado.value.oficina },
+            { nombre: 'p_mercado', valor: selectedMercado.value.num_mercado_nvo },
+            { nombre: 'p_categoria', valor: selectedMercado.value.categoria },
+            { nombre: 'p_seccion', valor: 'SS' },
+            { nombre: 'p_local', valor: parseInt(form.value.local) }
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-        adeudos.value = response.data.eResponse.data.result.map(a => ({
+      if (response.success && response.data?.result) {
+        adeudos.value = response.data.result.map(a => ({
           ...a,
           selected: true,
           partida: ''
@@ -361,22 +372,23 @@ async function cargarPagos() {
         partida: a.partida
       }));
 
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_cargar_pagos_especial',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_pagos_json', Valor: JSON.stringify(pagosJson) },
-            { Nombre: 'p_fecha_pago', Valor: form.value.fecha_pago },
-            { Nombre: 'p_oficina_pago', Valor: parseInt(form.value.oficina_pago) },
-            { Nombre: 'p_caja_pago', Valor: form.value.caja_pago },
-            { Nombre: 'p_operacion_pago', Valor: parseInt(form.value.operacion_pago) },
-            { Nombre: 'p_usuario_id', Valor: 1 } // TODO: Obtener de sesión
-          ]
-        }
-      });
+      const response = await apiService.execute(
+          'sp_cargar_pagos_especial',
+          'mercados',
+          [
+            { nombre: 'p_pagos_json', valor: JSON.stringify(pagosJson) },
+            { nombre: 'p_fecha_pago', valor: form.value.fecha_pago },
+            { nombre: 'p_oficina_pago', valor: parseInt(form.value.oficina_pago) },
+            { nombre: 'p_caja_pago', valor: form.value.caja_pago },
+            { nombre: 'p_operacion_pago', valor: parseInt(form.value.operacion_pago) },
+            { nombre: 'p_usuario_id', valor: 1 } // TODO: Obtener de sesión
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success) {
+      if (response.success) {
         showToast(`${pagosValidos.length} pagos cargados correctamente`, 'success');
         adeudos.value = [];
       }
@@ -417,13 +429,7 @@ function mostrarAyuda() {
     icon: 'info',
     confirmButtonText: 'Entendido'
   });
-}
-
-// Cerrar
-function cerrar() {
-  router.push('/');
-}
-</script>
+}</script>
 
 <!--
   Estilos removidos - Se usan clases globales municipales:

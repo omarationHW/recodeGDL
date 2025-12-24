@@ -10,14 +10,20 @@
         <p>Mercados > Estadísticas de Adeudos de Locales</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || resultados.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -145,27 +151,76 @@
             </table>
           </div>
 
-          <!-- Paginación -->
-          <div v-if="resultados.length > 0" class="pagination-container">
+          <!-- Controles de paginación -->
+          <div v-if="resultados.length > 0" class="pagination-controls">
             <div class="pagination-info">
-              Mostrando {{ paginationStart }} a {{ paginationEnd }} de {{ totalItems }} registros
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, resultados.length) }}
+                de {{ resultados.length }} registros
+              </span>
             </div>
-            <div class="pagination-controls">
-              <label class="me-2">Registros por página:</label>
-              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
               </select>
             </div>
+
             <div class="pagination-buttons">
-              <button @click="prevPage" :disabled="currentPage === 1" class="btn-municipal-secondary btn-sm">
-                <font-awesome-icon icon="chevron-left" />
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
               </button>
-              <span>Página {{ currentPage }} de {{ totalPages }}</span>
-              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-municipal-secondary btn-sm">
-                <font-awesome-icon icon="chevron-right" />
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
               </button>
             </div>
           </div>
@@ -188,11 +243,19 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'Estadisticas'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - Estadisticas'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'Estadisticas'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - Estadisticas'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
 import axios from 'axios'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 // Estado
 const loading = ref(false)
@@ -218,7 +281,7 @@ const toast = ref({
 })
 
 // Métodos
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = {
     show: true,
     type,
@@ -254,27 +317,33 @@ const totalPages = computed(() => {
   return Math.ceil(resultados.value.length / itemsPerPage.value)
 })
 
-const paginationStart = computed(() => {
-  return resultados.value.length === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
 })
 
-const paginationEnd = computed(() => {
-  const end = currentPage.value * itemsPerPage.value
-  return end > resultados.value.length ? resultados.value.length : end
-})
-
-const totalItems = computed(() => resultados.value.length)
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
   }
 }
 
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
 }
 
 // Reset página al cambiar datos
@@ -283,7 +352,7 @@ watch(resultados, () => {
 })
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione el tipo de estadística y los parámetros para consultar adeudos de locales')
+  showToast('Seleccione el tipo de estadística y los parámetros para consultar adeudos de locales', 'info')
 }
 
 const formatCurrency = (value) => {
@@ -319,17 +388,17 @@ const isNumericColumn = (col) => {
 
 const consultar = async () => {
   if (!filtros.value.year || !filtros.value.month) {
-    showToast('warning', 'Debe ingresar año y mes')
+    showToast('Debe ingresar año y mes', 'warning')
     return
   }
 
   if (filtros.value.month < 1 || filtros.value.month > 12) {
-    showToast('warning', 'El mes debe estar entre 1 y 12')
+    showToast('El mes debe estar entre 1 y 12', 'warning')
     return
   }
 
   if (tipoEstadistica.value !== 'global' && (!filtros.value.importe || filtros.value.importe < 0)) {
-    showToast('warning', 'Debe ingresar un importe válido')
+    showToast('Debe ingresar un importe válido', 'warning')
     return
   }
 
@@ -355,30 +424,24 @@ const consultar = async () => {
       parametros.push({ nombre: 'p_importe', valor: filtros.value.importe, tipo: 'numeric' })
     }
 
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: operacion,
-        Base: 'mercados',
-        Parametros: parametros
-      }
-    })
+    const res = await apiService.execute(operacion, 'mercados', parametros, '', null, 'publico')
 
-    if (res.data.eResponse.success) {
-      resultados.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      resultados.value = res.data.result || []
       if (resultados.value.length > 0) {
         columnas.value = Object.keys(resultados.value[0])
-        showToast('success', `Se encontraron ${resultados.value.length} registros`)
+        showToast(`Se encontraron ${resultados.value.length} registros`, 'success')
       } else {
-        showToast('info', 'No se encontraron registros con los criterios especificados')
+        showToast('No se encontraron registros con los criterios especificados', 'info')
       }
     } else {
-      error.value = res.data.eResponse.message || 'Error al consultar estadísticas'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al consultar estadísticas'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al consultar estadísticas'
     console.error('Error al consultar:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -394,12 +457,12 @@ const limpiar = () => {
   resultados.value = []
   columnas.value = []
   error.value = ''
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (resultados.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -425,10 +488,10 @@ const exportarExcel = () => {
     link.click()
     URL.revokeObjectURL(url)
 
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
     console.error('Error al exportar:', err)
-    showToast('error', 'Error al exportar el archivo')
+    showToast('Error al exportar el archivo', 'error')
   }
 }
 </script>

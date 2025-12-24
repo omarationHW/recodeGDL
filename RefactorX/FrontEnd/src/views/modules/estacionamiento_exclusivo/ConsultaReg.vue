@@ -10,6 +10,14 @@
         <p>Consulta detallada de apremios por registro</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button class="btn-municipal-primary" @click="buscar" v-if="filters.registro">
           <font-awesome-icon icon="sync-alt" />
           Actualizar
@@ -56,12 +64,12 @@
 
       <!-- ========== RESULTADO DE CONSULTA ========== -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
-          <div class="header-with-badge">
-            <h5>
-              <font-awesome-icon icon="file-alt" />
-              Resultado de Consulta
-            </h5>
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="file-alt" />
+            Resultado de Consulta
+          </h5>
+          <div class="header-right">
             <span class="badge-purple" v-if="data && !Array.isArray(data)">
               1 registro encontrado
             </span>
@@ -69,35 +77,39 @@
               {{ data.length }} registros encontrados
             </span>
           </div>
-          <div v-if="loading" class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
         </div>
 
-        <div class="municipal-card-body" v-if="!loading">
-          <!-- Estados vacíos diferenciados -->
-          <div v-if="!data && !primeraBusqueda" class="empty-state">
-            <font-awesome-icon icon="search" size="3x" class="empty-icon" />
-            <p>Ingrese un registro para consultar</p>
+        <div class="municipal-card-body">
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="!data && !hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="search" size="3x" />
+            </div>
+            <h4>Consulta por Registro</h4>
+            <p>Ingrese un registro para consultar la información detallada</p>
           </div>
 
-          <div v-else-if="!data || (Array.isArray(data) && data.length === 0)" class="empty-state">
-            <font-awesome-icon icon="inbox" size="3x" class="empty-icon" />
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="(!data || (Array.isArray(data) && data.length === 0)) && hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
+            </div>
+            <h4>Sin resultados</h4>
             <p>No se encontró información para el registro especificado</p>
           </div>
 
           <!-- Resultado estructurado -->
           <div v-else>
-            <div class="result-tabs">
+            <div class="municipal-tabs">
               <button
-                class="tab-button"
+                class="municipal-tab"
                 :class="{ active: activeTab === 'structured' }"
                 @click="activeTab = 'structured'"
               >
                 <font-awesome-icon icon="table" /> Vista Estructurada
               </button>
               <button
-                class="tab-button"
+                class="municipal-tab"
                 :class="{ active: activeTab === 'json' }"
                 @click="activeTab = 'json'"
               >
@@ -125,7 +137,13 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(row, idx) in data" :key="idx">
+                      <tr
+                        v-for="(row, idx) in data"
+                        :key="idx"
+                        @click="selectedRow = row"
+                        :class="{ 'table-row-selected': selectedRow === row }"
+                        class="row-hover"
+                      >
                         <td v-for="col in getColumns(data)" :key="col">
                           {{ formatValue(row[col]) }}
                         </td>
@@ -142,31 +160,35 @@
           </div>
         </div>
       </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'ConsultaReg'"
+        :moduleName="'estacionamiento_exclusivo'"
+        :docType="docType"
+        :title="'Consulta por Registro'"
+        @close="showDocModal = false"
+      />
     </div>
-    
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      @close="closeDocumentation"
-      title="Ayuda - ConsultaReg"
-    >
-      <h3>Consulta Reg</h3>
-      <p>Documentacion del modulo Estacionamiento Exclusivo.</p>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'ConsultaReg'"
-      :moduleName="'estacionamiento_exclusivo'"
-      @close="closeTechDocs"
-    />
-
+    <!-- /module-view-content -->
   </div>
+  <!-- /module-view -->
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
@@ -178,9 +200,16 @@ const BASE_DB = 'estacionamiento_exclusivo'
 const OP_QUERY = 'sp_consultareg_mercados'
 
 // ========== COMPOSABLES ==========
-const { loading, execute } = useApi()
+const { execute } = useApi()
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
+
 const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
 
 // ========== ESTADO - FILTROS ==========
 const showFilters = ref(true)
@@ -191,6 +220,8 @@ const filters = ref({
 // ========== ESTADO - DATOS ==========
 const data = ref(null)
 const primeraBusqueda = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // ========== ESTADO - VISTA ==========
 const activeTab = ref('structured')
@@ -203,6 +234,8 @@ const buscar = async () => {
   }
 
   showLoading('Consultando registro...', 'Buscando información')
+  hasSearched.value = true
+  selectedRow.value = null
   showFilters.value = false
   primeraBusqueda.value = true
   const startTime = performance.now()
@@ -242,6 +275,8 @@ const limpiarFiltros = () => {
   }
   data.value = null
   primeraBusqueda.value = false
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 // ========== FUNCIONES - FILTROS ==========
@@ -286,11 +321,19 @@ const getColumns = (arr) => {
 }
 
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 </script>
 

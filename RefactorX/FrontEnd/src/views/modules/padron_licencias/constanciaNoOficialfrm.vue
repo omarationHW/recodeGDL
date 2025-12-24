@@ -7,20 +7,22 @@
       </div>
       <div class="module-view-info">
         <h1>Solicitud de Número Oficial</h1>
-        <p>Padrón de Licencias - Gestión de Solicitudes de Número Oficial</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Gestión de Solicitudes de Número Oficial</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button
           class="btn-municipal-primary"
           @click="openCreateModal"
-          :disabled="loading"
         >
           <font-awesome-icon icon="plus" />
           Nueva Solicitud
@@ -47,7 +49,7 @@
               <button
                 class="btn-municipal-primary"
                 @click="buscarPor('propietario')"
-                :disabled="!searchForm.propietario || loading"
+                :disabled="!searchForm.propietario"
               >
                 <font-awesome-icon icon="search" /> Buscar
               </button>
@@ -67,7 +69,7 @@
               <button
                 class="btn-municipal-primary"
                 @click="buscarPor('ubicacion')"
-                :disabled="!searchForm.ubicacion || loading"
+                :disabled="!searchForm.ubicacion"
               >
                 <font-awesome-icon icon="search" /> Buscar
               </button>
@@ -78,7 +80,6 @@
             <button
               class="btn-municipal-secondary"
               @click="loadAll"
-              :disabled="loading"
             >
               <font-awesome-icon icon="list" /> Ver Todas
             </button>
@@ -87,13 +88,36 @@
       </div>
     </div>
 
+    <!-- Empty State - Sin búsqueda -->
+    <div v-if="solicitudes.length === 0 && !hasSearched" class="empty-state">
+      <div class="empty-state-icon">
+        <font-awesome-icon icon="file-contract" size="3x" />
+      </div>
+      <h4>Solicitudes de Número Oficial</h4>
+      <p>Utilice los filtros de búsqueda para encontrar solicitudes o haga clic en "Ver Todas" para listar todos los registros</p>
+    </div>
+
+    <!-- Empty State - Sin resultados -->
+    <div v-else-if="solicitudes.length === 0 && hasSearched" class="empty-state">
+      <div class="empty-state-icon">
+        <font-awesome-icon icon="inbox" size="3x" />
+      </div>
+      <h4>Sin resultados</h4>
+      <p>No se encontraron solicitudes con los criterios especificados</p>
+    </div>
+
     <!-- Resultados -->
-    <div v-if="solicitudes.length > 0" class="municipal-card">
-      <div class="municipal-card-header">
-        <h5 class="municipal-card-title">
+    <div v-else class="municipal-card">
+      <div class="municipal-card-header header-with-badge">
+        <h5>
           <font-awesome-icon icon="list" />
-          Solicitudes Encontradas ({{ totalRecords }} registros)
+          Solicitudes Encontradas
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="solicitudes.length > 0">
+            {{ formatNumber(totalRecords) }} registros
+          </span>
+        </div>
       </div>
       <div class="municipal-card-body">
         <div class="table-responsive">
@@ -112,7 +136,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="solic in solicitudes" :key="`${solic.axo}-${solic.folio}`">
+              <tr
+                v-for="solic in paginatedSolicitudes"
+                :key="`${solic.axo}-${solic.folio}`"
+                @click="selectedRow = solic"
+                :class="{ 'table-row-selected': selectedRow === solic }"
+                class="row-hover"
+              >
                 <td>{{ solic.axo || 'N/A' }}</td>
                 <td>{{ solic.folio || 'N/A' }}</td>
                 <td>{{ solic.propietario || 'Sin nombre' }}</td>
@@ -128,7 +158,7 @@
                 <td>
                   <button
                     class="btn-municipal-secondary btn-sm"
-                    @click="openEditModal(solic)"
+                    @click.stop="openEditModal(solic)"
                     title="Modificar"
                   >
                     <font-awesome-icon icon="edit" />
@@ -136,7 +166,7 @@
                   <button
                     v-if="solic.vigente === 'V'"
                     class="btn-municipal-danger btn-sm"
-                    @click="cancelarSolicitud(solic)"
+                    @click.stop="cancelarSolicitud(solic)"
                     title="Cancelar"
                   >
                     <font-awesome-icon icon="ban" />
@@ -148,44 +178,56 @@
         </div>
 
         <!-- Paginación -->
-        <div class="pagination-container">
+        <div v-if="solicitudes.length > 0" class="pagination-controls">
           <div class="pagination-info">
-            Mostrando {{ ((currentPage - 1) * pageSize) + 1 }} a {{ Math.min(currentPage * pageSize, totalRecords) }} de {{ totalRecords }} registros
+            <span class="text-muted">
+              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+              a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+              de {{ formatNumber(totalRecords) }} registros
+            </span>
           </div>
-          <div class="pagination">
-            <button
-              class="btn-pagination"
-              @click="goToPage(currentPage - 1)"
-              :disabled="currentPage === 1 || loading"
+
+          <div class="pagination-size">
+            <label class="municipal-form-label me-2">Registros por página:</label>
+            <select
+              class="municipal-form-control form-control-sm"
+              :value="itemsPerPage"
+              @change="changePageSize($event.target.value)"
+              style="width: auto; display: inline-block;"
             >
-              <font-awesome-icon icon="chevron-left" />
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+
+          <div class="pagination-buttons">
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+              <font-awesome-icon icon="angle-double-left" />
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+              <font-awesome-icon icon="angle-left" />
             </button>
             <button
-              v-for="page in paginationPages"
+              v-for="page in visiblePages"
               :key="page"
-              class="btn-pagination"
-              :class="{ active: page === currentPage }"
+              class="btn-sm"
+              :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
               @click="goToPage(page)"
-              :disabled="loading"
             >
               {{ page }}
             </button>
-            <button
-              class="btn-pagination"
-              @click="goToPage(currentPage + 1)"
-              :disabled="currentPage === totalPages || loading"
-            >
-              <font-awesome-icon icon="chevron-right" />
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+              <font-awesome-icon icon="angle-right" />
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+              <font-awesome-icon icon="angle-double-right" />
             </button>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="spinner"></div>
-      <p>Cargando datos...</p>
     </div>
 
     <!-- Modal Crear/Editar -->
@@ -266,17 +308,30 @@
       </template>
     </Modal>
 
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
     </div>
-  </div>
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'constanciaNoOficialfrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Solicitud de Número Oficial'"
+      @close="showDocModal = false"
     />
-  </template>
+    </div>
+  </div>
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -284,15 +339,27 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const searchForm = ref({
@@ -311,30 +378,35 @@ const formData = ref({
   subzona: 1
 })
 
-const loading = ref(false)
 const showFormModal = ref(false)
 const formMode = ref('create') // 'create' o 'edit'
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 const currentPage = ref(1)
-const pageSize = ref(10)
+const itemsPerPage = ref(10)
 const totalRecords = ref(0)
 const lastSearchType = ref(null)
 const lastSearchValue = ref(null)
 
 // Computadas
-const totalPages = computed(() => Math.ceil(totalRecords.value / pageSize.value))
+const totalPages = computed(() => Math.ceil(totalRecords.value / itemsPerPage.value))
 
-const paginationPages = computed(() => {
+const paginatedSolicitudes = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return solicitudes.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
   const pages = []
   const maxVisible = 5
-  let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
-  let end = Math.min(totalPages.value, start + maxVisible - 1)
-
-  if (end - start < maxVisible - 1) {
-    start = Math.max(1, end - maxVisible + 1)
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
   }
-
-  for (let i = start; i <= end; i++) {
+  for (let i = startPage; i <= endPage; i++) {
     pages.push(i)
   }
   return pages
@@ -368,13 +440,15 @@ const loadAll = async () => {
 }
 
 const loadSolicitudes = async () => {
-  loading.value = true
+  showLoading('Cargando solicitudes...', 'Consultando registros')
+  hasSearched.value = true
+  selectedRow.value = null
   const startTime = performance.now()
 
   try {
     const params = [
       { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
-      { nombre: 'p_page_size', valor: pageSize.value, tipo: 'integer' },
+      { nombre: 'p_page_size', valor: itemsPerPage.value, tipo: 'integer' },
       { nombre: 'p_search_field', valor: lastSearchType.value, tipo: 'string' },
       { nombre: 'p_search_value', valor: lastSearchValue.value, tipo: 'string' },
       { nombre: 'p_order_by', valor: 'axo_desc', tipo: 'string' }
@@ -395,16 +469,12 @@ const loadSolicitudes = async () => {
       if (response.result.length > 0) {
         totalRecords.value = parseInt(response.result[0].total_count)
       }
+      showToast('success', `${solicitudes.value.length} solicitudes cargadas en ${duration}s`, 3000)
     }
   } catch (error) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudieron cargar las solicitudes',
-      confirmButtonColor: '#ea8215'
-    })
+    handleApiError(error, 'cargar las solicitudes')
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -445,7 +515,7 @@ const guardarSolicitud = async () => {
 }
 
 const crearSolicitud = async () => {
-  loading.value = true
+  showLoading('Creando solicitud...', 'Guardando información')
   const startTime = performance.now()
   const usuario = localStorage.getItem('usuario') || 'sistema'
 
@@ -481,19 +551,14 @@ const crearSolicitud = async () => {
       throw new Error(response?.result?.[0]?.message || 'Error desconocido')
     }
   } catch (error) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo crear la solicitud',
-      confirmButtonColor: '#ea8215'
-    })
+    handleApiError(error, 'crear la solicitud')
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
 const actualizarSolicitud = async () => {
-  loading.value = true
+  showLoading('Actualizando solicitud...', 'Guardando cambios')
   const startTime = performance.now()
 
   try {
@@ -529,14 +594,9 @@ const actualizarSolicitud = async () => {
       throw new Error(response?.result?.[0]?.message || 'Error desconocido')
     }
   } catch (error) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudo actualizar la solicitud',
-      confirmButtonColor: '#ea8215'
-    })
+    handleApiError(error, 'actualizar la solicitud')
   } finally {
-    loading.value = false
+    hideLoading()
   }
 }
 
@@ -556,7 +616,7 @@ const cancelarSolicitud = async (solic) => {
   })
 
   if (result.isConfirmed) {
-    loading.value = true
+    showLoading('Cancelando solicitud...', 'Procesando')
     const startTime = performance.now()
 
     try {
@@ -586,28 +646,39 @@ const cancelarSolicitud = async (solic) => {
         throw new Error(response?.result?.[0]?.message || 'Error desconocido')
       }
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se pudo cancelar la solicitud',
-        confirmButtonColor: '#ea8215'
-      })
+      handleApiError(error, 'cancelar la solicitud')
     } finally {
-      loading.value = false
+      hideLoading()
     }
   }
 }
 
 const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-    loadSolicitudes()
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+  selectedRow.value = null
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
+
+const clearFilters = () => {
+  searchForm.value = {
+    propietario: '',
+    ubicacion: ''
   }
+  solicitudes.value = []
+  hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
+  lastSearchType.value = null
+  lastSearchValue.value = null
 }
 </script>
-
-<style scoped>
-.form-group-button-offset {
-  margin-top: 24px;
-}
-</style>

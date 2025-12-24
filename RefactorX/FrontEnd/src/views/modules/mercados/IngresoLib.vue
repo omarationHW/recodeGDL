@@ -9,15 +9,22 @@
         <p>Inicio > Consultas > Ingresos Libertad</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="procesar" :disabled="loading || !isFormValid">
           <font-awesome-icon icon="play" /> Procesar
         </button>
         <button class="btn-municipal-secondary" @click="limpiar" :disabled="loading">
           <font-awesome-icon icon="eraser" /> Limpiar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -148,12 +155,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'IngresoLib'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - IngresoLib'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'IngresoLib'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - IngresoLib'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -207,31 +223,32 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione el mes, año y mercado para consultar los ingresos del Mercado Libertad. Se mostrarán los ingresos por fecha/caja, totales por caja y totales globales.')
+  showToast('Seleccione el mes, año y mercado para consultar los ingresos del Mercado Libertad. Se mostrarán los ingresos por fecha/caja, totales por caja y totales globales.', 'info')
 }
 
 const fetchMercados = async () => {
   loading.value = true
   showLoading()
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_mercados_libertad',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
+    const res = await apiService.execute(
+          'sp_get_mercados_libertad',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      mercados.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      mercados.value = res.data.result || []
       if (mercados.value.length > 0) {
         form.value.mercado_id = mercados.value[0].num_mercado_nvo
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar mercados')
+      showToast(res.message || 'Error al cargar mercados', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al cargar mercados')
+    showToast('Error de conexión al cargar mercados', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -240,7 +257,7 @@ const fetchMercados = async () => {
 
 const procesar = async () => {
   if (!isFormValid.value) {
-    showToast('warning', 'Complete todos los campos requeridos')
+    showToast('Complete todos los campos requeridos', 'warning')
     return
   }
 
@@ -253,66 +270,69 @@ const procesar = async () => {
   showLoading()
   try {
     // 1. Obtener ingresos por fecha y caja
-    const resIngresos = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_ingresos_libertad',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_mes', Valor: parseInt(form.value.mes) },
-          { Nombre: 'p_anio', Valor: parseInt(form.value.anio) },
-          { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado_id) }
-        ]
-      }
-    })
+    const resIngresos = await apiService.execute(
+          'sp_get_ingresos_libertad',
+          'mercados',
+          [
+          { nombre: 'p_mes', valor: parseInt(form.value.mes) },
+          { nombre: 'p_anio', valor: parseInt(form.value.anio) },
+          { nombre: 'p_mercado', valor: parseInt(form.value.mercado_id) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (resIngresos.data.eResponse.success) {
-      ingresos.value = resIngresos.data.eResponse.data.result || []
+    if (resIngresos.success) {
+      ingresos.value = resIngresos.data.result || []
     }
 
     // 2. Obtener totales por caja
-    const resCajas = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_cajas_libertad',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_mes', Valor: parseInt(form.value.mes) },
-          { Nombre: 'p_anio', Valor: parseInt(form.value.anio) },
-          { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado_id) }
-        ]
-      }
-    })
+    const resCajas = await apiService.execute(
+          'sp_get_cajas_libertad',
+          'mercados',
+          [
+          { nombre: 'p_mes', valor: parseInt(form.value.mes) },
+          { nombre: 'p_anio', valor: parseInt(form.value.anio) },
+          { nombre: 'p_mercado', valor: parseInt(form.value.mercado_id) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (resCajas.data.eResponse.success) {
-      cajas.value = resCajas.data.eResponse.data.result || []
+    if (resCajas.success) {
+      cajas.value = resCajas.data.result || []
     }
 
     // 3. Obtener totales globales
-    const resTotals = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_totals_libertad',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_mes', Valor: parseInt(form.value.mes) },
-          { Nombre: 'p_anio', Valor: parseInt(form.value.anio) },
-          { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado_id) }
-        ]
-      }
-    })
+    const resTotals = await apiService.execute(
+          'sp_get_totals_libertad',
+          'mercados',
+          [
+          { nombre: 'p_mes', valor: parseInt(form.value.mes) },
+          { nombre: 'p_anio', valor: parseInt(form.value.anio) },
+          { nombre: 'p_mercado', valor: parseInt(form.value.mercado_id) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (resTotals.data.eResponse.success) {
-      const result = resTotals.data.eResponse.data.result || []
+    if (resTotals.success) {
+      const result = resTotals.data.result || []
       if (result.length > 0) {
         totals.value = result[0]
       }
     }
 
     if (ingresos.value.length > 0) {
-      showToast('success', `Se encontraron ${ingresos.value.length} registros de ingresos`)
+      showToast(`Se encontraron ${ingresos.value.length} registros de ingresos`, 'success')
     } else {
-      showToast('info', 'No se encontraron ingresos para el periodo seleccionado')
+      showToast('No se encontraron ingresos para el periodo seleccionado', 'info')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al procesar la consulta')
+    showToast('Error de conexión al procesar la consulta', 'error')
   } finally {
     loading.value = false
     hideLoading()

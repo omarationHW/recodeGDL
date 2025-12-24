@@ -10,14 +10,20 @@
         <p>Inicio > Mercados > Cuenta Pública</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="imprimir" :disabled="loading || estadAdeudo.length === 0">
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -39,7 +45,7 @@
               <select v-model.number="form.oficina" class="municipal-form-control" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -228,13 +234,22 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'CuentaPublica'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CuentaPublica'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CuentaPublica'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CuentaPublica'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const toast = useToast()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -282,16 +297,17 @@ const toggleFilters = () => {
 const fetchRecaudadoras = async () => {
   try {
     showLoading('Cargando recaudadoras', 'Por favor espere')
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
+    const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-      recaudadoras.value = response.data.eResponse.data.result
+    if (response.success && response.data?.result) {
+      recaudadoras.value = response.data.result
       if (!form.value.oficina && recaudadoras.value.length > 0) {
         form.value.oficina = recaudadoras.value[0].id_rec
       }
@@ -320,33 +336,18 @@ const consultar = async () => {
   showLoading('Consultando estadísticas', 'Por favor espere')
 
   try {
+    const params = [
+      { nombre: 'p_oficina', valor: parseInt(form.value.oficina), tipo: 'integer' },
+      { nombre: 'p_axo', valor: parseInt(form.value.axo), tipo: 'integer' },
+      { nombre: 'p_periodo', valor: parseInt(form.value.periodo), tipo: 'integer' }
+    ]
     const [estadResp, totalResp] = await Promise.all([
-      axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_cuenta_publica_estad_adeudo',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-            { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },
-            { Nombre: 'p_periodo', Valor: parseInt(form.value.periodo) }
-          ]
-        }
-      }),
-      axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_cuenta_publica_total_adeudo',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-            { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },
-            { Nombre: 'p_periodo', Valor: parseInt(form.value.periodo) }
-          ]
-        }
-      })
+      apiService.execute('sp_cuenta_publica_estad_adeudo', 'mercados', params, '', null, 'publico'),
+      apiService.execute('sp_cuenta_publica_total_adeudo', 'mercados', params, '', null, 'publico')
     ])
 
-    estadAdeudo.value = estadResp.data?.eResponse?.data?.result || []
-    totalAdeudo.value = totalResp.data?.eResponse?.data?.result || []
+    estadAdeudo.value = estadResp.data?.data.result || []
+    totalAdeudo.value = totalResp.data?.data.result || []
 
     if (estadAdeudo.value.length === 0 && totalAdeudo.value.length === 0) {
       toast.info('No se encontraron datos para los criterios especificados')
@@ -372,18 +373,19 @@ const imprimir = async () => {
     loading.value = true
     showLoading('Generando reporte', 'Por favor espere')
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cuenta_publica_reporte',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },
-          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_cuenta_publica_reporte',
+          'mercados',
+          [
+          { nombre: 'p_axo', valor: parseInt(form.value.axo) },
+          { nombre: 'p_oficina', valor: parseInt(form.value.oficina) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data?.eResponse?.success) {
+    if (response.success) {
       toast.success('Reporte generado correctamente')
       // Aquí implementar la descarga del archivo si el backend lo genera
     } else {

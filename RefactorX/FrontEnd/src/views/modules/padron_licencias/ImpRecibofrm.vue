@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Impresión de Recibos</h1>
-        <p>Padrón de Licencias - Impresión de Recibos de Pago de Licencias</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Impresión de Recibos de Pago de Licencias</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -64,7 +67,7 @@
           <button
             class="btn-municipal-primary"
             @click="searchLicencia"
-            :disabled="loading || !filters.numeroLicencia"
+            :disabled="!filters.numeroLicencia"
           >
             <font-awesome-icon icon="search" />
             Buscar Licencia
@@ -72,7 +75,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -130,7 +132,7 @@
               <tr>
                 <td class="label">Monto a Pagar:</td>
                 <td>
-                  <strong class="text-success" style="font-size: 1.2em;">
+                  <strong class="text-success fs-5">
                     {{ formatCurrency(reciboData?.monto) }}
                   </strong>
                 </td>
@@ -155,16 +157,15 @@
         </div>
 
         <!-- Monto en letra -->
-        <div v-if="montoEnLetras" class="alert alert-info" style="margin-top: 20px;">
+        <div v-if="montoEnLetras" class="alert alert-info mt-3">
           <strong>Monto en letra:</strong> {{ montoEnLetras }}
         </div>
 
         <!-- Botones de acción -->
-        <div class="button-group" style="margin-top: 20px;">
+        <div class="button-group mt-3">
           <button
             class="btn-municipal-primary"
             @click="generateReciboPreview"
-            :disabled="loading"
           >
             <font-awesome-icon icon="eye" />
             Vista Previa
@@ -172,7 +173,6 @@
           <button
             class="btn-municipal-success"
             @click="printRecibo"
-            :disabled="loading"
           >
             <font-awesome-icon icon="print" />
             Imprimir Recibo
@@ -222,62 +222,65 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'ImpRecibofrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Impresión de Recibos'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
-
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const licenciaData = ref(null)
@@ -286,7 +289,8 @@ const parametrosRecibo = ref(null)
 const showPreview = ref(false)
 const previewContent = ref('')
 const montoEnLetras = ref('')
-const loadingMessage = ref('Cargando...')
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Filtros
 const filters = ref({
@@ -302,8 +306,9 @@ const searchLicencia = async () => {
     return
   }
 
-  setLoading(true)
-  loadingMessage.value = 'Buscando licencia...'
+  showLoading('Buscando licencia...', 'Por favor espere')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     // SP_BUSCAR_LICENCIA
@@ -335,7 +340,7 @@ const searchLicencia = async () => {
     licenciaData.value = null
     reciboData.value = null
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -571,6 +576,8 @@ const clearFilters = () => {
   showPreview.value = false
   previewContent.value = ''
   montoEnLetras.value = ''
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 // Utilidades
@@ -642,6 +649,14 @@ const formatDate = (dateString) => {
   border: 1px solid #bee5eb;
   border-radius: 5px;
   color: #0c5460;
+}
+
+.mt-3 {
+  margin-top: 20px;
+}
+
+.fs-5 {
+  font-size: 1.2em;
 }
 
 @media print {

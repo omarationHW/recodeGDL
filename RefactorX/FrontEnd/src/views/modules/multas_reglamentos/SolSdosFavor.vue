@@ -8,6 +8,16 @@
         <h1>Solicitudes de Saldos a Favor</h1>
         <p>Consulta y gestión de solicitudes de saldos a favor</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -145,23 +155,45 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'SolSdosFavor'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Solicitudes de Saldos a Favor'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'SolSdosFavor'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Solicitudes de Saldos a Favor'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_SOL_SDOS_FAVOR'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({
   cuenta: ''
@@ -215,6 +247,7 @@ async function reload() {
     { nombre: 'p_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') }
   ]
 
+  showLoading('Consultando...', 'Por favor espere')
   try {
     const response = await execute(OP_LIST, BASE_DB, params)
     console.log('Respuesta completa:', response)
@@ -239,6 +272,8 @@ async function reload() {
   } catch (e) {
     console.error('Error al buscar solicitudes:', e)
     rows.value = []
+  } finally {
+    hideLoading()
   }
 }
 
@@ -253,200 +288,3 @@ function limpiar() {
 // reload()
 </script>
 
-<style scoped>
-.form-row {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group-wide {
-  width: 100%;
-  max-width: 800px;
-}
-
-.municipal-form-label {
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #495057;
-}
-
-.municipal-form-control {
-  padding: 0.5rem;
-  border: 1px solid #ced4da;
-  border-radius: 0.25rem;
-  font-size: 1rem;
-  transition: border-color 0.15s ease-in-out;
-}
-
-.municipal-form-control-wide {
-  width: 100%;
-  min-width: 400px;
-}
-
-.municipal-form-control:focus {
-  outline: none;
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.button-group {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.btn-municipal-primary {
-  padding: 0.5rem 1rem;
-  border: 1px solid #007bff;
-  border-radius: 0.25rem;
-  background-color: #007bff;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-municipal-primary:hover:not(:disabled) {
-  background-color: #0056b3;
-  border-color: #0056b3;
-}
-
-.btn-municipal-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-municipal-secondary {
-  padding: 0.5rem 1rem;
-  border: 1px solid #6c757d;
-  border-radius: 0.25rem;
-  background-color: #6c757d;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  background-color: #5a6268;
-  border-color: #545b62;
-}
-
-.btn-municipal-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.badge-success {
-  background-color: #28a745;
-  color: #fff;
-}
-
-.badge-warning {
-  background-color: #ffc107;
-  color: #212529;
-}
-
-.badge-danger {
-  background-color: #dc3545;
-  color: #fff;
-}
-
-.badge-info {
-  background-color: #17a2b8;
-  color: #fff;
-}
-
-.badge-secondary {
-  background-color: #6c757d;
-  color: #fff;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: #6c757d;
-}
-
-.empty-state svg {
-  color: #dee2e6;
-  margin-bottom: 1rem;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding: 15px;
-  border-top: 1px solid #dee2e6;
-}
-
-.pagination-info {
-  color: #6c757d;
-  font-size: 14px;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.pagination-page {
-  color: #495057;
-  font-weight: 500;
-}
-
-.btn-pagination {
-  padding: 8px 16px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  background-color: #fff;
-  color: #495057;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.btn-pagination:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-@media (max-width: 768px) {
-  .button-group {
-    flex-direction: column;
-  }
-
-  .municipal-form-control-wide {
-    min-width: 100%;
-  }
-
-  .form-group-wide {
-    max-width: 100%;
-  }
-}
-</style>

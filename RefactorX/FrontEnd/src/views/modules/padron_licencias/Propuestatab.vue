@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Propuestas de Tabulador</h1>
-        <p>Padrón de Licencias - Consulta de Históricos y Propuestas</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Consulta de Históricos y Propuestas</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -56,7 +59,6 @@
           <button
             class="btn-municipal-primary"
             @click="buscarPropuestas"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -64,7 +66,6 @@
           <button
             class="btn-municipal-secondary"
             @click="limpiarFiltros"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -75,9 +76,9 @@
 
     <!-- Pestañas de históricos -->
     <div class="municipal-card">
-      <div class="tabs-container">
+      <div class="municipal-tabs">
         <button
-          class="tab-button"
+          class="municipal-tab"
           :class="{ active: activeTab === 'propuestas' }"
           @click="activeTab = 'propuestas'"
         >
@@ -85,7 +86,7 @@
           Propuestas
         </button>
         <button
-          class="tab-button"
+          class="municipal-tab"
           :class="{ active: activeTab === 'cuenta' }"
           @click="activeTab = 'cuenta'; cargarHistoricoCuenta()"
         >
@@ -93,7 +94,7 @@
           Histórico Cuenta
         </button>
         <button
-          class="tab-button"
+          class="municipal-tab"
           :class="{ active: activeTab === 'predial' }"
           @click="activeTab = 'predial'; cargarHistoricoPredial()"
         >
@@ -101,7 +102,7 @@
           Histórico Predial
         </button>
         <button
-          class="tab-button"
+          class="municipal-tab"
           :class="{ active: activeTab === 'ubicacion' }"
           @click="activeTab = 'ubicacion'; cargarHistoricoUbicacion()"
         >
@@ -109,7 +110,7 @@
           Ubicación
         </button>
         <button
-          class="tab-button"
+          class="municipal-tab"
           :class="{ active: activeTab === 'valores' }"
           @click="activeTab = 'valores'; cargarHistoricoValores()"
         >
@@ -117,7 +118,7 @@
           Valores
         </button>
         <button
-          class="tab-button"
+          class="municipal-tab"
           :class="{ active: activeTab === 'diferencias' }"
           @click="activeTab = 'diferencias'; cargarHistoricoDiferencias()"
         >
@@ -125,7 +126,7 @@
           Diferencias
         </button>
         <button
-          class="tab-button"
+          class="municipal-tab"
           :class="{ active: activeTab === 'regimen' }"
           @click="activeTab = 'regimen'; cargarHistoricoRegimen()"
         >
@@ -133,7 +134,7 @@
           Régimen
         </button>
         <button
-          class="tab-button"
+          class="municipal-tab"
           :class="{ active: activeTab === 'condominio' }"
           @click="activeTab = 'condominio'; cargarCondominio()"
         >
@@ -145,71 +146,100 @@
 
     <!-- Tab: Propuestas -->
     <div v-show="activeTab === 'propuestas'" class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="file-invoice" />
           Lista de Propuestas
-          <span class="badge-purple" v-if="propuestas.length > 0">{{ propuestas.length }} registros</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="propuestas.length > 0">
+            {{ propuestas.length }} registros
+          </span>
+        </div>
       </div>
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
-          <table class="municipal-table">
-            <thead class="municipal-table-header">
-              <tr>
-                <th>ID</th>
-                <th>Cuenta</th>
-                <th>Clave Catastral</th>
-                <th>Propietario</th>
-                <th>Ubicación</th>
-                <th>Tipo</th>
-                <th>Fecha</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="propuesta in propuestas" :key="propuesta.id" class="clickable-row">
-                <td><strong>{{ propuesta.id }}</strong></td>
-                <td>{{ propuesta.cuenta || 'N/A' }}</td>
-                <td><code>{{ propuesta.clave_catastral || 'N/A' }}</code></td>
-                <td>{{ propuesta.propietario || 'N/A' }}</td>
-                <td>{{ propuesta.ubicacion || 'N/A' }}</td>
-                <td>
-                  <span class="badge-secondary">{{ propuesta.tipo || 'N/A' }}</span>
-                </td>
-                <td>
-                  <small class="text-muted">{{ formatDate(propuesta.fecha) }}</small>
-                </td>
-                <td>
-                  <button
-                    class="btn-municipal-info btn-sm"
-                    @click="verDetallePropuesta(propuesta)"
-                    title="Ver detalles"
-                  >
-                    <font-awesome-icon icon="eye" />
-                  </button>
-                </td>
-              </tr>
-              <tr v-if="propuestas.length === 0">
-                <td colspan="8" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron propuestas</p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="municipal-card-body">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="propuestas.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="file-invoice" size="3x" />
+          </div>
+          <h4>Propuestas de Tabulador</h4>
+          <p>Ingrese los criterios de búsqueda para consultar las propuestas</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="propuestas.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron propuestas con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla de resultados -->
+        <div v-else class="table-container">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>ID</th>
+                  <th>Cuenta</th>
+                  <th>Clave Catastral</th>
+                  <th>Propietario</th>
+                  <th>Ubicación</th>
+                  <th>Tipo</th>
+                  <th>Fecha</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="propuesta in propuestas"
+                  :key="propuesta.id"
+                  @click="selectedRow = propuesta"
+                  :class="{ 'table-row-selected': selectedRow === propuesta }"
+                  class="row-hover"
+                >
+                  <td><strong>{{ propuesta.id }}</strong></td>
+                  <td>{{ propuesta.cuenta || 'N/A' }}</td>
+                  <td><code>{{ propuesta.clave_catastral || 'N/A' }}</code></td>
+                  <td>{{ propuesta.propietario || 'N/A' }}</td>
+                  <td>{{ propuesta.ubicacion || 'N/A' }}</td>
+                  <td>
+                    <span class="badge-secondary">{{ propuesta.tipo || 'N/A' }}</span>
+                  </td>
+                  <td>
+                    <small class="text-muted">{{ formatDate(propuesta.fecha) }}</small>
+                  </td>
+                  <td>
+                    <button
+                      class="btn-municipal-info btn-sm"
+                      @click.stop="verDetallePropuesta(propuesta)"
+                      title="Ver detalles"
+                    >
+                      <font-awesome-icon icon="eye" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Tab: Histórico de Cuenta -->
     <div v-show="activeTab === 'cuenta'" class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="receipt" />
           Histórico de Cuenta
-          <span class="badge-purple" v-if="historicoCuenta.length > 0">{{ historicoCuenta.length }} registros</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="historicoCuenta.length > 0">
+            {{ historicoCuenta.length }} registros
+          </span>
+        </div>
       </div>
       <div class="municipal-card-body table-container">
         <div class="table-responsive">
@@ -227,7 +257,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(registro, index) in historicoCuenta" :key="index" class="clickable-row">
+              <tr
+                v-for="(registro, index) in historicoCuenta"
+                :key="index"
+                @click="selectedRow = registro"
+                :class="{ 'table-row-selected': selectedRow === registro }"
+                class="row-hover"
+              >
                 <td><strong>{{ registro.cuenta }}</strong></td>
                 <td>{{ registro.anio }}</td>
                 <td>{{ registro.periodo }}</td>
@@ -254,12 +290,16 @@
 
     <!-- Tab: Histórico Predial -->
     <div v-show="activeTab === 'predial'" class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="home" />
           Histórico Predial
-          <span class="badge-purple" v-if="historicoPredial.length > 0">{{ historicoPredial.length }} registros</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="historicoPredial.length > 0">
+            {{ historicoPredial.length }} registros
+          </span>
+        </div>
       </div>
       <div class="municipal-card-body table-container">
         <div class="table-responsive">
@@ -276,7 +316,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(registro, index) in historicoPredial" :key="index" class="clickable-row">
+              <tr
+                v-for="(registro, index) in historicoPredial"
+                :key="index"
+                @click="selectedRow = registro"
+                :class="{ 'table-row-selected': selectedRow === registro }"
+                class="row-hover"
+              >
                 <td><strong>{{ registro.cuenta }}</strong></td>
                 <td>{{ registro.anio }}</td>
                 <td>{{ registro.sup_terreno }} m²</td>
@@ -357,7 +403,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(valor, index) in historicoValores" :key="index" class="clickable-row">
+              <tr
+                v-for="(valor, index) in historicoValores"
+                :key="index"
+                @click="selectedRow = valor"
+                :class="{ 'table-row-selected': selectedRow === valor }"
+                class="row-hover"
+              >
                 <td><strong>{{ valor.anio }}</strong></td>
                 <td>${{ formatCurrency(valor.valor_base) }}</td>
                 <td>{{ valor.incremento }}%</td>
@@ -396,7 +448,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(diff, index) in historicoDiferencias" :key="index" class="clickable-row">
+              <tr
+                v-for="(diff, index) in historicoDiferencias"
+                :key="index"
+                @click="selectedRow = diff"
+                :class="{ 'table-row-selected': selectedRow === diff }"
+                class="row-hover"
+              >
                 <td><strong>{{ diff.periodo }}</strong></td>
                 <td>{{ diff.diferencia }}</td>
                 <td>
@@ -437,7 +495,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(regimen, index) in historicoRegimen" :key="index" class="clickable-row">
+              <tr
+                v-for="(regimen, index) in historicoRegimen"
+                :key="index"
+                @click="selectedRow = regimen"
+                :class="{ 'table-row-selected': selectedRow === regimen }"
+                class="row-hover"
+              >
                 <td><strong>{{ regimen.regimen }}</strong></td>
                 <td>{{ regimen.tipo_propiedad }}</td>
                 <td>{{ regimen.propietario }}</td>
@@ -490,35 +554,31 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando datos...</p>
-      </div>
-    </div>
-
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'Propuestatab'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Propuestas de Tabulador'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -527,22 +587,32 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const activeTab = ref('propuestas')
@@ -554,6 +624,8 @@ const historicoValores = ref([])
 const historicoDiferencias = ref([])
 const historicoRegimen = ref([])
 const condominioInfo = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Filtros
 const filters = ref({
@@ -564,7 +636,9 @@ const filters = ref({
 
 // Métodos
 const buscarPropuestas = async () => {
-  setLoading(true)
+  showLoading('Buscando propuestas...', 'Por favor espere')
+  hasSearched.value = true
+  selectedRow.value = null
   try {
     const response = await execute(
       'sp_propuestatab_list',
@@ -584,7 +658,7 @@ const buscarPropuestas = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -594,7 +668,8 @@ const cargarHistoricoCuenta = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Cargando histórico de cuenta...', 'Por favor espere')
+  selectedRow.value = null
   try {
     const response = await execute(
       'sp_get_cuenta_historico',
@@ -612,7 +687,7 @@ const cargarHistoricoCuenta = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -622,7 +697,8 @@ const cargarHistoricoPredial = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Cargando histórico predial...', 'Por favor espere')
+  selectedRow.value = null
   try {
     const response = await execute(
       'sp_get_predial_historico',
@@ -640,7 +716,7 @@ const cargarHistoricoPredial = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -650,7 +726,8 @@ const cargarHistoricoUbicacion = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Cargando histórico de ubicación...', 'Por favor espere')
+  selectedRow.value = null
   try {
     const response = await execute(
       'sp_get_ubicacion_historico',
@@ -668,7 +745,7 @@ const cargarHistoricoUbicacion = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -678,7 +755,8 @@ const cargarHistoricoValores = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Cargando histórico de valores...', 'Por favor espere')
+  selectedRow.value = null
   try {
     const response = await execute(
       'sp_get_valores_historico',
@@ -696,7 +774,7 @@ const cargarHistoricoValores = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -706,7 +784,8 @@ const cargarHistoricoDiferencias = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Cargando histórico de diferencias...', 'Por favor espere')
+  selectedRow.value = null
   try {
     const response = await execute(
       'sp_get_diferencias_historico',
@@ -724,7 +803,7 @@ const cargarHistoricoDiferencias = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -734,7 +813,8 @@ const cargarHistoricoRegimen = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Cargando histórico de régimen...', 'Por favor espere')
+  selectedRow.value = null
   try {
     const response = await execute(
       'sp_get_regimen_propiedad_historico',
@@ -752,7 +832,7 @@ const cargarHistoricoRegimen = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -762,7 +842,8 @@ const cargarCondominio = async () => {
     return
   }
 
-  setLoading(true)
+  showLoading('Cargando información de condominio...', 'Por favor espere')
+  selectedRow.value = null
   try {
     const response = await execute(
       'sp_propuestatab_condominio',
@@ -780,7 +861,7 @@ const cargarCondominio = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -802,6 +883,8 @@ const limpiarFiltros = () => {
   historicoDiferencias.value = []
   historicoRegimen.value = []
   condominioInfo.value = null
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 // Utilidades

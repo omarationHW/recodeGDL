@@ -10,14 +10,20 @@
         <p>Mercados > Reporte General con Estadísticas Completas</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || reporte.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -38,7 +44,7 @@
               <select class="municipal-form-control" v-model="selectedOficina" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -216,12 +222,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'ReporteGeneralMercados'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - ReporteGeneralMercados'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'ReporteGeneralMercados'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - ReporteGeneralMercados'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -295,10 +310,10 @@ watch(reporte, () => {
 
 // Métodos
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione una oficina, año y periodo para generar el reporte general con estadísticas de pagos, adeudos y porcentaje de cobranza por mercado.')
+  showToast('Seleccione una oficina, año y periodo para generar el reporte general con estadísticas de pagos, adeudos y porcentaje de cobranza por mercado.', 'info')
 }
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = {
     show: true,
     type,
@@ -340,15 +355,16 @@ const formatNumber = (value) => {
 
 const fetchRecaudadoras = async () => {
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse.success) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
     }
   } catch (err) {
     console.error('Error al cargar recaudadoras:', err)
@@ -358,13 +374,13 @@ const fetchRecaudadoras = async () => {
 const buscar = async () => {
   if (!selectedOficina.value || !axo.value || !periodo.value) {
     error.value = 'Debe seleccionar oficina, año y periodo'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (periodo.value < 1 || periodo.value > 12) {
     error.value = 'El periodo debe estar entre 1 y 12'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -380,29 +396,30 @@ const buscar = async () => {
       { nombre: 'p_periodo', valor: periodo.value, tipo: 'integer' }
     ]
 
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_reporte_general_mercados',
-        Base: 'mercados',
-        Parametros: parametros
-      }
-    })
+    const res = await apiService.execute(
+          'sp_reporte_general_mercados',
+          'mercados',
+          parametros,
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      reporte.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      reporte.value = res.data.result || []
       if (reporte.value.length > 0) {
-        showToast('success', `Reporte generado con ${reporte.value.length} mercados`)
+        showToast(`Reporte generado con ${reporte.value.length} mercados`, 'success')
       } else {
-        showToast('info', 'No se encontraron mercados con los criterios especificados')
+        showToast('No se encontraron mercados con los criterios especificados', 'info')
       }
     } else {
-      error.value = res.data.eResponse.message || 'Error al generar reporte'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al generar reporte'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al generar reporte'
     console.error('Error al buscar:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -415,12 +432,12 @@ const limpiarFiltros = () => {
   reporte.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (reporte.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -461,10 +478,10 @@ const exportarExcel = () => {
     link.click()
     URL.revokeObjectURL(url)
 
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
     console.error('Error al exportar:', err)
-    showToast('error', 'Error al exportar el archivo')
+    showToast('Error al exportar el archivo', 'error')
   }
 }
 

@@ -14,11 +14,13 @@
         <p>Consulta por tipo de fecha</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -116,7 +118,7 @@
 
           <!-- Estado vacio -->
           <div v-else class="empty-state-panel">
-            <div class="empty-icon-container">
+            <div class="empty-state-icon">
               <font-awesome-icon icon="list-ol" size="3x" />
             </div>
             <h4>Relacion de Folios</h4>
@@ -201,21 +203,15 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - RelacionFoliosPublicos">
-      <h3>Relacion de Folios</h3>
-      <p>Este modulo permite consultar folios por diferentes tipos de fecha.</p>
-      <h4>Instrucciones:</h4>
-      <ol>
-        <li>Seleccione el tipo de fecha a consultar</li>
-        <li>Ingrese la fecha deseada</li>
-        <li>Presione el boton "Ejecutar Consulta"</li>
-        <li>Los resultados se mostraran en la tabla</li>
-      </ol>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'RelacionFoliosPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'RelacionFoliosPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Relación de Folios'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
@@ -224,11 +220,10 @@ import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
@@ -305,13 +300,19 @@ function exportarExcel() {
   showToast('info', 'Funcion de exportacion en desarrollo')
 }
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>
@@ -501,7 +502,7 @@ const closeTechDocs = () => showTechDocs.value = false
   color: #6c757d;
 }
 
-.empty-icon-container {
+.empty-state-icon {
   width: 80px;
   height: 80px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

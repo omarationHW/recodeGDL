@@ -10,7 +10,16 @@
         <p>Inicio > Mercados > Configuración de Fechas Límite</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo" :disabled="loading">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="abrirModalNuevo" :disabled="loading">
           <font-awesome-icon icon="plus" />
           Nueva Fecha
         </button>
@@ -18,10 +27,7 @@
           <font-awesome-icon :icon="loading ? 'spinner' : 'sync'" :spin="loading" />
           Recargar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -144,7 +150,8 @@
 
     <!-- Modal de Edición -->
     <div v-if="showModal" class="modal-backdrop" @click.self="cerrarModal">
-      <div class="modal-content modal-municipal">
+      <div class="modal-dialog-centered">
+        <div class="modal-content modal-municipal">
         <div class="modal-header municipal-modal-header">
           <h5 class="modal-title">
             <font-awesome-icon icon="calendar-edit" />
@@ -207,26 +214,59 @@
           </button>
         </div>
       </div>
+      </div>
     </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptFechasVencimiento'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptFechasVencimiento'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptFechasVencimiento'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptFechasVencimiento'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import Swal from 'sweetalert2'
+
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 // Composables
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const loading = ref(false)
@@ -242,13 +282,6 @@ const formData = ref({
   dia_vencimiento: null,
   fecha_descuento: '',
   fecha_recargo: ''
-})
-
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
 })
 
 // Computed
@@ -269,31 +302,6 @@ const modalTitle = computed(() => {
 // Métodos de UI
 const mostrarAyuda = () => {
   showToast('info', 'Configure los días de vencimiento y fechas de descuento/recargo para cada mes del año.')
-}
-
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
 }
 
 // Utilidades
@@ -321,27 +329,28 @@ const cargarFechas = async () => {
   showLoading('Cargando fechas de vencimiento...')
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_fechas_vencimiento',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
+    const response = await apiService.execute(
+          'sp_get_fechas_vencimiento',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data.eResponse && response.data.eResponse.success === true) {
-      fechas.value = response.data.eResponse.data.result || []
+    if (response && response.success === true) {
+      fechas.value = response.data.result || []
       if (fechas.value.length > 0) {
-        showToast('success', `Se cargaron ${fechas.value.length} meses`)
+        showToast(`Se cargaron ${fechas.value.length} meses`, 'success')
       }
     } else {
-      error.value = response.data.eResponse?.message || 'Error al cargar fechas'
-      showToast('error', error.value)
+      error.value = response?.message || 'Error al cargar fechas'
+      showToast(error.value, 'error')
     }
   } catch (err) {
-    error.value = err.response?.data?.eResponse?.message || 'Error al cargar fechas'
+    error.value = err.response?.message || 'Error al cargar fechas'
     console.error('Error al cargar fechas:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -382,7 +391,7 @@ const cerrarModal = () => {
 
 const guardar = async () => {
   if (!formData.value.dia_vencimiento || !formData.value.fecha_descuento || !formData.value.fecha_recargo) {
-    showToast('warning', 'Por favor complete todos los campos requeridos')
+    showToast('Por favor complete todos los campos requeridos', 'warning')
     return
   }
 
@@ -392,28 +401,29 @@ const guardar = async () => {
   try {
     const sp = isEditMode.value ? 'sp_update_fecha_vencimiento' : 'sp_insert_fecha_vencimiento'
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: sp,
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_mes', Valor: formData.value.mes },
-          { Nombre: 'p_dia_vencimiento', Valor: formData.value.dia_vencimiento },
-          { Nombre: 'p_fecha_descuento', Valor: formData.value.fecha_descuento },
-          { Nombre: 'p_fecha_recargo', Valor: formData.value.fecha_recargo }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+      sp,
+      'mercados',
+      [
+        { nombre: 'p_mes', valor: formData.value.mes, tipo: 'integer' },
+        { nombre: 'p_dia_vencimiento', valor: formData.value.dia_vencimiento, tipo: 'integer' },
+        { nombre: 'p_fecha_descuento', valor: formData.value.fecha_descuento, tipo: 'string' },
+        { nombre: 'p_fecha_recargo', valor: formData.value.fecha_recargo, tipo: 'string' }
+      ],
+      '',
+      null,
+      'publico'
+    )
 
-    if (response.data.eResponse && response.data.eResponse.success === true) {
-      showToast('success', isEditMode.value ? 'Fecha actualizada correctamente' : 'Fecha creada correctamente')
+    if (response && response.success === true) {
+      showToast(isEditMode.value ? 'Fecha actualizada correctamente' : 'Fecha creada correctamente', 'success')
       cerrarModal()
       await cargarFechas()
     } else {
-      showToast('error', response.data.eResponse?.message || 'Error al guardar')
+      showToast(response?.message || 'Error al guardar', 'error')
     }
   } catch (err) {
-    showToast('error', err.response?.data?.eResponse?.message || 'Error al guardar')
+    showToast(err.response?.message || 'Error al guardar', 'error')
     console.error('Error al guardar:', err)
   } finally {
     saving.value = false

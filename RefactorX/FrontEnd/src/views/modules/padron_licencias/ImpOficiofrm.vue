@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Impresión de Oficios</h1>
-        <p>Padrón de Licencias - Impresión y Registro de Oficios de Trámites</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Impresión y Registro de Oficios de Trámites</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -64,7 +67,7 @@
           <button
             class="btn-municipal-primary"
             @click="searchTramite"
-            :disabled="loading || !filters.numeroTramite"
+            :disabled="!filters.numeroTramite"
           >
             <font-awesome-icon icon="search" />
             Buscar Trámite
@@ -72,7 +75,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -158,11 +160,10 @@
         </div>
 
         <!-- Botones de acción -->
-        <div class="button-group" style="margin-top: 20px;">
+        <div class="button-group mt-3">
           <button
             class="btn-municipal-primary"
             @click="generateOficioPreview"
-            :disabled="loading"
           >
             <font-awesome-icon icon="eye" />
             Vista Previa de Oficio
@@ -170,7 +171,6 @@
           <button
             class="btn-municipal-success"
             @click="printOficio"
-            :disabled="loading"
           >
             <font-awesome-icon icon="print" />
             Imprimir Oficio
@@ -178,7 +178,6 @@
           <button
             class="btn-municipal-info"
             @click="registerOficio"
-            :disabled="loading"
           >
             <font-awesome-icon icon="save" />
             Registrar Impresión
@@ -204,12 +203,16 @@
 
     <!-- Historial de impresiones -->
     <div class="municipal-card" v-if="tramiteInfo && impresiones.length > 0">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="history" />
           Historial de Impresiones
-          <span class="badge-purple">{{ impresiones.length }} registros</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="impresiones.length > 0">
+            {{ impresiones.length }} registros
+          </span>
+        </div>
       </div>
       <div class="municipal-card-body table-container">
         <div class="table-responsive">
@@ -223,7 +226,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(imp, index) in impresiones" :key="index" class="clickable-row">
+              <tr
+                v-for="(imp, index) in impresiones"
+                :key="index"
+                @click="selectedRow = imp"
+                :class="{ 'table-row-selected': selectedRow === imp }"
+                class="row-hover"
+              >
                 <td>
                   <font-awesome-icon icon="calendar" class="text-muted" />
                   {{ formatDate(imp.fechaimpresion) }}
@@ -240,56 +249,57 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
-      </div>
-    </div>
-
-    <!-- Toast Notifications -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'ImpOficiofrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Impresión de Oficios'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
-
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -297,12 +307,15 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const tramiteInfo = ref(null)
 const showPreview = ref(false)
 const previewContent = ref('')
 const impresiones = ref([])
-const loadingMessage = ref('Cargando...')
+const hasSearched = ref(false)
+const selectedRow = ref(null)
 
 // Filtros
 const filters = ref({
@@ -318,8 +331,9 @@ const searchTramite = async () => {
     return
   }
 
-  setLoading(true)
-  loadingMessage.value = 'Buscando trámite...'
+  showLoading('Buscando trámite...', 'Por favor espere')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     // SP_GET_TRAMITE_INFO
@@ -349,7 +363,7 @@ const searchTramite = async () => {
     tramiteInfo.value = null
     impresiones.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -470,8 +484,7 @@ const printOficio = async () => {
 }
 
 const registerOficio = async () => {
-  setLoading(true)
-  loadingMessage.value = 'Registrando impresión...'
+  showLoading('Registrando impresión...', 'Por favor espere')
 
   try {
     // SP_IMP_OFICIO_REGISTER
@@ -497,7 +510,7 @@ const registerOficio = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -511,6 +524,8 @@ const clearFilters = () => {
   showPreview.value = false
   previewContent.value = ''
   impresiones.value = []
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 // Utilidades
@@ -538,31 +553,3 @@ const formatDate = (dateString) => {
   }
 }
 </script>
-
-<style scoped>
-.preview-container {
-  border: 1px solid #dee2e6;
-  border-radius: 5px;
-  padding: 20px;
-  background: #f8f9fa;
-}
-
-.document-preview {
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  min-height: 600px;
-}
-
-@media print {
-  .module-view-header,
-  .button-group,
-  .toast-notification,
-  .municipal-card-header {
-    display: none !important;
-  }
-
-  .document-preview {
-    box-shadow: none;
-  }
-}
-</style>

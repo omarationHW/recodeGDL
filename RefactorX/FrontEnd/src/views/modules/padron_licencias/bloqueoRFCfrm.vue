@@ -10,10 +10,11 @@
         <p>Bloqueo de RFC por incumplimiento del programa de autoevaluación</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -436,12 +437,14 @@
     </template>
   </Modal>
 
-  <!-- Modal de Ayuda -->
+  <!-- Modal de Ayuda y Documentación -->
   <DocumentationModal
-    :show="showDocumentation"
+    :show="showDocModal"
     :componentName="'bloqueoRFCfrm'"
     :moduleName="'padron_licencias'"
-    @close="closeDocumentation"
+    :docType="docType"
+    :title="'Bloqueo de RFC'"
+    @close="showDocModal = false"
   />
 </template>
 
@@ -455,9 +458,19 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()

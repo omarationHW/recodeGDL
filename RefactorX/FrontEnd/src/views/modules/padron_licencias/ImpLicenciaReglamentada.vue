@@ -7,20 +7,23 @@
       </div>
       <div class="module-view-info">
         <h1>Impresión Licencia Reglamentada</h1>
-        <p>Padrón de Licencias - Impresión de Licencias Reglamentadas</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Impresión de Licencias Reglamentadas</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button
           class="btn-municipal-primary"
           @click="printLicense"
-          :disabled="loading || !licenseData"
+          :disabled="!licenseData"
         >
           <font-awesome-icon icon="print" />
           Imprimir
@@ -48,7 +51,6 @@
               v-model="licenseNumber"
               @keyup.enter="searchLicense"
               placeholder="Ingrese el número de licencia"
-              :disabled="loading"
             >
           </div>
           <div class="form-group">
@@ -63,7 +65,7 @@
           <button
             class="btn-municipal-primary"
             @click="searchLicense"
-            :disabled="loading || !licenseNumber"
+            :disabled="!licenseNumber"
           >
             <font-awesome-icon icon="search" />
             Buscar Licencia
@@ -71,7 +73,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearSearch"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -82,12 +83,12 @@
 
     <!-- Vista previa de la licencia -->
     <div class="municipal-card" v-if="licenseData">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="eye" />
           Vista Previa de la Licencia
         </h5>
-        <div class="header-actions">
+        <div class="header-right">
           <span class="badge-success" v-if="licenseData.activa">
             <font-awesome-icon icon="check-circle" />
             Licencia Activa
@@ -252,46 +253,56 @@
     </div>
 
     <!-- Estado vacío -->
-    <div class="municipal-card" v-if="!licenseData && !loading">
+    <div class="municipal-card" v-if="!licenseData && !hasSearched">
       <div class="municipal-card-body">
         <div class="empty-state">
-          <font-awesome-icon icon="search" size="3x" class="empty-icon" />
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="print" size="3x" />
+          </div>
           <h4>Buscar Licencia para Imprimir</h4>
           <p>Ingrese el número de licencia en el campo superior y haga clic en "Buscar Licencia".</p>
         </div>
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando datos de la licencia...</p>
+    <!-- Sin resultados -->
+    <div class="municipal-card" v-else-if="!licenseData && hasSearched">
+      <div class="municipal-card-body">
+        <div class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontró ninguna licencia con los criterios especificados.</p>
+        </div>
       </div>
     </div>
 
-    <!-- Toast Notification -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'ImpLicenciaReglamentada'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Impresión Licencia Reglamentada'"
+      @close="showDocModal = false"
     />
+  </div>
+  <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -300,17 +311,25 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -318,10 +337,14 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const licenseNumber = ref('')
 const licenseData = ref(null)
 const printFormat = ref('CARTA')
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Métodos
 const searchLicense = async () => {
@@ -335,7 +358,9 @@ const searchLicense = async () => {
     return
   }
 
-  setLoading(true, 'Buscando licencia...')
+  showLoading('Buscando licencia...', 'Por favor espere')
+  hasSearched.value = true
+  selectedRow.value = null
   const startTime = performance.now()
 
   try {
@@ -369,13 +394,15 @@ const searchLicense = async () => {
     handleApiError(error)
     licenseData.value = null
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const clearSearch = () => {
   licenseNumber.value = ''
   licenseData.value = null
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const printLicense = async () => {

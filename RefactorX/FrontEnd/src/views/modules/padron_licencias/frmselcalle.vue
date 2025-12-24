@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Selección de Calles</h1>
-        <p>Padrón de Licencias - Selector avanzado de calles con autocompletado</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Selector avanzado de calles con autocompletado</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -82,7 +85,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchCalles"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -90,7 +92,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearSearch"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -177,19 +178,39 @@
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Resultados de Búsqueda
-          <span class="badge-purple" v-if="calles.length > 0">{{ calles.length }} calles</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="calles.length > 0">
+            {{ calles.length }} calles
+          </span>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="calles.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="search-location" size="3x" />
+          </div>
+          <h4>Búsqueda de Calles</h4>
+          <p>Utilice el buscador para encontrar calles. Puede buscar por nombre o aplicar filtros adicionales.</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="calles.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron calles con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla con resultados -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -202,7 +223,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="calle in calles" :key="calle.codigo" class="clickable-row">
+              <tr
+                v-for="calle in calles"
+                :key="calle.codigo"
+                @click="selectedRow = calle"
+                :class="{ 'table-row-selected': selectedRow === calle }"
+                class="row-hover"
+              >
                 <td>
                   <span class="badge-secondary">{{ calle.codigo }}</span>
                 </td>
@@ -219,18 +246,12 @@
                 <td>
                   <button
                     class="btn-municipal-primary btn-sm"
-                    @click="selectCalle(calle)"
+                    @click.stop="selectCalle(calle)"
                     title="Seleccionar calle"
                   >
                     <font-awesome-icon icon="hand-pointer" />
                     Seleccionar
                   </button>
-                </td>
-              </tr>
-              <tr v-if="calles.length === 0 && !loading">
-                <td colspan="6" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron calles. Realice una búsqueda para ver resultados.</p>
                 </td>
               </tr>
             </tbody>
@@ -239,35 +260,31 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
-      </div>
-    </div>
-
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'frmselcalle'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Selección de Calles'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -276,24 +293,33 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
-  handleApiError,
-  loadingMessage
+  handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Emits
 const emit = defineEmits(['calleSelected', 'calleConfirmed'])
@@ -301,6 +327,8 @@ const emit = defineEmits(['calleSelected', 'calleConfirmed'])
 // Estado
 const calles = ref([])
 const selectedCalle = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const searchQuery = ref('')
 const suggestions = ref([])
 let searchTimeout = null
@@ -366,7 +394,9 @@ const searchCalles = async () => {
     return
   }
 
-  setLoading(true, 'Buscando calles...')
+  showLoading('Buscando calles...', 'Procesando solicitud')
+  hasSearched.value = true
+  selectedRow.value = null
   suggestions.value = []
 
   try {
@@ -395,14 +425,14 @@ const searchCalles = async () => {
     handleApiError(error)
     calles.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const selectCalle = async (calle) => {
   // Obtener detalles completos por ID
   try {
-    setLoading(true, 'Obteniendo detalles de la calle...')
+    showLoading('Obteniendo detalles de la calle...', 'Procesando solicitud')
 
     const response = await execute(
       'sp_frmselcalle_get_calle_by_ids',
@@ -429,7 +459,7 @@ const selectCalle = async (calle) => {
     selectedCalle.value = calle
     searchQuery.value = calle.nombre?.trim()
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -507,6 +537,8 @@ const clearSearch = () => {
   suggestions.value = []
   selectedCalle.value = null
   calles.value = []
+  hasSearched.value = false
+  selectedRow.value = null
   showToast('info', 'Búsqueda limpiada')
 }
 

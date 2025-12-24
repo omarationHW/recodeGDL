@@ -10,6 +10,15 @@
         <p>Mercados - Gestión de Autorizaciones para Carga de Pagos</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button
           class="btn-municipal-primary"
           @click="abrirModalNuevo"
@@ -38,13 +47,6 @@
         >
           <font-awesome-icon icon="question-circle" />
           Ayuda
-        </button>
-        <button
-          class="btn-municipal-danger"
-          @click="cerrar"
-        >
-          <font-awesome-icon icon="times" />
-          Cerrar
         </button>
       </div>
     </div>
@@ -253,14 +255,17 @@
             <small>Los campos Fecha Ingreso y Oficina no se pueden modificar en autorizaciones existentes.</small>
           </div>
         </form>
-      <!-- </template> -->
+      <!-- 
+  <DocumentationModal :show="showAyuda" :component-name="'AutCargaPagos'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - AutCargaPagos'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'AutCargaPagos'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - AutCargaPagos'" @close="showDocumentacion = false" />
+</template> -->
 
       <template #footer>
         <button class="btn-municipal-secondary" type="button" @click="cerrarModal">
           <font-awesome-icon icon="times" />
           Cancelar
         </button>
-        <button class="btn-municipal-success" type="button" @click="guardarAutorizacion">
+        <button class="btn-municipal-primary" type="button" @click="guardarAutorizacion">
           <font-awesome-icon icon="save" />
           Guardar
         </button>
@@ -270,6 +275,36 @@
 </template>
 
 <script setup>
+
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
@@ -285,6 +320,11 @@ import {
   faAngleDoubleLeft, faAngleLeft, faAngleRight, faAngleDoubleRight
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 library.add(
   faClipboardCheck, faList, faPlus, faEdit, faSave, faTimes,
@@ -315,7 +355,7 @@ const form = ref({
 
 // Paginación
 const currentPage = ref(1);
-const itemsPerPage = ref(25);
+const itemsPerPage = ref(10);
 const totalRecords = computed(() => rows.value.length);
 
 const totalPages = computed(() => {
@@ -365,18 +405,17 @@ async function cargarDatos() {
       // TODO: Obtener oficina del usuario de sesión
       const p_oficina = null; // Si es null, trae todas las oficinas
 
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_autcargapag_list',
-          Base: 'mercados',
-          Parametros: p_oficina !== null ? [
-            { Nombre: 'p_oficina', Valor: parseInt(p_oficina) }
-          ] : []
-        }
-      });
+      const response = await apiService.execute(
+          'sp_autcargapag_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-        rows.value = response.data.eResponse.data.result;
+      if (response.success && response.data?.result) {
+        rows.value = response.data.result;
         if (rows.value.length > 0) {
           showToast(`Se cargaron ${rows.value.length} autorizaciones`, 'success');
         } else {
@@ -443,23 +482,24 @@ async function guardarAutorizacion() {
     try {
       const operacion = modalMode.value === 'add' ? 'sp_autcargapag_createv1' : 'sp_autcargapag_update';
 
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: operacion,
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_fecha_ingreso', Valor: form.value.fecha_ingreso },
-            { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-            { Nombre: 'p_autorizar', Valor: form.value.autorizar },
-            { Nombre: 'p_fecha_limite', Valor: form.value.fecha_limite },
-            { Nombre: 'p_id_usupermiso', Valor: parseInt(form.value.id_usupermiso) },
-            { Nombre: 'p_comentarios', Valor: form.value.comentarios || '' },
-            { Nombre: 'p_id_usuario', Valor: 1 } // TODO: Obtener de sesión
-          ]
-        }
-      });
+      const response = await apiService.execute(
+        operacion,
+        'mercados',
+        [
+          { nombre: 'p_fecha_ingreso', valor: form.value.fecha_ingreso, tipo: 'string' },
+          { nombre: 'p_oficina', valor: parseInt(form.value.oficina), tipo: 'integer' },
+          { nombre: 'p_autorizar', valor: form.value.autorizar, tipo: 'string' },
+          { nombre: 'p_fecha_limite', valor: form.value.fecha_limite, tipo: 'string' },
+          { nombre: 'p_id_usupermiso', valor: parseInt(form.value.id_usupermiso), tipo: 'integer' },
+          { nombre: 'p_comentarios', valor: form.value.comentarios || '', tipo: 'string' },
+          { nombre: 'p_id_usuario', valor: 1, tipo: 'integer' } // TODO: Obtener de sesión
+        ],
+        '',
+        null,
+        'publico'
+      );
 
-      if (response.data?.eResponse?.success) {
+      if (response.success) {
         showToast(
           modalMode.value === 'add' ? 'Autorización agregada exitosamente' : 'Autorización modificada exitosamente',
           'success'
@@ -467,7 +507,7 @@ async function guardarAutorizacion() {
         cerrarModal();
         await cargarDatos();
       } else {
-        showToast(response.data?.eResponse?.message || 'Error al guardar autorización', 'error');
+        showToast(response.message || 'Error al guardar autorización', 'error');
       }
     } catch (error) {
       console.error('Error al guardar autorización:', error);
@@ -512,10 +552,4 @@ function mostrarAyuda() {
     icon: 'info',
     confirmButtonText: 'Entendido'
   });
-}
-
-// Cerrar
-function cerrar() {
-  router.push('/');
-}
-</script>
+}</script>

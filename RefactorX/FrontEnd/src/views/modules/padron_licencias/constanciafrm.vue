@@ -18,7 +18,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -152,12 +156,12 @@
 
       <!-- Tabla de resultados -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
-          <div class="header-with-badge">
-            <h5>
-              <font-awesome-icon icon="list" />
-              Constancias Registradas
-            </h5>
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Constancias Registradas
+          </h5>
+          <div class="header-right">
             <span class="badge-purple" v-if="totalResultados > 0">
               {{ formatNumber(totalResultados) }} registros totales
             </span>
@@ -165,7 +169,26 @@
         </div>
 
         <div class="municipal-card-body table-container">
-          <div class="table-responsive">
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="constancias.length === 0 && !hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="file-certificate" size="3x" />
+            </div>
+            <h4>Gestión de Constancias</h4>
+            <p>Utiliza los filtros para buscar constancias o crea una nueva con el botón "Nueva Constancia"</p>
+          </div>
+
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="constancias.length === 0 && hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
+            </div>
+            <h4>Sin resultados</h4>
+            <p>No se encontraron constancias con los criterios especificados</p>
+          </div>
+
+          <!-- Tabla con resultados -->
+          <div v-else class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
@@ -180,24 +203,12 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="constancias.length === 0 && !primeraBusqueda">
-                  <td colspan="8" class="text-center text-muted">
-                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                    <p>Utiliza los filtros para buscar constancias o crea una nueva</p>
-                  </td>
-                </tr>
-                <tr v-else-if="constancias.length === 0">
-                  <td colspan="8" class="text-center text-muted">
-                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                    <p>No se encontraron constancias con los filtros especificados</p>
-                  </td>
-                </tr>
                 <tr
-                  v-else
                   v-for="constancia in constancias"
                   :key="`${constancia.axo}-${constancia.folio}`"
-                  @click="constanciaSeleccionada = constancia"
-                  style="cursor: pointer;"
+                  @click="selectedRow = constancia"
+                  :class="{ 'table-row-selected': selectedRow === constancia }"
+                  class="row-hover"
                 >
                   <td>
                     <div class="folio-display">
@@ -270,12 +281,12 @@
           </div>
 
           <!-- Paginación -->
-          <div class="pagination-controls" v-if="totalResultados > itemsPerPage">
+          <div v-if="constancias.length > 0" class="pagination-controls">
             <div class="pagination-info">
               <span class="text-muted">
                 Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
                 a {{ Math.min(currentPage * itemsPerPage, totalResultados) }}
-                de {{ totalResultados }} registros
+                de {{ formatNumber(totalResultados) }} registros
               </span>
             </div>
 
@@ -344,6 +355,28 @@
           </div>
         </div>
       </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'constanciafrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Gestión de Constancias'"
+        @close="showDocModal = false"
+      />
     </div>
 
     <!-- Modal Detalle -->
@@ -726,23 +759,6 @@
         </button>
       </div>
     </Modal>
-
-    <!-- Toast -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
-
-    <!-- Documentation Modal -->
-    <DocumentationModal
-      v-if="showDocumentation"
-      :componentName="'constanciafrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
   </div>
 </template>
 
@@ -756,10 +772,19 @@ import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const router = useRouter()
 const { execute } = useApi()
@@ -779,7 +804,8 @@ const estadisticas = ref([])
 const totalResultados = ref(0)
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
-const primeraBusqueda = ref(false)
+const hasSearched = ref(false)
+const selectedRow = ref(null)
 const loadingEstadisticas = ref(true)
 const loadingModal = ref(false)
 
@@ -864,7 +890,8 @@ const toggleFilters = () => {
 
 const cargarConstancias = async () => {
   showLoading('Cargando constancias...', 'Consultando base de datos')
-  primeraBusqueda.value = true
+  hasSearched.value = true
+  selectedRow.value = null
   showFilters.value = false
 
   try {
@@ -907,8 +934,26 @@ const cargarConstancias = async () => {
 
 const buscarConstancias = () => {
   currentPage.value = 1
+  selectedRow.value = null
   showFilters.value = false
   cargarConstancias()
+}
+
+const clearFilters = () => {
+  const fechasDefault = obtenerFechasPorDefecto()
+  filtros.value = {
+    axo: null,
+    folio: null,
+    id_licencia: null,
+    solicita: '',
+    vigente: '',
+    fecha_desde: fechasDefault.fecha_desde,
+    fecha_hasta: fechasDefault.fecha_hasta
+  }
+  constancias.value = []
+  hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
 }
 
 const cargarEstadisticas = async () => {
@@ -1291,12 +1336,14 @@ const verDetalle = (constancia) => {
 const goToPage = (page) => {
   if (page !== '...' && page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    selectedRow.value = null
     cargarConstancias()
   }
 }
 
 const changePageSize = () => {
   currentPage.value = 1
+  selectedRow.value = null
   cargarConstancias()
 }
 

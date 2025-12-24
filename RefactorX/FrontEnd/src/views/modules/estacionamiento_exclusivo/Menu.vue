@@ -286,16 +286,15 @@
         </div>
       </div>
 
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocumentation"
+        :componentName="'Menu'"
+        :moduleName="'estacionamiento_exclusivo'"
+        @close="closeDocumentation"
+      />
     </div>
     <!-- /module-view-content -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'Menu'"
-      :moduleName="'estacionamiento_exclusivo'"
-      @close="closeDocumentation"
-    />
   </div>
   <!-- /module-view -->
 </template>
@@ -304,9 +303,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 // Router
 const router = useRouter()
+
+// Global Loading
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estados
 const showDocumentation = ref(false)
@@ -314,6 +317,8 @@ const userName = ref('Usuario Sistema')
 const selectedEjercicio = ref(new Date().getFullYear())
 const ejercicios = ref([])
 const viewMode = ref('grid')
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Datos de menú - Acceso Rápido
 const quickAccessItems = ref([

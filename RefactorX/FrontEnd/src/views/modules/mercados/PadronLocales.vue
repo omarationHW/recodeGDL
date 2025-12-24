@@ -10,14 +10,20 @@
         <p>Inicio > Mercados > Padrón de Locales</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || padron.length === 0">
           <font-awesome-icon icon="file-excel" />
           Excel
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -39,7 +45,7 @@
               <select class="municipal-form-control" v-model="selectedRec" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -138,27 +144,76 @@
             </table>
           </div>
 
-          <!-- Paginación -->
-          <div v-if="padron.length > 0" class="pagination-container">
+          <!-- Controles de paginación -->
+          <div v-if="padron.length > 0" class="pagination-controls">
             <div class="pagination-info">
-              Mostrando {{ paginationStart }} a {{ paginationEnd }} de {{ totalItems }} registros
+              <span class="text-muted">
+                Mostrando {{ paginationStart }}
+                a {{ paginationEnd }}
+                de {{ totalItems }} registros
+              </span>
             </div>
-            <div class="pagination-controls">
-              <label class="me-2">Registros por página:</label>
-              <select v-model.number="itemsPerPage" class="form-select form-select-sm">
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
               </select>
             </div>
+
             <div class="pagination-buttons">
-              <button @click="prevPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
               </button>
-              <span>Página {{ currentPage }} de {{ totalPages }}</span>
-              <button @click="nextPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
               </button>
             </div>
           </div>
@@ -175,12 +230,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'PadronLocales'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - PadronLocales'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'PadronLocales'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - PadronLocales'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -212,10 +276,10 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione una oficina recaudadora para generar el padrón de locales')
+  showToast('Ayuda: Seleccione una oficina recaudadora para generar el padrón de locales', 'info')
 }
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = { show: true, type, message }
   setTimeout(() => hideToast(), 5000)
 }
@@ -233,25 +297,26 @@ const fetchRecaudadoras = async () => {
   loading.value = true
   error.value = ''
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse.success === true) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al cargar recaudadoras'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar recaudadoras'
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -259,7 +324,7 @@ const fetchRecaudadoras = async () => {
 
 const buscar = async () => {
   if (!selectedRec.value) {
-    showToast('warning', 'Debe seleccionar una oficina recaudadora')
+    showToast('Debe seleccionar una oficina recaudadora', 'warning')
     return
   }
 
@@ -269,30 +334,31 @@ const buscar = async () => {
   searchPerformed.value = true
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_padron_locales',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_recaudadora', Valor: selectedRec.value }
-        ]
-      }
-    })
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      padron.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_padron_locales',
+          'mercados',
+          [
+          { nombre: 'p_recaudadora', valor: selectedRec.value }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      padron.value = res.data.result || []
       if (padron.value.length > 0) {
-        showToast('success', `Se encontraron ${padron.value.length} locales`)
+        showToast(`Se encontraron ${padron.value.length} locales`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron locales para esta recaudadora')
+        showToast('No se encontraron locales para esta recaudadora', 'info')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al generar padrón'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al generar padrón'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al generar padrón'
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -303,15 +369,15 @@ const limpiarFiltros = () => {
   padron.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (padron.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
-  showToast('info', 'Funcionalidad de exportación Excel en desarrollo')
+  showToast('Funcionalidad de exportación Excel en desarrollo', 'info')
 }
 
 const formatCurrency = (val) => {
@@ -347,17 +413,33 @@ const paginationEnd = computed(() => {
 
 const totalItems = computed(() => padron.value.length)
 
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
 // Paginación - Métodos
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
   }
 }
 
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
 }
 
 // Reset página al buscar
@@ -374,12 +456,3 @@ onMounted(async () => {
   }
 })
 </script>
-
-<style scoped>
-.empty-icon { color: #ccc; margin-bottom: 1rem; }
-.text-end { text-align: right; }
-.spinner-border { width: 3rem; height: 3rem; }
-.row-hover:hover { background-color: #f8f9fa; }
-.required { color: #dc3545; }
-.municipal-table td.text-end, .municipal-table th.text-end { text-align: right; }
-</style>

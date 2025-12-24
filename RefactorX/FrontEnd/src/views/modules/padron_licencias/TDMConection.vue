@@ -7,20 +7,23 @@
       </div>
       <div class="module-view-info">
         <h1>Conexión TDM</h1>
-        <p>Padrón de Licencias - Conexión con Trámites Digitales México</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Conexión con Trámites Digitales México</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button
           class="btn-municipal-primary"
           @click="syncTramites"
-          :disabled="loading || syncing"
+          :disabled="syncing"
         >
           <font-awesome-icon :icon="syncing ? 'spinner' : 'sync-alt'" :spin="syncing" />
           {{ syncing ? 'Sincronizando...' : 'Sincronizar Ahora' }}
@@ -106,7 +109,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchLogs"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -114,7 +116,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -122,7 +123,6 @@
           <button
             class="btn-municipal-secondary"
             @click="loadLogs"
-            :disabled="loading"
           >
             <font-awesome-icon icon="sync-alt" />
             Actualizar
@@ -133,19 +133,39 @@
 
     <!-- Historial de Sincronización -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Historial de Sincronización
-          <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="logs.length > 0">
+            {{ logs.length }} registros
+          </span>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="logs.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="sync-alt" size="3x" />
+          </div>
+          <h4>Historial de Sincronización TDM</h4>
+          <p>Haga clic en "Actualizar" para cargar el historial de sincronizaciones con el sistema TDM</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="logs.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron registros de sincronización con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla de resultados -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -159,7 +179,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="log in logs" :key="log.id" class="clickable-row">
+              <tr
+                v-for="log in logs"
+                :key="log.id"
+                @click="selectedRow = log"
+                :class="{ 'table-row-selected': selectedRow === log }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary">{{ log.id }}</strong></td>
                 <td>
                   <small class="text-muted">
@@ -188,7 +214,7 @@
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="viewLog(log)"
+                      @click.stop="viewLog(log)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
@@ -196,7 +222,7 @@
                     <button
                       v-if="log.estado === 'FALLIDO'"
                       class="btn-municipal-warning btn-sm"
-                      @click="retrySync(log)"
+                      @click.stop="retrySync(log)"
                       title="Reintentar"
                       :disabled="syncing"
                     >
@@ -205,73 +231,60 @@
                   </div>
                 </td>
               </tr>
-              <tr v-if="logs.length === 0 && !loading">
-                <td colspan="7" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron registros de sincronización</p>
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
       </div>
 
       <!-- Paginación -->
-      <div class="pagination-container" v-if="totalRecords > 0 && !loading">
+      <div v-if="logs.length > 0" class="pagination-controls">
         <div class="pagination-info">
-          <font-awesome-icon icon="info-circle" />
-          Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-          a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
-          de {{ totalRecords }} registros
+          <span class="text-muted">
+            Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+            a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+            de {{ formatNumber(totalRecords) }} registros
+          </span>
         </div>
 
-        <div class="pagination-controls">
-          <div class="page-size-selector">
-            <label>Mostrar:</label>
-            <select v-model="itemsPerPage" @change="changePageSize">
-              <option :value="10">10</option>
-              <option :value="25">25</option>
-              <option :value="50">50</option>
-              <option :value="100">100</option>
-            </select>
-          </div>
-
-          <div class="pagination-nav">
-            <button
-              class="pagination-button"
-              @click="goToPage(currentPage - 1)"
-              :disabled="currentPage === 1"
-            >
-              <font-awesome-icon icon="chevron-left" />
-            </button>
-
-            <button
-              v-for="page in visiblePages"
-              :key="page"
-              class="pagination-button"
-              :class="{ active: page === currentPage }"
-              @click="goToPage(page)"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="pagination-button"
-              @click="goToPage(currentPage + 1)"
-              :disabled="currentPage === totalPages"
-            >
-              <font-awesome-icon icon="chevron-right" />
-            </button>
-          </div>
+        <div class="pagination-size">
+          <label class="municipal-form-label me-2">Registros por página:</label>
+          <select
+            class="municipal-form-control form-control-sm"
+            :value="itemsPerPage"
+            @change="changePageSize($event.target.value)"
+            style="width: auto; display: inline-block;"
+          >
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
         </div>
-      </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading && logs.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando historial de sincronización...</p>
+        <div class="pagination-buttons">
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+            <font-awesome-icon icon="angle-double-left" />
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+            <font-awesome-icon icon="angle-left" />
+          </button>
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            class="btn-sm"
+            :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+            @click="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+            <font-awesome-icon icon="angle-right" />
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+            <font-awesome-icon icon="angle-double-right" />
+          </button>
+        </div>
       </div>
     </div>
 
@@ -358,28 +371,31 @@
       </div>
     </Modal>
 
-    <!-- Toast Notification -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'TDMConection'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Conexión TDM'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -388,18 +404,26 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -407,8 +431,12 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const logs = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const totalRecords = ref(0)
@@ -440,14 +468,21 @@ const totalPages = computed(() => {
 
 const visiblePages = computed(() => {
   const pages = []
-  const start = Math.max(1, currentPage.value - 2)
-  const end = Math.min(totalPages.value, currentPage.value + 2)
-
-  for (let i = start; i <= end; i++) {
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
     pages.push(i)
   }
   return pages
 })
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
 
 // Métodos
 const loadConnectionStatus = async () => {
@@ -488,7 +523,9 @@ const loadConnectionStatus = async () => {
 }
 
 const loadLogs = async () => {
-  setLoading(true, 'Cargando historial de sincronización...')
+  showLoading('Cargando historial de sincronización...')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const startTime = performance.now()
@@ -530,7 +567,7 @@ const loadLogs = async () => {
     logs.value = []
     totalRecords.value = 0
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -545,19 +582,24 @@ const clearFilters = () => {
     fechaFin: '',
     estado: ''
   }
+  logs.value = []
+  hasSearched.value = false
   currentPage.value = 1
-  loadLogs()
+  selectedRow.value = null
 }
 
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    selectedRow.value = null
     loadLogs()
   }
 }
 
-const changePageSize = () => {
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
   currentPage.value = 1
+  selectedRow.value = null
   loadLogs()
 }
 

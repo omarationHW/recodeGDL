@@ -1,351 +1,323 @@
-<template>
+﻿<template>
   <div class="module-view">
+        <!-- Header del módulo -->
     <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="arrow-up-wide-short" />
       </div>
       <div class="module-view-info">
-        <h1>Consulta de Pagos por Contrato (Ascendente)</h1>
-        <p>Aseo Contratado - Historial de pagos ordenado por numero de contrato ascendente</p>
+        <h1>Consulta Ascendente de Pagos</h1>
+        <p>Aseo Contratado - Historial de pagos ordenado cronológicamente (del más antiguo al más reciente)</p>
       </div>
-      <button type="button" class="btn-help-icon" @click="showDocumentation = true" title="Ayuda">
+      <button
+        type="button"
+        class="btn-help-icon"
+        @click="mostrarAyuda = true"
+        title="Ayuda"
+      >
         <font-awesome-icon icon="question-circle" />
       </button>
     </div>
-
-    <div class="module-view-content">
-      <!-- Busqueda -->
-      <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="search" /> Buscar Contrato</h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="search-row">
-            <div class="search-field">
-              <label class="municipal-label">Tipo de Aseo</label>
-              <select v-model="tipoAseoSeleccionado" class="municipal-form-control">
-                <option value="">Seleccione...</option>
-                <option v-for="tipo in tiposAseo" :key="tipo.tipo_aseo_id" :value="tipo.tipo_aseo_id">
-                  {{ tipo.tipo_aseo_id }} - {{ tipo.cve_tipo }} - {{ tipo.descripcion }}
-                </option>
-              </select>
-            </div>
-            <div class="search-field">
-              <label class="municipal-label">Numero de Contrato</label>
-              <input
-                type="number"
-                v-model.number="numContrato"
-                class="municipal-form-control"
-                placeholder="Numero inicial"
-                @keyup.enter="buscarContratos"
-              />
-            </div>
-            <div class="search-field search-field-buttons">
-              <button type="button" class="btn-municipal-primary" @click="buscarContratos" :disabled="cargando">
-                <font-awesome-icon :icon="cargando ? 'spinner' : 'search'" :spin="cargando" />
-                Buscar
-              </button>
-              <button type="button" class="btn-municipal-secondary" @click="salir">
-                <font-awesome-icon icon="door-open" /> Salir
-              </button>
-            </div>
+<div class="municipal-card shadow-sm mb-4">
+      <div class="municipal-card-header">
+        <h5>Búsqueda de Contrato</h5>
+      </div>
+      <div class="municipal-card-body">
+        <div class="row">
+          <div class="col-md-4">
+            <input type="text" class="municipal-form-control" v-model="busqueda" @keyup.enter="buscar"
+              placeholder="Número de contrato" />
+          </div>
+          <div class="col-md-2">
+            <button class="btn-municipal-primary w-100" @click="buscar" :disabled="cargando">
+              <font-awesome-icon icon="search" /> Buscar
+            </button>
           </div>
         </div>
-      </div>
-
-      <!-- Navegador de Contratos -->
-      <div v-if="contratos.length > 0" class="municipal-card mt-3">
-        <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="file-contract" /> Contrato Actual</h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="navigator-row">
-            <div class="navigator-buttons">
-              <button type="button" class="btn-municipal-secondary" @click="irPrimero" :disabled="indiceContrato === 0" title="Primero">
-                <font-awesome-icon icon="angle-double-left" />
-              </button>
-              <button type="button" class="btn-municipal-secondary" @click="irAnterior" :disabled="indiceContrato === 0" title="Anterior">
-                <font-awesome-icon icon="angle-left" />
-              </button>
-              <button type="button" class="btn-municipal-secondary" @click="irSiguiente" :disabled="indiceContrato >= contratos.length - 1" title="Siguiente">
-                <font-awesome-icon icon="angle-right" />
-              </button>
-              <button type="button" class="btn-municipal-secondary" @click="irUltimo" :disabled="indiceContrato >= contratos.length - 1" title="Ultimo">
-                <font-awesome-icon icon="angle-double-right" />
-              </button>
-              <span class="navigator-info">
-                {{ indiceContrato + 1 }} de {{ contratos.length }}
-              </span>
-            </div>
-            <div class="contract-info">
-              <div class="info-item">
-                <span class="info-label">Contrato:</span>
-                <span class="info-value info-value-highlight">{{ contratoActual?.num_contrato }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Tipo:</span>
-                <span class="info-value">{{ contratoActual?.tipo_aseo }} - {{ contratoActual?.descripcion }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Grid de Pagos -->
-      <div v-if="pagos.length > 0" class="municipal-card mt-3">
-        <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="money-bill-wave" /> Pagos Realizados (Status P)</h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="table-container">
-            <table class="municipal-table">
-              <thead>
-                <tr>
-                  <th>Periodo</th>
-                  <th>Operacion</th>
-                  <th>Exed.</th>
-                  <th>Importe</th>
-                  <th>Status</th>
-                  <th>Fecha Pago</th>
-                  <th>Ofna</th>
-                  <th>Caja</th>
-                  <th>Consec. Op.</th>
-                  <th>Folio Rcbo</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="pago in pagos" :key="pago.control_contrato + '-' + pago.aso_mes_pago + '-' + pago.ctrol_operacion">
-                  <td>{{ formatPeriodo(pago.aso_mes_pago) }}</td>
-                  <td>{{ pago.descripcion }}</td>
-                  <td class="text-center">{{ pago.exedencias || 0 }}</td>
-                  <td class="text-right">${{ formatCurrency(pago.importe) }}</td>
-                  <td class="text-center">{{ pago.status_vigencia }}</td>
-                  <td>{{ formatFecha(pago.fecha_hora_pago) }}</td>
-                  <td class="text-center">{{ pago.id_rec }}</td>
-                  <td class="text-center">{{ pago.caja }}</td>
-                  <td class="text-center">{{ pago.consec_operacion }}</td>
-                  <td>{{ pago.folio_rcbo }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="table-footer">
-            <span>Total registros: {{ pagos.length }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Mensaje sin datos -->
-      <div v-if="contratos.length > 0 && pagos.length === 0" class="municipal-alert municipal-alert-info mt-3">
-        <font-awesome-icon icon="info-circle" />
-        No hay pagos registrados para este contrato con status "P" (Pagado).
-      </div>
-
-      <!-- Mensaje sin contratos -->
-      <div v-if="buscado && contratos.length === 0" class="municipal-alert municipal-alert-warning mt-3">
-        <font-awesome-icon icon="exclamation-triangle" />
-        No se encontraron contratos con numero >= {{ numContrato }} para el tipo de aseo seleccionado.
       </div>
     </div>
 
-    <!-- Modal de Documentacion -->
-    <DocumentationModal
-      :show="showDocumentation"
-      @close="showDocumentation = false"
-      title="Ayuda - Consulta Pagos Ascendente"
-      componentName="Pagos_Cons_ContAsc"
-    >
-      <h3>Consulta de Pagos por Contrato (Ascendente)</h3>
-      <p>Este modulo permite consultar los pagos realizados de contratos de aseo ordenados de forma ascendente por numero de contrato.</p>
+    <div v-if="contratoSeleccionado">
+      <div class="alert alert-info">
+        <div class="row">
+          <div class="col-md-3">
+            <strong>Contrato:</strong> {{ contratoSeleccionado.num_contrato }}
+          </div>
+          <div class="col-md-4">
+            <strong>Contribuyente:</strong> {{ contratoSeleccionado.contribuyente }}
+          </div>
+          <div class="col-md-3">
+            <strong>Domicilio:</strong> {{ contratoSeleccionado.domicilio }}
+          </div>
+          <div class="col-md-2">
+            <strong>Status:</strong>
+            <span class="badge" :class="contratoSeleccionado.status === 'A' ? 'bg-success' : 'bg-danger'">
+              {{ contratoSeleccionado.status === 'A' ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+        </div>
+      </div>
 
-      <h4>Uso:</h4>
-      <ol>
-        <li>Seleccione el tipo de aseo</li>
-        <li>Ingrese el numero de contrato inicial</li>
-        <li>Presione "Buscar"</li>
-        <li>Use los botones de navegacion para moverse entre contratos</li>
-        <li>Al cambiar de contrato se actualizan los pagos automaticamente</li>
-      </ol>
+      <div class="row mb-3">
+        <div class="col-md-3">
+          <div class="municipal-card bg-success text-white">
+            <div class="municipal-card-body">
+              <h6>Total Pagos</h6>
+              <h2>{{ pagos.length }}</h2>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="municipal-card bg-primary text-white">
+            <div class="municipal-card-body">
+              <h6>Monto Total Pagado</h6>
+              <h2>${{ formatCurrency(montoTotal) }}</h2>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="municipal-card bg-info text-white">
+            <div class="municipal-card-body">
+              <h6>Primer Pago</h6>
+              <h2>{{ formatFecha(primerPago) }}</h2>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="municipal-card bg-warning text-dark">
+            <div class="municipal-card-body">
+              <h6>Último Pago</h6>
+              <h2>{{ formatFecha(ultimoPago) }}</h2>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <h4>Informacion Mostrada:</h4>
+      <div class="municipal-card">
+        <div class="municipal-card-header bg-light d-flex justify-content-between">
+          <div>
+            <h6 class="mb-0">Historial de Pagos (Orden Ascendente)</h6>
+            <small class="text-muted">Mostrando desde el pago más antiguo hasta el más reciente</small>
+          </div>
+          <div>
+            <button class="btn btn-sm btn-success me-2" @click="exportar">
+              <font-awesome-icon icon="file-excel" /> Excel
+            </button>
+            <button class="btn btn-sm btn-danger" @click="imprimir">
+              <font-awesome-icon icon="print" /> Imprimir
+            </button>
+          </div>
+        </div>
+        <div class="municipal-card-body">
+          <div class="table-responsive">
+            <table class="municipal-table-sm table-striped">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>
+                    Fecha Pago
+                    <font-awesome-icon icon="arrow-up" class="text-success ms-1" />
+                  </th>
+                  <th>Recibo</th>
+                  <th>Periodo Pagado</th>
+                  <th>Forma Pago</th>
+                  <th>Referencia</th>
+                  <th class="text-end">Monto</th>
+                  <th class="text-end">Acumulado</th>
+                  <th>Usuario</th>
+                  <th>Días Transcurridos</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(pago, index) in pagos" :key="pago.control_pago">
+                  <td>{{ index + 1 }}</td>
+                  <td>{{ formatFechaCompleta(pago.fecha_pago) }}</td>
+                  <td>
+                    <span class="badge badge-primary">{{ pago.num_recibo }}</span>
+                  </td>
+                  <td>{{ pago.periodo }}</td>
+                  <td>
+                    <font-awesome-icon :icon="getIconoFormaPago(pago.forma_pago)" class="me-1" />
+                    {{ pago.forma_pago }}
+                  </td>
+                  <td>{{ pago.referencia || 'N/A' }}</td>
+                  <td class="text-end">${{ formatCurrency(pago.monto) }}</td>
+                  <td class="text-end">
+                    <strong>${{ formatCurrency(calcularAcumulado(index)) }}</strong>
+                  </td>
+                  <td>{{ pago.usuario }}</td>
+                  <td>
+                    <span v-if="index > 0" class="badge badge-secondary">
+                      {{ calcularDiasTranscurridos(pagos[index-1].fecha_pago, pago.fecha_pago) }} días
+                    </span>
+                    <span v-else class="badge badge-info">Primer pago</span>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th colspan="6" class="text-end">TOTAL:</th>
+                  <th class="text-end">${{ formatCurrency(montoTotal) }}</th>
+                  <th colspan="3"></th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <div v-if="pagos.length > 10" class="mt-3">
+            <div class="alert alert-info">
+              <font-awesome-icon icon="chart-line" class="me-2" />
+              <strong>Análisis de Pagos:</strong>
+              <ul class="mb-0 mt-2">
+                <li>Promedio de pago: <strong>${{ formatCurrency(promedioMonto) }}</strong></li>
+                <li>Promedio de días entre pagos: <strong>{{ promedioDias }} días</strong></li>
+                <li>Periodo más largo sin pagar: <strong>{{ periodoMasLargo }} días</strong></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <DocumentationModal v-if="mostrarAyuda" :show="mostrarAyuda" @close="mostrarAyuda = false"
+      title="Consulta Ascendente de Pagos">
+      <h6>Descripción</h6>
+      <p>Muestra el historial completo de pagos de un contrato ordenado cronológicamente de forma ascendente (del más antiguo al más reciente).</p>
+      <h6>Información Disponible</h6>
       <ul>
-        <li><strong>Periodo:</strong> Mes/Anio del pago</li>
-        <li><strong>Operacion:</strong> Tipo de operacion realizada</li>
-        <li><strong>Exedencias:</strong> Numero de unidades adicionales</li>
-        <li><strong>Importe:</strong> Monto del pago</li>
-        <li><strong>Status:</strong> P=Pagado</li>
-        <li><strong>Fecha Pago:</strong> Fecha y hora del pago</li>
-        <li><strong>Oficina/Caja:</strong> Lugar de pago</li>
-        <li><strong>Folio Recibo:</strong> Numero de recibo</li>
+        <li>Orden cronológico ascendente de pagos</li>
+        <li>Monto acumulado por cada pago</li>
+        <li>Días transcurridos entre pagos consecutivos</li>
+        <li>Análisis estadístico de comportamiento de pago</li>
+      </ul>
+      <h6>Utilidad</h6>
+      <ul>
+        <li>Análisis histórico de cumplimiento de pagos</li>
+        <li>Identificación de patrones de pago</li>
+        <li>Detección de periodos sin pagar</li>
+        <li>Seguimiento de formas de pago utilizadas</li>
       </ul>
     </DocumentationModal>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-
-const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
+import { useToast } from '@/composables/useToast'
 
 const { execute } = useApi()
-const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
-const router = useRouter()
+const { handleError } = useLicenciasErrorHandler()
+const { showToast } = useToast()
 
-// Estado
-const showDocumentation = ref(false)
 const cargando = ref(false)
-const buscado = ref(false)
-const tiposAseo = ref([])
-const tipoAseoSeleccionado = ref('')
-const numContrato = ref(null)
-const contratos = ref([])
-const indiceContrato = ref(0)
+const mostrarAyuda = ref(false)
+const busqueda = ref('')
+const contratoSeleccionado = ref(null)
 const pagos = ref([])
 
-// Contrato actual
-const contratoActual = ref(null)
+const montoTotal = computed(() => pagos.value.reduce((sum, p) => sum + parseFloat(p.monto || 0), 0))
+const primerPago = computed(() => pagos.value[0]?.fecha_pago || null)
+const ultimoPago = computed(() => pagos.value[pagos.value.length - 1]?.fecha_pago || null)
 
-// Cargar tipos de aseo al montar
-onMounted(async () => {
-  await cargarTiposAseo()
+const promedioMonto = computed(() => {
+  return pagos.value.length > 0 ? montoTotal.value / pagos.value.length : 0
 })
 
-// Watch para cambio de contrato
-watch(indiceContrato, () => {
-  if (contratos.value.length > 0) {
-    contratoActual.value = contratos.value[indiceContrato.value]
-    cargarPagos()
+const promedioDias = computed(() => {
+  if (pagos.value.length < 2) return 0
+  let totalDias = 0
+  for (let i = 1; i < pagos.value.length; i++) {
+    totalDias += calcularDiasTranscurridos(pagos.value[i-1].fecha_pago, pagos.value[i].fecha_pago)
   }
+  return Math.round(totalDias / (pagos.value.length - 1))
 })
 
-// Cargar tipos de aseo
-const cargarTiposAseo = async () => {
-  try {
-    const data = await execute('sp_aseo_tipos_aseo', BASE_DB, [], '', null, SCHEMA)
-    tiposAseo.value = data || []
-    // Seleccionar el tercero por defecto (indice 2) como en Delphi
-    if (tiposAseo.value.length > 2) {
-      tipoAseoSeleccionado.value = tiposAseo.value[2].tipo_aseo_id
-    }
-  } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al cargar tipos de aseo')
+const periodoMasLargo = computed(() => {
+  if (pagos.value.length < 2) return 0
+  let maximo = 0
+  for (let i = 1; i < pagos.value.length; i++) {
+    const dias = calcularDiasTranscurridos(pagos.value[i-1].fecha_pago, pagos.value[i].fecha_pago)
+    if (dias > maximo) maximo = dias
   }
-}
+  return maximo
+})
 
-// Buscar contratos
-const buscarContratos = async () => {
-  if (!tipoAseoSeleccionado.value) {
-    showToast('Seleccione un tipo de aseo', 'warning')
-    return
-  }
-  if (!numContrato.value || numContrato.value <= 0) {
-    showToast('Ingrese un numero de contrato valido', 'warning')
-    return
+const buscar = async () => {
+  if (!busqueda.value) {
+    return showToast('Ingrese un número de contrato', 'warning')
   }
 
   cargando.value = true
-  buscado.value = true
-  showLoading()
-
   try {
-    const params = [
-      { nombre: 'p_tipo_aseo_id', valor: tipoAseoSeleccionado.value, tipo: 'integer' },
-      { nombre: 'p_num_contrato', valor: numContrato.value, tipo: 'integer' }
-    ]
-
-    const data = await execute('sp_aseo_contratos_ascendente', BASE_DB, params, '', null, SCHEMA)
-    contratos.value = data || []
-
-    hideLoading()
-
-    if (contratos.value.length > 0) {
-      indiceContrato.value = 0
-      contratoActual.value = contratos.value[0]
-      await cargarPagos()
-      showToast(`${contratos.value.length} contrato(s) encontrado(s)`, 'success')
+    const [respContrato] = await Promise.all([
+      execute('SP_ASEO_CONTRATO_CONSULTAR', 'aseo_contratado', {
+        p_num_contrato: busqueda.value
+      })
+    ])
+    if (respContrato?.length > 0) {
+      contratoSeleccionado.value = respContrato[0]
+      const respPagos = await execute('SP_ASEO_PAGOS_POR_CONTRATO_ASC', 'aseo_contratado', {
+        p_control_contrato: respContrato[0].control_contrato
+      })
+      // Asegurar orden ascendente
+      pagos.value = (respPagos || []).sort((a, b) =>
+        new Date(a.fecha_pago) - new Date(b.fecha_pago)
+      )
+      showToast(`${pagos.value.length} pago(s) encontrado(s)`, 'success')
     } else {
-      pagos.value = []
-      contratoActual.value = null
-      showToast('No se encontraron contratos', 'info')
+      showToast('Contrato no encontrado', 'error')
     }
   } catch (error) {
-    hideLoading()
-    hideLoading()
-    handleApiError(error, 'Error al buscar contratos')
+    handleError(error, 'Error al buscar')
   } finally {
     cargando.value = false
   }
 }
 
-// Cargar pagos del contrato actual
-const cargarPagos = async () => {
-  if (!contratoActual.value) {
-    pagos.value = []
-    return
+const calcularAcumulado = (index) => {
+  return pagos.value.slice(0, index + 1).reduce((sum, p) => sum + parseFloat(p.monto || 0), 0)
+}
+
+const calcularDiasTranscurridos = (fecha1, fecha2) => {
+  const d1 = new Date(fecha1)
+  const d2 = new Date(fecha2)
+  const diffTime = Math.abs(d2 - d1)
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+}
+
+const getIconoFormaPago = (forma) => {
+  const iconos = {
+    'EFECTIVO': 'money-bill',
+    'CHEQUE': 'money-check',
+    'TRANSFERENCIA': 'exchange-alt',
+    'TARJETA': 'credit-card',
+    'DEPOSITO': 'university'
   }
-
-  try {
-    const params = [
-      { nombre: 'p_control_contrato', valor: contratoActual.value.control_contrato, tipo: 'integer' }
-    ]
-
-    const data = await execute('sp_aseo_pagos_contrato', BASE_DB, params, '', null, SCHEMA)
-    pagos.value = data || []
-  } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al cargar pagos')
-    pagos.value = []
-  }
+  return iconos[forma] || 'circle'
 }
 
-// Navegacion
-const irPrimero = () => {
-  indiceContrato.value = 0
-}
+const exportar = () => showToast('Exportando a Excel...', 'info')
+const imprimir = () => showToast('Preparando impresión...', 'info')
 
-const irAnterior = () => {
-  if (indiceContrato.value > 0) {
-    indiceContrato.value--
-  }
-}
-
-const irSiguiente = () => {
-  if (indiceContrato.value < contratos.value.length - 1) {
-    indiceContrato.value++
-  }
-}
-
-const irUltimo = () => {
-  indiceContrato.value = contratos.value.length - 1
-}
-
-// Formateo
-const formatPeriodo = (fecha) => {
-  if (!fecha) return ''
-  const d = new Date(fecha)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2 }).format(value || 0)
 }
 
 const formatFecha = (fecha) => {
-  if (!fecha) return ''
-  const d = new Date(fecha)
-  return d.toLocaleDateString('es-MX') + ' ' + d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+  return fecha ? new Date(fecha).toLocaleDateString('es-MX') : 'N/A'
 }
 
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value || 0)
-}
-
-// Salir
-const salir = () => {
-  router.push('/aseo-contratado')
+const formatFechaCompleta = (fecha) => {
+  if (!fecha) return 'N/A'
+  return new Date(fecha).toLocaleDateString('es-MX', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
 }
 </script>
+

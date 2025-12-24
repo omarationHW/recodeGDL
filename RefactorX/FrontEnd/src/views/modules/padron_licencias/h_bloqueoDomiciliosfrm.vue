@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Historial de Bloqueo de Domicilios</h1>
-        <p>Padrón de Licencias - Historial de Domicilios Bloqueados</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Historial de Domicilios Bloqueados</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button
           class="btn-municipal-primary"
@@ -160,11 +163,34 @@
           <font-awesome-icon icon="list" />
           Historial de Bloqueos
         </h5>
-        <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords.toLocaleString() }} registros</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="bloques.length > 0">
+            {{ bloques.length }} registros
+          </span>
+        </div>
       </div>
 
       <div class="municipal-card-body table-container">
-        <div class="table-responsive">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="bloques.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="history" size="3x" />
+          </div>
+          <h4>Historial de Bloqueo de Domicilios</h4>
+          <p>Use los filtros para buscar bloqueos de domicilios en el historial</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="bloques.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron bloqueos con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla con resultados -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -180,7 +206,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="bloque in bloques" :key="bloque.id" class="row-hover">
+              <tr
+                v-for="bloque in bloques"
+                :key="bloque.id"
+                @click="selectedRow = bloque"
+                :class="{ 'table-row-selected': selectedRow === bloque }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary">{{ bloque.calle?.trim() || 'N/A' }}</strong></td>
                 <td>{{ bloque.numero || 'S/N' }}</td>
                 <td>{{ bloque.colonia?.trim() || 'N/A' }}</td>
@@ -209,18 +241,12 @@
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="viewDetalle(bloque)"
+                      @click.stop="viewDetalle(bloque)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
                     </button>
                   </div>
-                </td>
-              </tr>
-              <tr v-if="bloques.length === 0 && !loading">
-                <td colspan="9" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron bloqueos con los criterios especificados</p>
                 </td>
               </tr>
             </tbody>
@@ -229,52 +255,53 @@
       </div>
 
       <!-- Paginación -->
-      <div class="pagination-container" v-if="totalRecords > 0 && !loading">
+      <div v-if="bloques.length > 0" class="pagination-controls">
         <div class="pagination-info">
-          <font-awesome-icon icon="info-circle" />
-          Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-          a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
-          de {{ totalRecords }} registros
+          <span class="text-muted">
+            Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+            a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+            de {{ formatNumber(totalRecords) }} registros
+          </span>
         </div>
 
-        <div class="pagination-controls">
-          <div class="page-size-selector">
-            <label>Mostrar:</label>
-            <select v-model="itemsPerPage" @change="changePageSize">
-              <option :value="10">10</option>
-              <option :value="25">25</option>
-              <option :value="50">50</option>
-              <option :value="100">100</option>
-            </select>
-          </div>
+        <div class="pagination-size">
+          <label class="municipal-form-label me-2">Registros por página:</label>
+          <select
+            class="municipal-form-control form-control-sm"
+            :value="itemsPerPage"
+            @change="changePageSize($event.target.value)"
+            style="width: auto; display: inline-block;"
+          >
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
 
-          <div class="pagination-nav">
-            <button
-              class="pagination-button"
-              @click="goToPage(currentPage - 1)"
-              :disabled="currentPage === 1"
-            >
-              <font-awesome-icon icon="chevron-left" />
-            </button>
-
-            <button
-              v-for="page in visiblePages"
-              :key="page"
-              class="pagination-button"
-              :class="{ active: page === currentPage }"
-              @click="goToPage(page)"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="pagination-button"
-              @click="goToPage(currentPage + 1)"
-              :disabled="currentPage === totalPages"
-            >
-              <font-awesome-icon icon="chevron-right" />
-            </button>
-          </div>
+        <div class="pagination-buttons">
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+            <font-awesome-icon icon="angle-double-left" />
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+            <font-awesome-icon icon="angle-left" />
+          </button>
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            class="btn-sm"
+            :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+            @click="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+            <font-awesome-icon icon="angle-right" />
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+            <font-awesome-icon icon="angle-double-right" />
+          </button>
         </div>
       </div>
     </div>
@@ -372,27 +399,30 @@
     </Modal>
 
     <!-- Toast Notifications -->
-    </div>
-    <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'h_bloqueoDomiciliosfrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Historial de Bloqueo de Domicilios'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -405,10 +435,19 @@ import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
@@ -421,6 +460,8 @@ const itemsPerPage = ref(10)
 const totalRecords = ref(0)
 const selectedBloque = ref(null)
 const showDetalleModal = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Estadísticas
 const statistics = ref({
@@ -457,6 +498,8 @@ const visiblePages = computed(() => {
 // Métodos
 const loadBloques = async () => {
   showLoading('Cargando historial de bloqueos...')
+  hasSearched.value = true
+  selectedRow.value = null
   const startTime = performance.now()
 
   try {
@@ -502,6 +545,8 @@ const loadBloques = async () => {
 
 const searchBloques = async () => {
   showLoading('Buscando bloqueos...')
+  hasSearched.value = true
+  selectedRow.value = null
   currentPage.value = 1
 
   try {
@@ -581,8 +626,10 @@ const clearFilters = () => {
     colonia: '',
     tipoBloqueo: ''
   }
+  bloques.value = []
+  hasSearched.value = false
   currentPage.value = 1
-  loadBloques()
+  selectedRow.value = null
 }
 
 const exportToExcel = async () => {
@@ -680,15 +727,21 @@ const printReport = async () => {
 }
 
 const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-    loadBloques()
-  }
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
+  loadBloques()
 }
 
-const changePageSize = () => {
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
   currentPage.value = 1
+  selectedRow.value = null
   loadBloques()
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
 }
 
 const calculateStatistics = () => {
@@ -747,7 +800,7 @@ const truncateText = (text, length) => {
 
 // Lifecycle
 onMounted(() => {
-  loadBloques()
+  // No cargar automáticamente al montar
 })
 
 onBeforeUnmount(() => {

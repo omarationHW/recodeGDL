@@ -9,15 +9,15 @@
         <h1>Catálogo de Empresas</h1>
         <p>Aseo Contratado - Gestión de Empresas Prestadoras de Servicio</p>
       </div>
+      <button
+        type="button"
+        class="btn-help-icon"
+        @click="openDocumentation"
+        title="Ayuda"
+      >
+        <font-awesome-icon icon="question-circle" />
+      </button>
       <div class="module-view-actions">
-        <button
-          class="btn-municipal-secondary"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
         <button
           class="btn-municipal-primary"
           @click="openCreateModal"
@@ -35,23 +35,14 @@
         <div class="municipal-card-body">
           <div class="form-row">
             <div class="form-group">
-              <label class="municipal-form-label">Buscar por Descripción</label>
+              <label class="municipal-form-label">Buscar</label>
               <input
                 type="text"
                 class="municipal-form-control"
-                v-model="filters.descripcion"
-                placeholder="Nombre o descripción..."
+                v-model="filters.search"
+                placeholder="Nombre, representante o número..."
                 @keyup.enter="searchEmpresas"
               />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Tipo de Empresa</label>
-              <select class="municipal-form-control" v-model="filters.ctrol_emp">
-                <option :value="null">Todos</option>
-                <option v-for="tipo in tiposEmpresa" :key="tipo.ctrol_emp" :value="tipo.ctrol_emp">
-                  {{ tipo.tipo_empresa }}
-                </option>
-              </select>
             </div>
           </div>
           <div class="button-group">
@@ -81,8 +72,8 @@
             </button>
             <button
               class="btn-municipal-primary"
-              @click="exportarCSV"
-              :disabled="loading || empresasFiltradas.length === 0"
+              @click="exportarExcel"
+              :disabled="loading || empresas.length === 0"
             >
               <font-awesome-icon icon="file-excel" />
               Exportar
@@ -97,7 +88,7 @@
           <h5>
             <font-awesome-icon icon="list" />
             Empresas Registradas
-            <span class="badge-info" v-if="empresasFiltradas.length > 0">{{ empresasFiltradas.length }} registros</span>
+            <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
           </h5>
         </div>
 
@@ -107,30 +98,44 @@
               <thead class="municipal-table-header">
                 <tr>
                   <th>No. Empresa</th>
-                  <th>Ctrl. Tipo</th>
+                  <th>Control</th>
                   <th>Tipo</th>
                   <th>Descripción</th>
                   <th>Representante</th>
+                  <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="empresasPaginadas.length === 0">
-                  <td colspan="6" class="text-center text-muted">
+                <tr v-if="empresas.length === 0">
+                  <td colspan="7" class="text-center text-muted">
                     <font-awesome-icon icon="building" size="2x" class="empty-icon" />
                     <p>No se encontraron empresas registradas</p>
                   </td>
                 </tr>
-                <tr v-else v-for="empresa in empresasPaginadas" :key="`${empresa.num_empresa}-${empresa.ctrol_emp}`" class="row-hover">
+                <tr v-else v-for="empresa in empresas" :key="empresa.num_empresa" class="row-hover">
                   <td><strong class="text-primary">{{ empresa.num_empresa }}</strong></td>
-                  <td><code class="text-muted">{{ empresa.ctrol_emp }}</code></td>
+                  <td><code class="text-muted">{{ empresa.ctrol_emp || 'N/A' }}</code></td>
                   <td>
                     <span class="badge-secondary">{{ empresa.tipo_empresa || 'N/A' }}</span>
                   </td>
                   <td>{{ empresa.descripcion }}</td>
                   <td>{{ empresa.representante || 'N/A' }}</td>
                   <td>
+                    <span class="badge" :class="empresa.fecha_baja ? 'badge-danger' : 'badge-success'">
+                      <font-awesome-icon :icon="empresa.fecha_baja ? 'times-circle' : 'check-circle'" />
+                      {{ empresa.fecha_baja ? 'Inactiva' : 'Activa' }}
+                    </span>
+                  </td>
+                  <td>
                     <div class="button-group button-group-sm">
+                      <button
+                        class="btn-municipal-info btn-sm"
+                        @click="viewEmpresa(empresa)"
+                        title="Ver detalles"
+                      >
+                        <font-awesome-icon icon="eye" />
+                      </button>
                       <button
                         class="btn-municipal-primary btn-sm"
                         @click="editEmpresa(empresa)"
@@ -139,11 +144,12 @@
                         <font-awesome-icon icon="edit" />
                       </button>
                       <button
-                        class="btn-municipal-danger btn-sm"
+                        v-if="!empresa.fecha_baja"
+                        class="btn-municipal-secondary btn-sm"
                         @click="confirmDeleteEmpresa(empresa)"
-                        title="Eliminar"
+                        title="Dar de baja"
                       >
-                        <font-awesome-icon icon="trash" />
+                        <font-awesome-icon icon="ban" />
                       </button>
                     </div>
                   </td>
@@ -154,18 +160,18 @@
         </div>
 
         <!-- Paginación -->
-        <div class="pagination-container" v-if="empresasFiltradas.length > 0 && !loading">
+        <div class="pagination-container" v-if="totalRecords > 0 && !loading">
           <div class="pagination-info">
             <font-awesome-icon icon="info-circle" />
             Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-            a {{ Math.min(currentPage * itemsPerPage, empresasFiltradas.length) }}
-            de {{ empresasFiltradas.length }} registros
+            a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+            de {{ totalRecords }} registros
           </div>
 
           <div class="pagination-controls">
             <div class="page-size-selector">
               <label>Mostrar:</label>
-              <select v-model="itemsPerPage" @change="currentPage = 1">
+              <select v-model="itemsPerPage" @change="changePageSize">
                 <option :value="10">10</option>
                 <option :value="25">25</option>
                 <option :value="50">50</option>
@@ -176,41 +182,39 @@
             <div class="pagination-nav">
               <button
                 class="pagination-button"
-                @click="currentPage = 1"
-                :disabled="currentPage === 1"
-                title="Primera página"
-              >
-                <font-awesome-icon icon="angle-double-left" />
-              </button>
-              <button
-                class="pagination-button"
-                @click="currentPage--"
+                @click="goToPage(currentPage - 1)"
                 :disabled="currentPage === 1"
               >
                 <font-awesome-icon icon="chevron-left" />
               </button>
 
-              <span class="pagination-current">
-                Página {{ currentPage }} de {{ totalPages }}
-              </span>
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="pagination-button"
+                :class="{ active: page === currentPage }"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
 
               <button
                 class="pagination-button"
-                @click="currentPage++"
-                :disabled="currentPage >= totalPages"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
               >
                 <font-awesome-icon icon="chevron-right" />
               </button>
-              <button
-                class="pagination-button"
-                @click="currentPage = totalPages"
-                :disabled="currentPage >= totalPages"
-                title="Última página"
-              >
-                <font-awesome-icon icon="angle-double-right" />
-              </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Loading overlay -->
+      <div v-if="loading && empresas.length === 0" class="loading-overlay">
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <p>Cargando empresas...</p>
         </div>
       </div>
     </div>
@@ -219,59 +223,98 @@
     <Modal
       :show="showCreateModal"
       title="Crear Nueva Empresa"
-      size="md"
-      @close="closeCreateModal"
+      size="lg"
+      @close="showCreateModal = false"
+      @confirm="createEmpresa"
+      :loading="creatingEmpresa"
+      confirmText="Crear Empresa"
+      cancelText="Cancelar"
+      :showDefaultFooter="true"
+      :confirmButtonClass="'btn-municipal-primary'"
     >
       <form @submit.prevent="createEmpresa">
-        <div class="form-group">
-          <label class="municipal-form-label">Tipo de Empresa: <span class="required">*</span></label>
-          <select class="municipal-form-control" v-model="formData.ctrol_emp" required>
-            <option :value="null" disabled>Seleccionar tipo...</option>
-            <option v-for="tipo in tiposEmpresa" :key="tipo.ctrol_emp" :value="tipo.ctrol_emp">
-              {{ tipo.tipo_empresa }}
-            </option>
-          </select>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Control Empresa:</label>
+            <input
+              type="number"
+              class="municipal-form-control"
+              v-model="newEmpresa.ctrol_emp"
+            />
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Tipo:</label>
+            <select class="municipal-form-control" v-model="newEmpresa.tipo_empresa">
+              <option value="">Seleccionar...</option>
+              <option value="PUBLICA">Pública</option>
+              <option value="PRIVADA">Privada</option>
+              <option value="MIXTA">Mixta</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
+        <div class="form-group full-width">
           <label class="municipal-form-label">Descripción / Nombre: <span class="required">*</span></label>
           <input
             type="text"
             class="municipal-form-control"
-            v-model="formData.descripcion"
-            maxlength="80"
+            v-model="newEmpresa.descripcion"
+            maxlength="100"
             required
-            placeholder="Nombre de la empresa"
           />
         </div>
-        <div class="form-group">
+        <div class="form-group full-width">
           <label class="municipal-form-label">Representante:</label>
           <input
             type="text"
             class="municipal-form-control"
-            v-model="formData.representante"
-            maxlength="80"
-            placeholder="Nombre del representante"
+            v-model="newEmpresa.representante"
+            maxlength="100"
           />
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Teléfono:</label>
+            <input
+              type="text"
+              class="municipal-form-control"
+              v-model="newEmpresa.telefono"
+              maxlength="20"
+            />
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Email:</label>
+            <input
+              type="email"
+              class="municipal-form-control"
+              v-model="newEmpresa.email"
+              maxlength="100"
+            />
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <label class="municipal-form-label">Dirección:</label>
+          <textarea
+            class="municipal-form-control"
+            v-model="newEmpresa.direccion"
+            rows="2"
+            maxlength="200"
+          ></textarea>
+        </div>
       </form>
-      <template #footer>
-        <button class="btn-municipal-secondary" @click="closeCreateModal" :disabled="guardando">
-          <font-awesome-icon icon="times" />
-          Cancelar
-        </button>
-        <button class="btn-municipal-primary" @click="createEmpresa" :disabled="guardando">
-          <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />
-          {{ guardando ? 'Guardando...' : 'Crear Empresa' }}
-        </button>
-      </template>
     </Modal>
 
     <!-- Modal de edición -->
     <Modal
       :show="showEditModal"
-      :title="`Editar Empresa: ${selectedEmpresa?.descripcion || ''}`"
-      size="md"
-      @close="closeEditModal"
+      :title="`Editar Empresa: ${selectedEmpresa?.descripcion}`"
+      size="lg"
+      @close="showEditModal = false"
+      @confirm="updateEmpresa"
+      :loading="updatingEmpresa"
+      confirmText="Guardar Cambios"
+      cancelText="Cancelar"
+      :showDefaultFooter="true"
+      :confirmButtonClass="'btn-municipal-primary'"
     >
       <form @submit.prevent="updateEmpresa">
         <div class="form-row">
@@ -280,51 +323,197 @@
             <input
               type="text"
               class="municipal-form-control"
-              :value="formData.num_empresa"
+              :value="editForm.num_empresa"
               disabled
             />
           </div>
           <div class="form-group">
-            <label class="municipal-form-label">Tipo:</label>
+            <label class="municipal-form-label">Control:</label>
             <input
-              type="text"
+              type="number"
               class="municipal-form-control"
-              :value="getTipoNombre(formData.ctrol_emp)"
-              disabled
+              v-model="editForm.ctrol_emp"
             />
           </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Tipo:</label>
+            <select class="municipal-form-control" v-model="editForm.tipo_empresa">
+              <option value="">Seleccionar...</option>
+              <option value="PUBLICA">Pública</option>
+              <option value="PRIVADA">Privada</option>
+              <option value="MIXTA">Mixta</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
+        <div class="form-group full-width">
           <label class="municipal-form-label">Descripción / Nombre: <span class="required">*</span></label>
           <input
             type="text"
             class="municipal-form-control"
-            v-model="formData.descripcion"
-            maxlength="80"
+            v-model="editForm.descripcion"
+            maxlength="100"
             required
           />
         </div>
-        <div class="form-group">
+        <div class="form-group full-width">
           <label class="municipal-form-label">Representante:</label>
           <input
             type="text"
             class="municipal-form-control"
-            v-model="formData.representante"
-            maxlength="80"
+            v-model="editForm.representante"
+            maxlength="100"
           />
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="municipal-form-label">Teléfono:</label>
+            <input
+              type="text"
+              class="municipal-form-control"
+              v-model="editForm.telefono"
+              maxlength="20"
+            />
+          </div>
+          <div class="form-group">
+            <label class="municipal-form-label">Email:</label>
+            <input
+              type="email"
+              class="municipal-form-control"
+              v-model="editForm.email"
+              maxlength="100"
+            />
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <label class="municipal-form-label">Dirección:</label>
+          <textarea
+            class="municipal-form-control"
+            v-model="editForm.direccion"
+            rows="2"
+            maxlength="200"
+          ></textarea>
+        </div>
+        <div class="form-group full-width">
+          <label class="municipal-form-label">Fecha de Baja (opcional):</label>
+          <input
+            type="date"
+            class="municipal-form-control"
+            v-model="editForm.fecha_baja"
+          />
+          <small class="form-text">
+            Establezca una fecha para dar de baja la empresa
+          </small>
+        </div>
       </form>
-      <template #footer>
-        <button class="btn-municipal-secondary" @click="closeEditModal" :disabled="guardando">
-          <font-awesome-icon icon="times" />
-          Cancelar
-        </button>
-        <button class="btn-municipal-primary" @click="updateEmpresa" :disabled="guardando">
-          <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />
-          {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
-        </button>
-      </template>
     </Modal>
+
+    <!-- Modal de visualización -->
+    <Modal
+      :show="showViewModal"
+      :title="`Detalles de la Empresa: ${selectedEmpresa?.descripcion}`"
+      size="lg"
+      @close="showViewModal = false"
+      :showDefaultFooter="false"
+    >
+      <div v-if="selectedEmpresa" class="empresa-details">
+        <div class="details-grid">
+          <div class="detail-section">
+            <h6 class="section-title">
+              <font-awesome-icon icon="id-card" />
+              Información Básica
+            </h6>
+            <table class="detail-table">
+              <tr>
+                <td class="label">No. Empresa:</td>
+                <td><code>{{ selectedEmpresa.num_empresa }}</code></td>
+              </tr>
+              <tr>
+                <td class="label">Control:</td>
+                <td>{{ selectedEmpresa.ctrol_emp || 'N/A' }}</td>
+              </tr>
+              <tr>
+                <td class="label">Tipo:</td>
+                <td>
+                  <span class="badge-secondary">{{ selectedEmpresa.tipo_empresa || 'N/A' }}</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label">Descripción:</td>
+                <td>{{ selectedEmpresa.descripcion }}</td>
+              </tr>
+              <tr>
+                <td class="label">Representante:</td>
+                <td>{{ selectedEmpresa.representante || 'N/A' }}</td>
+              </tr>
+            </table>
+          </div>
+          <div class="detail-section">
+            <h6 class="section-title">
+              <font-awesome-icon icon="address-card" />
+              Datos de Contacto
+            </h6>
+            <table class="detail-table">
+              <tr>
+                <td class="label">Teléfono:</td>
+                <td>
+                  <font-awesome-icon icon="phone" class="text-info" />
+                  {{ selectedEmpresa.telefono || 'N/A' }}
+                </td>
+              </tr>
+              <tr>
+                <td class="label">Email:</td>
+                <td>
+                  <font-awesome-icon icon="envelope" class="text-info" />
+                  {{ selectedEmpresa.email || 'N/A' }}
+                </td>
+              </tr>
+              <tr>
+                <td class="label">Dirección:</td>
+                <td>
+                  <font-awesome-icon icon="map-marker-alt" class="text-info" />
+                  {{ selectedEmpresa.direccion || 'N/A' }}
+                </td>
+              </tr>
+              <tr>
+                <td class="label">Estado:</td>
+                <td>
+                  <span class="badge" :class="selectedEmpresa.fecha_baja ? 'badge-danger' : 'badge-success'">
+                    <font-awesome-icon :icon="selectedEmpresa.fecha_baja ? 'times-circle' : 'check-circle'" />
+                    {{ selectedEmpresa.fecha_baja ? 'Inactiva' : 'Activa' }}
+                  </span>
+                </td>
+              </tr>
+              <tr v-if="selectedEmpresa.fecha_baja">
+                <td class="label">Fecha Baja:</td>
+                <td>
+                  <font-awesome-icon icon="calendar-times" class="text-danger" />
+                  {{ formatDate(selectedEmpresa.fecha_baja) }}
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-municipal-secondary" @click="showViewModal = false">
+            <font-awesome-icon icon="times" />
+            Cerrar
+          </button>
+          <button class="btn-municipal-primary" @click="editEmpresa(selectedEmpresa); showViewModal = false">
+            <font-awesome-icon icon="edit" />
+            Editar Empresa
+          </button>
+        </div>
+      </div>
+    </Modal>
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
   </div>
 
   <!-- Modal de Ayuda -->
@@ -337,340 +526,429 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-import Modal from '@/components/common/Modal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Constantes
-const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
-
 // Composables
-const { execute } = useApi()
-const { isLoading: loading, showLoading, hideLoading } = useGlobalLoading()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
-
-// Documentación
 const showDocumentation = ref(false)
 const openDocumentation = () => showDocumentation.value = true
 const closeDocumentation = () => showDocumentation.value = false
 
+const { execute } = useApi()
+const {
+  loading,
+  setLoading,
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
+
 // Estado
 const empresas = ref([])
-const tiposEmpresa = ref([])
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
+const totalRecords = ref(0)
 const selectedEmpresa = ref(null)
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
-const guardando = ref(false)
+const showViewModal = ref(false)
+const creatingEmpresa = ref(false)
+const updatingEmpresa = ref(false)
 
 // Filtros
 const filters = ref({
-  descripcion: '',
-  ctrol_emp: null
+  search: ''
 })
 
-// Formulario
-const formData = ref({
+// Formularios
+const newEmpresa = ref({
+  ctrol_emp: null,
+  tipo_empresa: '',
+  descripcion: '',
+  representante: '',
+  telefono: '',
+  email: '',
+  direccion: ''
+})
+
+const editForm = ref({
   num_empresa: null,
   ctrol_emp: null,
+  tipo_empresa: '',
   descripcion: '',
-  representante: ''
+  representante: '',
+  telefono: '',
+  email: '',
+  direccion: '',
+  fecha_baja: null
 })
 
 // Computed
-const empresasFiltradas = computed(() => {
-  let result = [...empresas.value]
-
-  if (filters.value.descripcion) {
-    const search = filters.value.descripcion.toLowerCase()
-    result = result.filter(e =>
-      e.descripcion?.toLowerCase().includes(search) ||
-      e.representante?.toLowerCase().includes(search)
-    )
-  }
-
-  if (filters.value.ctrol_emp !== null) {
-    result = result.filter(e => e.ctrol_emp === filters.value.ctrol_emp)
-  }
-
-  return result
-})
-
 const totalPages = computed(() => {
-  return Math.ceil(empresasFiltradas.value.length / itemsPerPage.value) || 1
+  return Math.ceil(totalRecords.value / itemsPerPage.value)
 })
 
-const empresasPaginadas = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return empresasFiltradas.value.slice(start, end)
+const visiblePages = computed(() => {
+  const pages = []
+  const start = Math.max(1, currentPage.value - 2)
+  const end = Math.min(totalPages.value, currentPage.value + 2)
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  return pages
 })
 
 // Métodos
-async function loadTiposEmpresa() {
-  try {
-    const response = await execute('sp_tipos_emp_list', BASE_DB, [], '', null, SCHEMA)
-    if (response?.result) {
-      tiposEmpresa.value = response.result
-    }
-  } catch (e) {
-    hideLoading()
-    console.error('Error cargando tipos de empresa:', e)
-  }
-}
+const loadEmpresas = async () => {
+  setLoading(true, 'Cargando empresas...')
 
-async function loadEmpresas() {
-  showLoading('Cargando empresas...', 'Obteniendo datos')
   try {
-    const response = await execute('sp_empresas_list', BASE_DB, [], '', null, SCHEMA)
-    if (response?.result) {
+    const response = await execute(
+      'SP_ASEO_EMPRESAS_LIST',
+      'aseo_contratado',
+      [
+        { nombre: 'p_page', valor: currentPage.value, tipo: 'integer' },
+        { nombre: 'p_limit', valor: itemsPerPage.value, tipo: 'integer' },
+        { nombre: 'p_search', valor: filters.value.search || null, tipo: 'string' }
+      ],
+      'guadalajara'
+    )
+
+    if (response && response.result) {
       empresas.value = response.result
+      if (empresas.value.length > 0) {
+        totalRecords.value = parseInt(empresas.value[0].total_records) || 0
+      } else {
+        totalRecords.value = 0
+      }
+      showToast('success', 'Empresas cargadas correctamente')
     } else {
       empresas.value = []
+      totalRecords.value = 0
+      showToast('error', 'Error al cargar empresas')
     }
-  } catch (e) {
-    hideLoading()
-    handleApiError(e)
+  } catch (error) {
+    handleApiError(error)
     empresas.value = []
+    totalRecords.value = 0
   } finally {
-    hideLoading()
+    setLoading(false)
   }
 }
 
-function searchEmpresas() {
+const searchEmpresas = () => {
   currentPage.value = 1
+  loadEmpresas()
 }
 
-function clearFilters() {
+const clearFilters = () => {
   filters.value = {
-    descripcion: '',
-    ctrol_emp: null
+    search: ''
   }
   currentPage.value = 1
+  loadEmpresas()
 }
 
-function getTipoNombre(ctrol_emp) {
-  const tipo = tiposEmpresa.value.find(t => t.ctrol_emp === ctrol_emp)
-  return tipo?.tipo_empresa || 'N/A'
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    loadEmpresas()
+  }
 }
 
-function openCreateModal() {
-  formData.value = {
-    num_empresa: null,
+const changePageSize = () => {
+  currentPage.value = 1
+  loadEmpresas()
+}
+
+const openCreateModal = () => {
+  newEmpresa.value = {
     ctrol_emp: null,
+    tipo_empresa: '',
     descripcion: '',
-    representante: ''
+    representante: '',
+    telefono: '',
+    email: '',
+    direccion: ''
   }
   showCreateModal.value = true
 }
 
-function closeCreateModal() {
-  showCreateModal.value = false
-}
-
-async function createEmpresa() {
-  // Validación
-  if (!formData.value.ctrol_emp) {
-    showToast('Seleccione el tipo de empresa', 'warning')
-    return
-  }
-  if (!formData.value.descripcion?.trim()) {
-    showToast('Ingrese la descripción de la empresa', 'warning')
+const createEmpresa = async () => {
+  if (!newEmpresa.value.descripcion) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Campo requerido',
+      text: 'La descripción es obligatoria',
+      confirmButtonColor: '#ea8215'
+    })
     return
   }
 
-  // 1. SweetAlert2 confirmación
   const confirmResult = await Swal.fire({
-    title: 'Crear Empresa',
-    html: `<p>¿Desea crear la empresa <strong>${formData.value.descripcion}</strong>?</p>`,
     icon: 'question',
+    title: '¿Confirmar creación de empresa?',
+    html: `
+      <p>Se creará una nueva empresa con los siguientes datos:</p>
+      <ul class="list-unstyled-left">
+        <li><strong>Descripción:</strong> ${newEmpresa.value.descripcion}</li>
+        <li><strong>Representante:</strong> ${newEmpresa.value.representante || 'N/A'}</li>
+        <li><strong>Tipo:</strong> ${newEmpresa.value.tipo_empresa || 'N/A'}</li>
+      </ul>
+    `,
     showCancelButton: true,
-    confirmButtonText: 'Sí, crear',
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#667eea',
-    cancelButtonColor: '#6c757d'
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, crear empresa',
+    cancelButtonText: 'Cancelar'
   })
 
   if (!confirmResult.isConfirmed) return
 
-  // 2. Loading
-  showLoading('Creando empresa...', 'Guardando datos')
-  guardando.value = true
+  creatingEmpresa.value = true
 
   try {
-    const params = [
-      { nombre: 'p_ctrol_emp', valor: formData.value.ctrol_emp, tipo: 'integer' },
-      { nombre: 'p_descripcion', valor: formData.value.descripcion.trim(), tipo: 'string' },
-      { nombre: 'p_representante', valor: formData.value.representante?.trim() || '', tipo: 'string' }
-    ]
+    const response = await execute(
+      'SP_ASEO_EMPRESAS_CREATE',
+      'aseo_contratado',
+      [
+        { nombre: 'p_ctrol_emp', valor: newEmpresa.value.ctrol_emp },
+        { nombre: 'p_tipo_empresa', valor: newEmpresa.value.tipo_empresa },
+        { nombre: 'p_descripcion', valor: newEmpresa.value.descripcion },
+        { nombre: 'p_representante', valor: newEmpresa.value.representante },
+        { nombre: 'p_telefono', valor: newEmpresa.value.telefono },
+        { nombre: 'p_email', valor: newEmpresa.value.email },
+        { nombre: 'p_direccion', valor: newEmpresa.value.direccion },
+        { nombre: 'p_usuario', valor: 'sistema' }
+      ],
+      'guadalajara'
+    )
 
-    const response = await execute('sp_empresas_create', BASE_DB, params, '', null, SCHEMA)
+    if (response && response.result && response.result[0]?.success) {
+      showCreateModal.value = false
+      loadEmpresas()
 
-    if (response?.result) {
-      showToast('Empresa creada correctamente', 'success')
-      closeCreateModal()
-      await loadEmpresas()
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Empresa creada!',
+        text: 'La empresa ha sido creada exitosamente',
+        confirmButtonColor: '#ea8215',
+        timer: 2000
+      })
+
+      showToast('success', 'Empresa creada exitosamente')
+    } else {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al crear empresa',
+        text: response?.result?.[0]?.message || 'Error desconocido',
+        confirmButtonColor: '#ea8215'
+      })
     }
-  } catch (e) {
-    hideLoading()
-    handleApiError(e)
+  } catch (error) {
+    handleApiError(error)
   } finally {
-    hideLoading()
-    guardando.value = false
+    creatingEmpresa.value = false
   }
 }
 
-function editEmpresa(empresa) {
+const editEmpresa = (empresa) => {
   selectedEmpresa.value = empresa
-  formData.value = {
+  editForm.value = {
     num_empresa: empresa.num_empresa,
     ctrol_emp: empresa.ctrol_emp,
-    descripcion: empresa.descripcion || '',
-    representante: empresa.representante || ''
+    tipo_empresa: empresa.tipo_empresa || '',
+    descripcion: empresa.descripcion,
+    representante: empresa.representante || '',
+    telefono: empresa.telefono || '',
+    email: empresa.email || '',
+    direccion: empresa.direccion || '',
+    fecha_baja: empresa.fecha_baja ? empresa.fecha_baja.split('T')[0] : null
   }
   showEditModal.value = true
 }
 
-function closeEditModal() {
-  showEditModal.value = false
-  selectedEmpresa.value = null
-}
-
-async function updateEmpresa() {
-  // Validación
-  if (!formData.value.descripcion?.trim()) {
-    showToast('Ingrese la descripción de la empresa', 'warning')
+const updateEmpresa = async () => {
+  if (!editForm.value.descripcion) {
+    await Swal.fire({
+      icon: 'warning',
+      title: 'Campo requerido',
+      text: 'La descripción es obligatoria',
+      confirmButtonColor: '#ea8215'
+    })
     return
   }
 
-  // 1. SweetAlert2 confirmación
   const confirmResult = await Swal.fire({
-    title: 'Actualizar Empresa',
-    html: `<p>¿Desea actualizar la empresa <strong>${formData.value.descripcion}</strong>?</p>`,
     icon: 'question',
+    title: '¿Confirmar actualización?',
+    html: `
+      <p>Se actualizarán los datos de la empresa:</p>
+      <ul class="list-unstyled-left">
+        <li><strong>No. Empresa:</strong> ${editForm.value.num_empresa}</li>
+        <li><strong>Descripción:</strong> ${editForm.value.descripcion}</li>
+      </ul>
+    `,
     showCancelButton: true,
-    confirmButtonText: 'Sí, actualizar',
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#667eea',
-    cancelButtonColor: '#6c757d'
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, guardar cambios',
+    cancelButtonText: 'Cancelar'
   })
 
   if (!confirmResult.isConfirmed) return
 
-  // 2. Loading
-  showLoading('Actualizando empresa...', 'Guardando cambios')
-  guardando.value = true
+  updatingEmpresa.value = true
 
   try {
-    const params = [
-      { nombre: 'p_num_empresa', valor: formData.value.num_empresa, tipo: 'integer' },
-      { nombre: 'p_ctrol_emp', valor: formData.value.ctrol_emp, tipo: 'integer' },
-      { nombre: 'p_descripcion', valor: formData.value.descripcion.trim(), tipo: 'string' },
-      { nombre: 'p_representante', valor: formData.value.representante?.trim() || '', tipo: 'string' }
-    ]
+    const response = await execute(
+      'SP_ASEO_EMPRESAS_UPDATE',
+      'aseo_contratado',
+      [
+        { nombre: 'p_num_empresa', valor: editForm.value.num_empresa },
+        { nombre: 'p_ctrol_emp', valor: editForm.value.ctrol_emp },
+        { nombre: 'p_tipo_empresa', valor: editForm.value.tipo_empresa },
+        { nombre: 'p_descripcion', valor: editForm.value.descripcion },
+        { nombre: 'p_representante', valor: editForm.value.representante },
+        { nombre: 'p_telefono', valor: editForm.value.telefono },
+        { nombre: 'p_email', valor: editForm.value.email },
+        { nombre: 'p_direccion', valor: editForm.value.direccion },
+        { nombre: 'p_fecha_baja', valor: editForm.value.fecha_baja || null },
+        { nombre: 'p_usuario', valor: 'sistema' }
+      ],
+      'guadalajara'
+    )
 
-    const response = await execute('sp_empresas_update', BASE_DB, params, '', null, SCHEMA)
+    if (response && response.result && response.result[0]?.success) {
+      showEditModal.value = false
+      loadEmpresas()
 
-    if (response?.result?.[0]?.success === false) {
-      showToast(response.result[0].message || 'Error al actualizar', 'warning')
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Empresa actualizada!',
+        text: 'Los datos han sido actualizados correctamente',
+        confirmButtonColor: '#ea8215',
+        timer: 2000
+      })
+
+      showToast('success', 'Empresa actualizada exitosamente')
     } else {
-      showToast('Empresa actualizada correctamente', 'success')
-      closeEditModal()
-      await loadEmpresas()
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error al actualizar',
+        text: response?.result?.[0]?.message || 'Error desconocido',
+        confirmButtonColor: '#ea8215'
+      })
     }
-  } catch (e) {
-    hideLoading()
-    handleApiError(e)
+  } catch (error) {
+    handleApiError(error)
   } finally {
-    hideLoading()
-    guardando.value = false
+    updatingEmpresa.value = false
   }
 }
 
-async function confirmDeleteEmpresa(empresa) {
-  // 1. SweetAlert2 confirmación
-  const confirmResult = await Swal.fire({
-    title: 'Eliminar Empresa',
+const viewEmpresa = (empresa) => {
+  selectedEmpresa.value = empresa
+  showViewModal.value = true
+}
+
+const confirmDeleteEmpresa = async (empresa) => {
+  const result = await Swal.fire({
+    title: '¿Dar de baja empresa?',
     html: `
-      <p>¿Está seguro de eliminar la empresa?</p>
-      <p><strong>${empresa.descripcion}</strong></p>
-      <p class="text-danger"><small>Esta acción no se puede deshacer</small></p>
+      <p>¿Está seguro de dar de baja la empresa:</p>
+      <p><strong>${empresa.descripcion}</strong>?</p>
+      <p class="text-danger">Esta acción marcará la empresa como inactiva</p>
     `,
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar',
     confirmButtonColor: '#dc3545',
-    cancelButtonColor: '#6c757d'
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, dar de baja',
+    cancelButtonText: 'Cancelar'
   })
 
-  if (!confirmResult.isConfirmed) return
-
-  // 2. Loading
-  showLoading('Eliminando empresa...', 'Procesando')
-
-  try {
-    const params = [
-      { nombre: 'p_num_empresa', valor: empresa.num_empresa, tipo: 'integer' },
-      { nombre: 'p_ctrol_emp', valor: empresa.ctrol_emp, tipo: 'integer' }
-    ]
-
-    const response = await execute('sp_empresas_delete', BASE_DB, params, '', null, SCHEMA)
-
-    // El SP retorna success/message
-    if (response?.result?.[0]?.success === false) {
-      showToast(response.result[0].message || 'No se puede eliminar la empresa', 'warning')
-    } else {
-      showToast(response?.result?.[0]?.message || 'Empresa eliminada correctamente', 'success')
-      await loadEmpresas()
-    }
-  } catch (e) {
-    hideLoading()
-    handleApiError(e)
-  } finally {
-    hideLoading()
+  if (result.isConfirmed) {
+    await deleteEmpresa(empresa)
   }
 }
 
-function exportarCSV() {
-  if (empresasFiltradas.value.length === 0) {
-    showToast('No hay datos para exportar', 'warning')
-    return
+const deleteEmpresa = async (empresa) => {
+  try {
+    const response = await execute(
+      'SP_ASEO_EMPRESAS_DELETE',
+      'aseo_contratado',
+      [
+        { nombre: 'p_num_empresa', valor: empresa.num_empresa },
+        { nombre: 'p_usuario', valor: 'sistema' }
+      ],
+      'guadalajara'
+    )
+
+    if (response && response.result && response.result[0]?.success) {
+      loadEmpresas()
+
+      await Swal.fire({
+        icon: 'success',
+        title: '¡Empresa dada de baja!',
+        text: 'La empresa ha sido desactivada',
+        confirmButtonColor: '#ea8215',
+        timer: 2000
+      })
+
+      showToast('success', 'Empresa dada de baja exitosamente')
+    } else {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: response?.result?.[0]?.message || 'Error al dar de baja la empresa',
+        confirmButtonColor: '#ea8215'
+      })
+    }
+  } catch (error) {
+    handleApiError(error)
   }
+}
 
-  const headers = ['No. Empresa', 'Ctrl. Tipo', 'Tipo', 'Descripción', 'Representante']
-  const rows = empresasFiltradas.value.map(e => [
-    e.num_empresa,
-    e.ctrol_emp,
-    e.tipo_empresa || '',
-    e.descripcion || '',
-    e.representante || ''
-  ])
+const exportarExcel = async () => {
+  await Swal.fire({
+    title: 'Exportar a Excel',
+    text: 'Funcionalidad en desarrollo',
+    icon: 'info',
+    confirmButtonColor: '#ea8215'
+  })
+}
 
-  const csvContent = [
-    headers.join(','),
-    ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-  ].join('\n')
-
-  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = `empresas_aseo_${new Date().toISOString().split('T')[0]}.csv`
-  link.click()
-  URL.revokeObjectURL(link.href)
-
-  showToast(`${empresasFiltradas.value.length} registros exportados`, 'success')
+// Utilidades
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A'
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  } catch (error) {
+    return 'Fecha inválida'
+  }
 }
 
 // Lifecycle
-onMounted(async () => {
-  await loadTiposEmpresa()
-  await loadEmpresas()
+onMounted(() => {
+  loadEmpresas()
+})
+
+onBeforeUnmount(() => {
+  showCreateModal.value = false
+  showEditModal.value = false
+  showViewModal.value = false
 })
 </script>

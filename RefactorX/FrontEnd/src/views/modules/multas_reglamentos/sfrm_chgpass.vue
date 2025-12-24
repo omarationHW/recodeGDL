@@ -8,6 +8,16 @@
         <h1>Cambio de Password</h1>
         <p>Actualización de contraseñas de usuario</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -69,23 +79,45 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'sfrm_chgpass'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Cambio de Password'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'sfrm_chgpass'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Cambio de Password'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_SFRM_CHGPASS'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const form = ref({
   usuario: '',
@@ -112,6 +144,7 @@ async function cambiar() {
     { nombre: 'p_password', tipo: 'string', valor: String(form.value.password || '') }
   ]
 
+  showLoading('Cambiando contraseña...', 'Por favor espere')
   try {
     const response = await execute(OP, BASE_DB, params)
     console.log('Respuesta completa:', response)
@@ -156,6 +189,8 @@ async function cambiar() {
       text: 'Error al actualizar el password',
       type: 'error'
     }
+  } finally {
+    hideLoading()
   }
 }
 
@@ -168,120 +203,3 @@ function limpiar() {
 }
 </script>
 
-<style scoped>
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.municipal-form-label {
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #495057;
-}
-
-.municipal-form-control {
-  padding: 0.5rem;
-  border: 1px solid #ced4da;
-  border-radius: 0.25rem;
-  font-size: 1rem;
-  transition: border-color 0.15s ease-in-out;
-}
-
-.municipal-form-control:focus {
-  outline: none;
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.button-group {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.btn-municipal-primary {
-  padding: 0.5rem 1rem;
-  border: 1px solid #007bff;
-  border-radius: 0.25rem;
-  background-color: #007bff;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-municipal-primary:hover:not(:disabled) {
-  background-color: #0056b3;
-  border-color: #0056b3;
-}
-
-.btn-municipal-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-municipal-secondary {
-  padding: 0.5rem 1rem;
-  border: 1px solid #6c757d;
-  border-radius: 0.25rem;
-  background-color: #6c757d;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  background-color: #5a6268;
-  border-color: #545b62;
-}
-
-.btn-municipal-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.alert {
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  border-radius: 0.25rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-weight: 500;
-}
-
-.alert-success {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
-}
-
-.alert-error {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  color: #721c24;
-}
-
-@media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .button-group {
-    flex-direction: column;
-  }
-}
-</style>

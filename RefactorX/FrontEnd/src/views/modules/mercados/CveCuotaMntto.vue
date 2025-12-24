@@ -9,12 +9,19 @@
         <p>Inicio > Catálogos > Claves de Cuota</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="abrirModalNuevo">
           <font-awesome-icon icon="plus" /> Nuevo
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -77,7 +84,10 @@
           <font-awesome-icon icon="key" />
           {{ isEdit ? 'Editar Clave de Cuota' : 'Nueva Clave de Cuota' }}
         </h5>
-      </template>
+      
+  <DocumentationModal :show="showAyuda" :component-name="'CveCuotaMntto'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CveCuotaMntto'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CveCuotaMntto'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CveCuotaMntto'" @close="showDocumentacion = false" />
+</template>
 
       <div class="mb-3">
         <label class="municipal-form-label">Clave Cuota <span class="required">*</span></label>
@@ -147,11 +157,46 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2'
+
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import Modal from '@/components/common/Modal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 const { showToast } = useToast()
@@ -178,16 +223,21 @@ const mostrarAyuda = () => {
 const cargarItems = async () => {
   showLoading('Cargando claves de cuota', 'Por favor espere...')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_cve_cuota_list', Base: 'mercados', Parametros: [] }
-    })
-    if (res.data.eResponse.success) {
-      items.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_cve_cuota_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      items.value = res.data.result || []
       if (items.value.length > 0) {
         showToast(`Se cargaron ${items.value.length} claves`, 'success')
       }
     } else {
-      showToast(res.data.eResponse.message || 'Error al cargar claves', 'error')
+      showToast(res.message || 'Error al cargar claves', 'error')
     }
   } catch (err) {
     showToast('Error de conexión', 'error')
@@ -218,19 +268,20 @@ const guardar = async () => {
   showLoading(isEdit.value ? 'Actualizando clave' : 'Guardando clave', 'Por favor espere...')
   try {
     const operacion = isEdit.value ? 'sp_cve_cuota_update' : 'sp_cve_cuota_insert'
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: operacion,
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_clave_cuota', Valor: parseInt(form.value.clave_cuota) },
-          { Nombre: 'p_descripcion', Valor: form.value.descripcion.toUpperCase() }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+      operacion,
+      'mercados',
+      [
+        { nombre: 'p_clave_cuota', valor: parseInt(form.value.clave_cuota), tipo: 'integer' },
+        { nombre: 'p_descripcion', valor: form.value.descripcion.toUpperCase(), tipo: 'string' }
+      ],
+      '',
+      null,
+      'publico'
+    )
 
-    if (res.data.eResponse.success) {
-      const result = res.data.eResponse.data.result
+    if (res.success) {
+      const result = res.data.result
       if (result && result.length > 0 && result[0][operacion.replace('sp_cve_cuota_', '')]) {
         showToast(isEdit.value ? 'Clave actualizada' : 'Clave creada', 'success')
         cerrarModal()
@@ -239,7 +290,7 @@ const guardar = async () => {
         showToast('La clave ya existe', 'error')
       }
     } else {
-      showToast(res.data.eResponse.message || 'Error al guardar', 'error')
+      showToast(res.message || 'Error al guardar', 'error')
     }
   } catch (err) {
     showToast('Error de conexión', 'error')
@@ -264,18 +315,19 @@ const eliminar = async () => {
 
   showLoading('Eliminando clave', 'Por favor espere...')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cve_cuota_delete',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_clave_cuota', Valor: parseInt(itemAEliminar.value.clave_cuota) }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+          'sp_cve_cuota_delete',
+          'mercados',
+          [
+          { nombre: 'p_clave_cuota', valor: parseInt(itemAEliminar.value.clave_cuota) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      const result = res.data.eResponse.data.result
+    if (res.success) {
+      const result = res.data.result
       if (result && result.length > 0 && result[0].delete) {
         showToast('Clave eliminada', 'success')
         cancelarEliminar()
@@ -284,7 +336,7 @@ const eliminar = async () => {
         showToast('No se pudo eliminar', 'error')
       }
     } else {
-      showToast(res.data.eResponse.message || 'Error al eliminar', 'error')
+      showToast(res.message || 'Error al eliminar', 'error')
     }
   } catch (err) {
     showToast('Error de conexión', 'error')

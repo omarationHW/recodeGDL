@@ -18,11 +18,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -91,7 +91,7 @@
 
       <!-- Tabla de Resultados -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header header-with-badge">
           <h5>
             <font-awesome-icon icon="table" />
             Padrón de Concesionarios
@@ -192,7 +192,7 @@
 
         <div class="municipal-card-body" v-else-if="!loading && padronData.length === 0">
           <div class="text-center text-muted">
-            <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+            <font-awesome-icon icon="inbox" size="2x" class="empty-state-icon" />
             <p>No se encontraron registros en el padrón con los filtros seleccionados.</p>
           </div>
         </div>
@@ -203,12 +203,14 @@
   </div>
   <!-- /module-view -->
 
-  <!-- Modal de Ayuda -->
+  <!-- Modal de Ayuda y Documentación -->
   <DocumentationModal
-    :show="showDocumentation"
+    :show="showDocModal"
     :componentName="'AuxRep'"
     :moduleName="'otras_obligaciones'"
-    @close="closeDocumentation"
+    :docType="docType"
+    :title="'Auxiliar de Reportes - Otras Obligaciones'"
+    @close="showDocModal = false"
   />
 </template>
 
@@ -226,9 +228,18 @@ const route = useRoute()
 const router = useRouter()
 
 // Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const BASE_DB = 'otras_obligaciones'
@@ -729,7 +740,7 @@ onMounted(async () => {
   color: #6c757d;
 }
 
-.empty-icon {
+.empty-state-icon {
   color: #dee2e6;
   margin-bottom: 1rem;
 }

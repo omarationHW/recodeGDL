@@ -1,296 +1,388 @@
 <template>
   <div class="module-view">
     <div class="module-view-header">
-      <h1 class="module-view-info">
+      <div class="module-view-icon">
         <font-awesome-icon icon="copy" />
-        Registros Duplicados
-      </h1>
-      <DocumentationModal
-        title="Ayuda - Registros Duplicados"
-        :sections="helpSections"
-      />
+      </div>
+      <div class="module-view-info">
+        <h1>Registros Duplicados</h1>
+        <p>Cementerios - Gestión de registros duplicados y traslados</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
-    <!-- Búsqueda de duplicados -->
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="search" />
-        Buscar Duplicados
-      </div>
-      <div class="municipal-card-body">
-        <div class="form-grid-two">
-          <div class="form-group">
-            <label class="municipal-form-label">Nombre del Titular</label>
-            <input
-              v-model="busqueda.nombre"
-              type="text"
-              class="municipal-form-control"
-              placeholder="Ingrese nombre a buscar"
-              @keyup.enter="buscarDuplicados"
-            />
+    <div class="module-view-content">
+      <!-- Búsqueda de duplicados -->
+      <div class="municipal-card mb-3">
+        <div class="municipal-card-header">
+          <font-awesome-icon icon="search" />
+          Buscar Duplicados
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-grid-two">
+            <div class="form-group">
+              <label class="municipal-form-label">Nombre del Titular</label>
+              <input
+                v-model="busqueda.nombre"
+                type="text"
+                class="municipal-form-control"
+                placeholder="Ingrese nombre a buscar"
+                @keyup.enter="buscarDuplicados"
+              />
+            </div>
+            <div class="form-group align-end">
+              <button @click="buscarDuplicados" class="btn-municipal-primary">
+                <font-awesome-icon icon="search" />
+                Buscar
+              </button>
+            </div>
           </div>
-          <div class="form-group align-end">
-            <button @click="buscarDuplicados" class="btn-municipal-primary">
-              <font-awesome-icon icon="search" />
-              Buscar
+        </div>
+      </div>
+
+      <!-- Empty State - Sin búsqueda -->
+      <div v-if="duplicados.length === 0 && !hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="copy" size="3x" />
+        </div>
+        <h4>Registros Duplicados</h4>
+        <p>Ingrese el nombre del titular para buscar duplicados en el sistema</p>
+      </div>
+
+      <!-- Empty State - Sin resultados -->
+      <div v-else-if="duplicados.length === 0 && hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="inbox" size="3x" />
+        </div>
+        <h4>Sin resultados</h4>
+        <p>No se encontraron duplicados con el nombre especificado</p>
+      </div>
+
+      <!-- Grid de duplicados encontrados -->
+      <div v-if="duplicados.length > 0" class="municipal-card mb-3">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Duplicados Encontrados
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple">{{ duplicados.length }} registros</span>
+          </div>
+        </div>
+        <div class="municipal-card-body">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Nombre</th>
+                  <th>Domicilio</th>
+                  <th>Ubicación Actual</th>
+                  <th>Fecha Ingreso</th>
+                  <th>Años Pago</th>
+                  <th>Importe</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="dup in duplicados"
+                  :key="dup.control_id"
+                  @click="selectedRow = dup"
+                  :class="{ 'table-row-selected': selectedRow === dup }"
+                  class="row-hover"
+                >
+                  <td>{{ dup.nombre }}</td>
+                  <td>{{ formatearDomicilio(dup) }}</td>
+                  <td>{{ formatearUbicacion(dup) }}</td>
+                  <td>{{ formatearFecha(dup.fecing) }}</td>
+                  <td>{{ dup.axo_pago_desde }} - {{ dup.axo_pago_hasta }}</td>
+                  <td>{{ formatearMoneda(dup.importe_anual) }}</td>
+                  <td>
+                    <button
+                      @click.stop="seleccionarDuplicado(dup)"
+                      class="btn-municipal-secondary btn-sm"
+                    >
+                      <font-awesome-icon icon="check" />
+                      Seleccionar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario de traslado -->
+      <div v-if="duplicadoSeleccionado" class="municipal-card">
+        <div class="municipal-card-header">
+          <font-awesome-icon icon="exchange-alt" />
+          Trasladar Duplicado: {{ duplicadoSeleccionado.nombre }}
+        </div>
+        <div class="municipal-card-body">
+          <!-- Información del duplicado -->
+          <div class="alert-info mb-3">
+            <strong>Registro seleccionado:</strong><br>
+            Ubicación actual: {{ formatearUbicacion(duplicadoSeleccionado) }}<br>
+            Período: {{ duplicadoSeleccionado.axo_pago_desde }} - {{ duplicadoSeleccionado.axo_pago_hasta }}
+            | Importe: {{ formatearMoneda(duplicadoSeleccionado.importe_anual) }}
+          </div>
+
+          <!-- Nueva ubicación -->
+          <div class="info-section">
+            <h3 class="section-title">Nueva Ubicación</h3>
+
+            <div class="form-grid-two">
+              <div class="form-group">
+                <label class="form-label required">Cementerio</label>
+                <select v-model="nuevaUbicacion.cementerio" class="municipal-form-control">
+                  <option value="">-- Seleccione --</option>
+                  <option
+                    v-for="cem in cementerios"
+                    :key="cem.cementerio"
+                    :value="cem.cementerio"
+                  >
+                    {{ cem.nombre }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label required">Tipo de Ubicación</label>
+                <div class="radio-group">
+                  <label class="radio-option">
+                    <input type="radio" v-model="nuevaUbicacion.tipo" value="F" />
+                    <span>Fosa</span>
+                  </label>
+                  <label class="radio-option">
+                    <input type="radio" v-model="nuevaUbicacion.tipo" value="U" />
+                    <span>Urna</span>
+                  </label>
+                  <label class="radio-option">
+                    <input type="radio" v-model="nuevaUbicacion.tipo" value="G" />
+                    <span>Gaveta</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-grid-four">
+              <div class="form-group">
+                <label class="form-label required">Clase</label>
+                <input
+                  v-model.number="nuevaUbicacion.clase"
+                  type="number"
+                  class="municipal-form-control"
+                  min="1"
+                />
+              </div>
+              <div class="form-group">
+                <label class="municipal-form-label">Clase Alfa</label>
+                <input
+                  v-model="nuevaUbicacion.clase_alfa"
+                  type="text"
+                  class="municipal-form-control"
+                  maxlength="2"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Sección</label>
+                <input
+                  v-model.number="nuevaUbicacion.seccion"
+                  type="number"
+                  class="municipal-form-control"
+                  min="1"
+                />
+              </div>
+              <div class="form-group">
+                <label class="municipal-form-label">Sección Alfa</label>
+                <input
+                  v-model="nuevaUbicacion.seccion_alfa"
+                  type="text"
+                  class="municipal-form-control"
+                  maxlength="2"
+                />
+              </div>
+            </div>
+
+            <div class="form-grid-four">
+              <div class="form-group">
+                <label class="form-label required">Línea</label>
+                <input
+                  v-model.number="nuevaUbicacion.linea"
+                  type="number"
+                  class="municipal-form-control"
+                  min="1"
+                />
+              </div>
+              <div class="form-group">
+                <label class="municipal-form-label">Línea Alfa</label>
+                <input
+                  v-model="nuevaUbicacion.linea_alfa"
+                  type="text"
+                  class="municipal-form-control"
+                  maxlength="2"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label required">Fosa</label>
+                <input
+                  v-model.number="nuevaUbicacion.fosa"
+                  type="number"
+                  class="municipal-form-control"
+                  min="1"
+                />
+              </div>
+              <div class="form-group">
+                <label class="municipal-form-label">Fosa Alfa</label>
+                <input
+                  v-model="nuevaUbicacion.fosa_alfa"
+                  type="text"
+                  class="municipal-form-control"
+                  maxlength="4"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="municipal-form-label">Observaciones</label>
+              <textarea
+                v-model="nuevaUbicacion.observaciones"
+                class="municipal-form-control"
+                rows="2"
+                maxlength="255"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Modo de operación -->
+          <div class="info-section">
+            <h3 class="section-title">Modo de Operación</h3>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" v-model="operacion" value="1" />
+                <span>Solo Pagos (Los datos ya existen en la ubicación)</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" v-model="operacion" value="2" />
+                <span>Todo (Crear datos y trasladar pagos)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="form-actions">
+            <button @click="verificarYTrasladar" class="btn-municipal-primary">
+              <font-awesome-icon icon="check" />
+              Trasladar Duplicado
+            </button>
+            <button @click="cancelarSeleccion" class="btn-municipal-secondary">
+              <font-awesome-icon icon="times" />
+              Cancelar
             </button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Grid de duplicados encontrados -->
-    <div v-if="duplicados.length > 0" class="municipal-card mb-3">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="list" />
-        Duplicados Encontrados ({{ duplicados.length }})
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
       </div>
-      <div class="municipal-card-body">
-        <div class="table-responsive">
-          <table class="municipal-table">
-            <thead class="municipal-table-header">
-              <tr>
-                <th>Nombre</th>
-                <th>Domicilio</th>
-                <th>Ubicación Actual</th>
-                <th>Fecha Ingreso</th>
-                <th>Años Pago</th>
-                <th>Importe</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="dup in duplicados"
-                :key="dup.control_id"
-                :class="{ 'selected-row': duplicadoSeleccionado?.control_id === dup.control_id }"
-              >
-                <td>{{ dup.nombre }}</td>
-                <td>{{ formatearDomicilio(dup) }}</td>
-                <td>{{ formatearUbicacion(dup) }}</td>
-                <td>{{ formatearFecha(dup.fecing) }}</td>
-                <td>{{ dup.axo_pago_desde }} - {{ dup.axo_pago_hasta }}</td>
-                <td>{{ formatearMoneda(dup.importe_anual) }}</td>
-                <td>
-                  <button
-                    @click="seleccionarDuplicado(dup)"
-                    class="btn-municipal-secondary btn-sm"
-                  >
-                    <font-awesome-icon icon="check" />
-                    Seleccionar
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'Duplicados'"
+        :moduleName="'cementerios'"
+        :docType="docType"
+        :title="'Registros Duplicados'"
+        @close="showDocModal = false"
+      />
     </div>
-
-    <!-- Formulario de traslado -->
-    <div v-if="duplicadoSeleccionado" class="municipal-card">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="exchange-alt" />
-        Trasladar Duplicado: {{ duplicadoSeleccionado.nombre }}
-      </div>
-      <div class="municipal-card-body">
-        <!-- Información del duplicado -->
-        <div class="alert-info mb-3">
-          <strong>Registro seleccionado:</strong><br>
-          Ubicación actual: {{ formatearUbicacion(duplicadoSeleccionado) }}<br>
-          Período: {{ duplicadoSeleccionado.axo_pago_desde }} - {{ duplicadoSeleccionado.axo_pago_hasta }}
-          | Importe: {{ formatearMoneda(duplicadoSeleccionado.importe_anual) }}
-        </div>
-
-        <!-- Nueva ubicación -->
-        <div class="info-section">
-          <h3 class="section-title">Nueva Ubicación</h3>
-
-          <div class="form-grid-two">
-            <div class="form-group">
-              <label class="form-label required">Cementerio</label>
-              <select v-model="nuevaUbicacion.cementerio" class="municipal-form-control">
-                <option value="">-- Seleccione --</option>
-                <option
-                  v-for="cem in cementerios"
-                  :key="cem.cementerio"
-                  :value="cem.cementerio"
-                >
-                  {{ cem.nombre }}
-                </option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label required">Tipo de Ubicación</label>
-              <div class="radio-group">
-                <label class="radio-option">
-                  <input type="radio" v-model="nuevaUbicacion.tipo" value="F" />
-                  <span>Fosa</span>
-                </label>
-                <label class="radio-option">
-                  <input type="radio" v-model="nuevaUbicacion.tipo" value="U" />
-                  <span>Urna</span>
-                </label>
-                <label class="radio-option">
-                  <input type="radio" v-model="nuevaUbicacion.tipo" value="G" />
-                  <span>Gaveta</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-grid-four">
-            <div class="form-group">
-              <label class="form-label required">Clase</label>
-              <input
-                v-model.number="nuevaUbicacion.clase"
-                type="number"
-                class="municipal-form-control"
-                min="1"
-              />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Clase Alfa</label>
-              <input
-                v-model="nuevaUbicacion.clase_alfa"
-                type="text"
-                class="municipal-form-control"
-                maxlength="2"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label required">Sección</label>
-              <input
-                v-model.number="nuevaUbicacion.seccion"
-                type="number"
-                class="municipal-form-control"
-                min="1"
-              />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Sección Alfa</label>
-              <input
-                v-model="nuevaUbicacion.seccion_alfa"
-                type="text"
-                class="municipal-form-control"
-                maxlength="2"
-              />
-            </div>
-          </div>
-
-          <div class="form-grid-four">
-            <div class="form-group">
-              <label class="form-label required">Línea</label>
-              <input
-                v-model.number="nuevaUbicacion.linea"
-                type="number"
-                class="municipal-form-control"
-                min="1"
-              />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Línea Alfa</label>
-              <input
-                v-model="nuevaUbicacion.linea_alfa"
-                type="text"
-                class="municipal-form-control"
-                maxlength="2"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label required">Fosa</label>
-              <input
-                v-model.number="nuevaUbicacion.fosa"
-                type="number"
-                class="municipal-form-control"
-                min="1"
-              />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label">Fosa Alfa</label>
-              <input
-                v-model="nuevaUbicacion.fosa_alfa"
-                type="text"
-                class="municipal-form-control"
-                maxlength="4"
-              />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="municipal-form-label">Observaciones</label>
-            <textarea
-              v-model="nuevaUbicacion.observaciones"
-              class="municipal-form-control"
-              rows="2"
-              maxlength="255"
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- Modo de operación -->
-        <div class="info-section">
-          <h3 class="section-title">Modo de Operación</h3>
-          <div class="radio-group">
-            <label class="radio-option">
-              <input type="radio" v-model="operacion" value="1" />
-              <span>Solo Pagos (Los datos ya existen en la ubicación)</span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" v-model="operacion" value="2" />
-              <span>Todo (Crear datos y trasladar pagos)</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Botones de acción -->
-        <div class="form-actions">
-          <button @click="verificarYTrasladar" class="btn-municipal-primary">
-            <font-awesome-icon icon="check" />
-            Trasladar Duplicado
-          </button>
-          <button @click="cancelarSeleccion" class="btn-municipal-secondary">
-            <font-awesome-icon icon="times" />
-            Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div v-else-if="duplicados.length === 0 && busqueda.nombre" class="alert-info">
-      <font-awesome-icon icon="info-circle" />
-      No se encontraron duplicados con el nombre especificado
-    </div>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'Duplicados'"
-      :moduleName="'cementerios'"
-      @close="closeTechDocs"
-    />
-
+    <!-- /module-view-content -->
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const toast = useToast()
 
-// Modal de documentación
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Sistema de toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
 
+let toastTimeout = null
+
+const showToast = (type, message) => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
+
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+
+  toastTimeout = setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
+
+// Estado
 const busqueda = reactive({
   nombre: ''
 })
@@ -299,6 +391,8 @@ const duplicados = ref([])
 const duplicadoSeleccionado = ref(null)
 const cementerios = ref([])
 const operacion = ref('2')
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 const nuevaUbicacion = reactive({
   cementerio: '',
@@ -314,62 +408,42 @@ const nuevaUbicacion = reactive({
   observaciones: ''
 })
 
-const helpSections = [
-  {
-    title: 'Registros Duplicados',
-    content: `
-      <p>Este módulo permite gestionar registros que fueron capturados incorrectamente o en ubicaciones duplicadas.</p>
-      <h4>Proceso:</h4>
-      <ol>
-        <li><strong>Buscar:</strong> Ingrese el nombre del titular para buscar duplicados</li>
-        <li><strong>Seleccionar:</strong> Elija el registro duplicado a trasladar</li>
-        <li><strong>Ubicación:</strong> Especifique la ubicación correcta (cementerio, clase, sección, línea, fosa)</li>
-        <li><strong>Modo:</strong> Seleccione si solo traslada pagos o todo el registro</li>
-        <li><strong>Trasladar:</strong> Confirme la operación</li>
-      </ol>
-    `
-  },
-  {
-    title: 'Modos de Operación',
-    content: `
-      <p><strong>Solo Pagos:</strong> Use esta opción cuando los datos del titular ya existan en la ubicación correcta y solo necesite trasladar los pagos.</p>
-      <p><strong>Todo:</strong> Use esta opción para crear un nuevo registro con los datos del titular y trasladar los pagos a la nueva ubicación.</p>
-    `
-  }
-]
-
 const buscarDuplicados = async () => {
   if (!busqueda.nombre.trim()) {
-    toast.warning('Ingrese un nombre para buscar')
+    showToast('warning', 'Ingrese un nombre para buscar')
     return
   }
 
+  showLoading('Buscando duplicados...', 'Consultando base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
+
   try {
     const patron = `%${busqueda.nombre}%`
-    const params = [
-      {
-        nombre: 'p_nombre',
-        valor: patron,
-        tipo: 'string'
-      }
-    ]
-
-    const response = await execute('sp_cem_buscar_duplicados', 'cementerios', params,
-      'cementerios',
+    const response = await execute(
+      'sp_duplicados_buscar_por_nombre',
+      'cementerio',
+      [
+        { nombre: 'p_nombre', valor: patron, tipo: 'string' }
+      ],
+      'cementerio',
       null,
       'public'
-    , '', null, 'comun')
+    )
 
-    duplicados.value = response.result || []
+    duplicados.value = response?.result || []
     duplicadoSeleccionado.value = null
 
     if (duplicados.value.length === 0) {
-      toast.info('No se encontraron duplicados')
+      showToast('info', 'No se encontraron duplicados')
     } else {
-      toast.success(`Se encontraron ${duplicados.value.length} duplicado(s)`)
+      showToast('success', `Se encontraron ${duplicados.value.length} duplicado(s)`)
     }
   } catch (error) {
-    toast.error('Error al buscar duplicados')
+    console.error('Error al buscar duplicados:', error)
+    showToast('error', 'Error al buscar duplicados')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -411,123 +485,81 @@ const limpiarFormulario = () => {
 const verificarYTrasladar = async () => {
   // Validaciones
   if (!nuevaUbicacion.cementerio) {
-    toast.warning('Seleccione un cementerio')
+    showToast('warning', 'Seleccione un cementerio')
     return
   }
   if (!nuevaUbicacion.clase || nuevaUbicacion.clase === 0) {
-    toast.warning('Error en clase')
+    showToast('warning', 'Error en clase')
     return
   }
   if (!nuevaUbicacion.seccion || nuevaUbicacion.seccion === 0) {
-    toast.warning('Error en sección')
+    showToast('warning', 'Error en sección')
     return
   }
   if (!nuevaUbicacion.linea || nuevaUbicacion.linea === 0) {
-    toast.warning('Error en línea')
+    showToast('warning', 'Error en línea')
     return
   }
   if (!nuevaUbicacion.fosa || nuevaUbicacion.fosa === 0) {
-    toast.warning('Error en fosa')
+    showToast('warning', 'Error en fosa')
     return
   }
 
+  showLoading('Verificando ubicación...', 'Validando datos')
+
   try {
     // Verificar ubicación
-    const params = [
-      {
-        nombre: 'p_cementerio',
-        valor: nuevaUbicacion.cementerio,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_clase',
-        valor: nuevaUbicacion.clase,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_clase_alfa',
-        valor: nuevaUbicacion.clase_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_seccion',
-        valor: nuevaUbicacion.seccion,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_seccion_alfa',
-        valor: nuevaUbicacion.seccion_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_linea',
-        valor: nuevaUbicacion.linea,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_linea_alfa',
-        valor: nuevaUbicacion.linea_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_fosa',
-        valor: nuevaUbicacion.fosa,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_fosa_alfa',
-        valor: nuevaUbicacion.fosa_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_fecing',
-        valor: duplicadoSeleccionado.value.fecing,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_recing',
-        valor: duplicadoSeleccionado.value.recing,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_cajing',
-        valor: duplicadoSeleccionado.value.cajing,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_opcaja',
-        valor: duplicadoSeleccionado.value.opcaja,
-        tipo: 'string'
-      }
-    ]
-
-    const response = await execute('sp_cem_verificar_ubicacion_duplicado', 'cementerios', params,
-      'cementerios',
+    const verificarResponse = await execute(
+      'sp_duplicados_verificar_ubicacion',
+      'cementerio',
+      [
+        { nombre: 'p_cementerio', valor: nuevaUbicacion.cementerio, tipo: 'string' },
+        { nombre: 'p_clase', valor: nuevaUbicacion.clase, tipo: 'integer' },
+        { nombre: 'p_clase_alfa', valor: nuevaUbicacion.clase_alfa || null, tipo: 'string' },
+        { nombre: 'p_seccion', valor: nuevaUbicacion.seccion, tipo: 'integer' },
+        { nombre: 'p_seccion_alfa', valor: nuevaUbicacion.seccion_alfa || null, tipo: 'string' },
+        { nombre: 'p_linea', valor: nuevaUbicacion.linea, tipo: 'integer' },
+        { nombre: 'p_linea_alfa', valor: nuevaUbicacion.linea_alfa || null, tipo: 'string' },
+        { nombre: 'p_fosa', valor: nuevaUbicacion.fosa, tipo: 'integer' },
+        { nombre: 'p_fosa_alfa', valor: nuevaUbicacion.fosa_alfa || null, tipo: 'string' },
+        { nombre: 'p_fecing', valor: duplicadoSeleccionado.value.fecing, tipo: 'date' },
+        { nombre: 'p_recing', valor: duplicadoSeleccionado.value.recing, tipo: 'integer' },
+        { nombre: 'p_cajing', valor: duplicadoSeleccionado.value.cajing, tipo: 'string' },
+        { nombre: 'p_opcaja', valor: duplicadoSeleccionado.value.opcaja, tipo: 'integer' }
+      ],
+      'cementerio',
       null,
       'public'
-    , '', null, 'comun')
+    )
 
-    const { existe_datos, existe_pago } = verificacion.data[0]
+    hideLoading()
+
+    if (!verificarResponse?.result || verificarResponse.result.length === 0) {
+      showToast('error', 'Error al verificar ubicación')
+      return
+    }
+
+    const { existe_datos, existe_pago } = verificarResponse.result[0]
 
     // Validar según modo de operación
     if (operacion.value === '1') {
       // Solo pagos: debe existir datos
       if (existe_datos !== 'S') {
-        toast.error('No se encuentran Datos en el Archivo de Cementerios')
+        showToast('error', 'No se encuentran Datos en el Archivo de Cementerios')
         return
       }
       if (existe_pago === 'S') {
-        toast.error('Ya se encuentran Datos en el Archivo de Pagos')
+        showToast('error', 'Ya se encuentran Datos en el Archivo de Pagos')
         return
       }
     } else {
       // Todo: no deben existir datos
       if (existe_datos === 'S') {
-        toast.error('Ya se encuentran Datos en el Archivo de Cementerios')
+        showToast('error', 'Ya se encuentran Datos en el Archivo de Cementerios')
         return
       }
       if (existe_pago === 'S') {
-        toast.error('Ya se encuentran Datos en el Archivo de Pagos')
+        showToast('error', 'Ya se encuentran Datos en el Archivo de Pagos')
         return
       }
     }
@@ -545,112 +577,78 @@ const verificarYTrasladar = async () => {
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Sí, trasladar',
-      cancelButtonText: 'Cancelar'
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ea8215',
+      cancelButtonColor: '#6c757d'
     })
 
     if (!result.isConfirmed) return
 
-    // Ejecutar traslado
-    const trasladoParams = [
-      {
-        nombre: 'p_control_id',
-        valor: duplicadoSeleccionado.value.control_id,
-        tipo: 'integer'
-      },
-      {
-        nombre: 'p_operacion',
-        valor: parseInt(operacion.value),
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_cementerio',
-        valor: nuevaUbicacion.cementerio,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_clase',
-        valor: nuevaUbicacion.clase,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_clase_alfa',
-        valor: nuevaUbicacion.clase_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_seccion',
-        valor: nuevaUbicacion.seccion,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_seccion_alfa',
-        valor: nuevaUbicacion.seccion_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_linea',
-        valor: nuevaUbicacion.linea,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_linea_alfa',
-        valor: nuevaUbicacion.linea_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_fosa',
-        valor: nuevaUbicacion.fosa,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_fosa_alfa',
-        valor: nuevaUbicacion.fosa_alfa || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_tipo',
-        valor: nuevaUbicacion.tipo,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_observaciones',
-        valor: nuevaUbicacion.observaciones || null,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_usuario',
-        valor: 1, // TODO: obtener del contexto de usuario
-        tipo: 'string'
-      }
-    ]
+    showLoading('Trasladando duplicado...', 'Actualizando base de datos')
 
-    const trasladoResponse = await execute('sp_cem_trasladar_duplicado', 'cementerios', trasladoParams,
-      'cementerios',
+    // Ejecutar traslado
+    const trasladoResponse = await execute(
+      'spd_trasladar_duplicado',
+      'cementerio',
+      [
+        { nombre: 'p_control_id', valor: duplicadoSeleccionado.value.control_id, tipo: 'integer' },
+        { nombre: 'p_operacion', valor: parseInt(operacion.value), tipo: 'integer' },
+        { nombre: 'p_cementerio', valor: nuevaUbicacion.cementerio, tipo: 'string' },
+        { nombre: 'p_clase', valor: nuevaUbicacion.clase, tipo: 'integer' },
+        { nombre: 'p_clase_alfa', valor: nuevaUbicacion.clase_alfa || null, tipo: 'string' },
+        { nombre: 'p_seccion', valor: nuevaUbicacion.seccion, tipo: 'integer' },
+        { nombre: 'p_seccion_alfa', valor: nuevaUbicacion.seccion_alfa || null, tipo: 'string' },
+        { nombre: 'p_linea', valor: nuevaUbicacion.linea, tipo: 'integer' },
+        { nombre: 'p_linea_alfa', valor: nuevaUbicacion.linea_alfa || null, tipo: 'string' },
+        { nombre: 'p_fosa', valor: nuevaUbicacion.fosa, tipo: 'integer' },
+        { nombre: 'p_fosa_alfa', valor: nuevaUbicacion.fosa_alfa || null, tipo: 'string' },
+        { nombre: 'p_tipo', valor: nuevaUbicacion.tipo, tipo: 'string' },
+        { nombre: 'p_observaciones', valor: nuevaUbicacion.observaciones || null, tipo: 'string' },
+        { nombre: 'p_usuario', valor: 1, tipo: 'integer' } // TODO: obtener de sesión
+      ],
+      'cementerio',
       null,
       'public'
-    , '', null, 'comun')
+    )
+
+    if (!trasladoResponse?.result || trasladoResponse.result.length === 0) {
+      showToast('error', 'Error al trasladar duplicado')
+      return
+    }
 
     const resultado = trasladoResponse.result[0]
     if (resultado.resultado === 'S') {
-      toast.success('El Registro se ha trasladado')
+      showToast('success', 'El Registro se ha trasladado correctamente')
       // Refrescar búsqueda
       await buscarDuplicados()
       duplicadoSeleccionado.value = null
       limpiarFormulario()
     } else {
-      toast.error(resultado.mensaje)
+      showToast('error', resultado.mensaje || 'Error al trasladar')
     }
   } catch (error) {
-    toast.error('Error al trasladar el duplicado')
+    console.error('Error al trasladar duplicado:', error)
+    showToast('error', 'Error al trasladar el duplicado')
+  } finally {
+    hideLoading()
   }
 }
-
+// Para evitar SP adicionales, agregamos un SP generico 
 const cargarCementerios = async () => {
   try {
-    const response = await api.callStoredProcedure('sp_cem_listar_cementerios', {})
-    cementerios.value = response.result || []
+    const response = await execute(
+      //'sp_duplicados_listar_cementerios',
+      'sp_get_cementerios_list',
+      'cementerio',
+      [],
+      'cementerio',
+      null,
+      'public'
+    )
+    cementerios.value = response?.result || []
   } catch (error) {
-    toast.error('Error al cargar cementerios')
+    console.error('Error al cargar cementerios:', error)
+    showToast('error', 'Error al cargar cementerios')
   }
 }
 
@@ -688,28 +686,3 @@ onMounted(() => {
   cargarCementerios()
 })
 </script>
-
-<style scoped>
-/* Componentes únicos de selección y radio buttons - Justificado mantener scoped */
-.selected-row {
-  background-color: var(--color-primary-light);
-  font-weight: 500;
-}
-
-.radio-group {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.radio-option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.radio-option input[type="radio"] {
-  cursor: pointer;
-}
-</style>

@@ -10,14 +10,20 @@
         <p>Inicio > Mercados > Consulta Datos de Energía</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportar" :disabled="!energia">
           <font-awesome-icon icon="file-excel" />
           Exportar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -295,16 +301,24 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'ConsultaDatosEnergia'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - ConsultaDatosEnergia'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'ConsultaDatosEnergia'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - ConsultaDatosEnergia'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, watch } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const globalLoading = useGlobalLoading();
-const { showToast: toast } = useToast();
+const { showToast } = useToast();
 const id_local = ref('');
 const energia = ref(null);
 const adeudos = ref([]);
@@ -408,7 +422,7 @@ watch(pagos, () => { currentPagePagos.value = 1; });
 watch(condonaciones, () => { currentPageCondonaciones.value = 1; });
 
 const mostrarAyuda = () => {
-  toast('Ingrese el ID del local para consultar sus datos de energía, adeudos, pagos y condonaciones', 'info');
+  showToast('Ingrese el ID del local para consultar sus datos de energía, adeudos, pagos y condonaciones', 'info');
 };
 
 const formatCurrency = (value) => {
@@ -423,7 +437,7 @@ const formatDate = (value) => {
 
 const buscar = async () => {
   if (!id_local.value) {
-    toast('Ingrese el ID del local', 'warning');
+    showToast('Ingrese el ID del local', 'warning');
     return;
   }
 
@@ -436,44 +450,46 @@ const buscar = async () => {
   await globalLoading.withLoading(async () => {
     try {
       // Obtener datos de energía
-      const resEnergia = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_consulta_energia_get_by_local',
-          Base: 'padron_licencias',
-          Parametros: [
-            { Nombre: 'p_id_local', Valor: parseInt(id_local.value) }
-          ]
-        }
-      });
+      const resEnergia = await apiService.execute(
+          'sp_consulta_energia_get_by_local',
+          'mercados',
+          [
+            { nombre: 'p_id_local', valor: parseInt(id_local.value) }
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (resEnergia.data.eResponse?.success) {
-        const result = resEnergia.data.eResponse.data.result || [];
+      if (resEnergia.success) {
+        const result = resEnergia.data.result || [];
         if (result.length > 0) {
           energia.value = result[0];
 
           // Obtener adeudos
-          const resAdeudos = await axios.post('/api/generic', {
-            eRequest: {
-              Operacion: 'sp_consulta_energia_get_adeudos',
-              Base: 'padron_licencias',
-              Parametros: [
-                { Nombre: 'p_id_local', Valor: parseInt(id_local.value) }
-              ]
-            }
-          });
-          if (resAdeudos.data.eResponse?.success) {
-            adeudos.value = resAdeudos.data.eResponse.data.result || [];
+          const resAdeudos = await apiService.execute(
+          'sp_consulta_energia_get_adeudos',
+          'mercados',
+          [
+                { nombre: 'p_id_local', valor: parseInt(id_local.value) }
+              ],
+          '',
+          null,
+          'publico'
+        );
+          if (resAdeudos.success) {
+            adeudos.value = resAdeudos.data.result || [];
           }
 
-          toast('Datos de energía cargados correctamente', 'success');
+          showToast('Datos de energía cargados correctamente', 'success');
         } else {
-          toast('No se encontró información de energía para este local', 'info');
+          showToast('No se encontró información de energía para este local', 'info');
         }
       } else {
-        toast('Error al cargar datos de energía', 'error');
+        showToast('Error al cargar datos de energía', 'error');
       }
     } catch (e) {
-      toast('Error de comunicación con el servidor', 'error');
+      showToast('Error de comunicación con el servidor', 'error');
       console.error(e);
     }
   }, 'Cargando datos de energía...', 'Por favor espere');
@@ -484,25 +500,26 @@ const verPagos = async () => {
 
   await globalLoading.withLoading(async () => {
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_consulta_energia_get_pagos',
-          Base: 'padron_licencias',
-          Parametros: [
-            { Nombre: 'p_id_energia', Valor: energia.value.id_energia }
-          ]
-        }
-      });
-      if (response.data.eResponse?.success) {
-        pagos.value = response.data.eResponse.data.result || [];
+      const response = await apiService.execute(
+          'sp_consulta_energia_get_pagos',
+          'mercados',
+          [
+            { nombre: 'p_id_energia', valor: energia.value.id_energia }
+          ],
+          '',
+          null,
+          'publico'
+        );
+      if (response?.success) {
+        pagos.value = response.data.result || [];
         if (pagos.value.length > 0) {
-          toast(`Se encontraron ${pagos.value.length} pagos`, 'success');
+          showToast(`Se encontraron ${pagos.value.length} pagos`, 'success');
         } else {
-          toast('No hay pagos registrados', 'info');
+          showToast('No hay pagos registrados', 'info');
         }
       }
     } catch (e) {
-      toast('Error al cargar pagos', 'error');
+      showToast('Error al cargar pagos', 'error');
       console.error('Error al cargar pagos:', e);
     }
   }, 'Cargando pagos...', 'Consultando información');
@@ -513,25 +530,26 @@ const verCondonaciones = async () => {
 
   await globalLoading.withLoading(async () => {
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_consulta_energia_get_condonaciones',
-          Base: 'padron_licencias',
-          Parametros: [
-            { Nombre: 'p_id_energia', Valor: energia.value.id_energia }
-          ]
-        }
-      });
-      if (response.data.eResponse?.success) {
-        condonaciones.value = response.data.eResponse.data.result || [];
+      const response = await apiService.execute(
+          'sp_consulta_energia_get_condonaciones',
+          'mercados',
+          [
+            { nombre: 'p_id_energia', valor: energia.value.id_energia }
+          ],
+          '',
+          null,
+          'publico'
+        );
+      if (response?.success) {
+        condonaciones.value = response.data.result || [];
         if (condonaciones.value.length > 0) {
-          toast(`Se encontraron ${condonaciones.value.length} condonaciones`, 'success');
+          showToast(`Se encontraron ${condonaciones.value.length} condonaciones`, 'success');
         } else {
-          toast('No hay condonaciones registradas', 'info');
+          showToast('No hay condonaciones registradas', 'info');
         }
       }
     } catch (e) {
-      toast('Error al cargar condonaciones', 'error');
+      showToast('Error al cargar condonaciones', 'error');
       console.error('Error al cargar condonaciones:', e);
     }
   }, 'Cargando condonaciones...', 'Consultando información');
@@ -544,15 +562,15 @@ const limpiar = () => {
   pagos.value = [];
   condonaciones.value = [];
   searchPerformed.value = false;
-  toast('Búsqueda limpiada', 'info');
+  showToast('Búsqueda limpiada', 'info');
 };
 
 const exportar = () => {
   if (!energia.value) {
-    toast('No hay datos para exportar', 'warning');
+    showToast('No hay datos para exportar', 'warning');
     return;
   }
-  toast('Funcionalidad de exportación en desarrollo', 'info');
+  showToast('Funcionalidad de exportación en desarrollo', 'info');
 };
 </script>
 

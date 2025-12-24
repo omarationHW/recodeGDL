@@ -8,19 +8,21 @@
       <div class="module-view-info">
         <h1>Localizar Cruces de Calles</h1>
         <p>Padrón de Licencias - Búsqueda y Selección de Cruces</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button
           class="btn-municipal-primary"
           @click="confirmSelection"
-          :disabled="!calle1Selected || !calle2Selected || loading"
+          :disabled="!calle1Selected || !calle2Selected"
         >
           <font-awesome-icon icon="check" />
           Confirmar Selección
@@ -28,7 +30,6 @@
         <button
           class="btn-municipal-secondary"
           @click="clearSelection"
-          :disabled="loading"
         >
           <font-awesome-icon icon="times" />
           Limpiar
@@ -105,9 +106,9 @@
                     <tr
                       v-for="calle in calles1"
                       :key="calle.clave"
-                      class="clickable-row"
-                      :class="{ 'selected-row': calle1Selected?.clave === calle.clave }"
                       @click="selectCalle1(calle)"
+                      :class="{ 'table-row-selected': calle1Selected?.clave === calle.clave }"
+                      class="row-hover"
                     >
                       <td><code>{{ calle.clave }}</code></td>
                       <td><strong>{{ calle.calle }}</strong></td>
@@ -127,7 +128,7 @@
               </div>
             </div>
 
-            <div v-else-if="searchCalle1 && !loading" class="text-center text-muted">
+            <div v-else-if="searchCalle1" class="text-center text-muted">
               <p>
                 <font-awesome-icon icon="search" />
                 No se encontraron calles con ese criterio
@@ -179,9 +180,9 @@
                     <tr
                       v-for="calle in calles2"
                       :key="calle.clave"
-                      class="clickable-row"
-                      :class="{ 'selected-row': calle2Selected?.clave === calle.clave }"
                       @click="selectCalle2(calle)"
+                      :class="{ 'table-row-selected': calle2Selected?.clave === calle.clave }"
+                      class="row-hover"
                     >
                       <td><code>{{ calle.clave }}</code></td>
                       <td><strong>{{ calle.calle }}</strong></td>
@@ -201,7 +202,7 @@
               </div>
             </div>
 
-            <div v-else-if="searchCalle2 && !loading" class="text-center text-muted">
+            <div v-else-if="searchCalle2" class="text-center text-muted">
               <p>
                 <font-awesome-icon icon="search" />
                 No se encontraron calles con ese criterio
@@ -247,17 +248,6 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Buscando calles...</p>
-      </div>
-    </div>
-
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <div class="toast-content">
@@ -269,16 +259,20 @@
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'Cruces'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Localizar Cruces de Calles'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -287,23 +281,33 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const searchCalle1 = ref('')
@@ -330,7 +334,7 @@ const searchCalles1 = () => {
   }
 
   searchTimeout1 = setTimeout(async () => {
-    setLoading(true, 'Buscando calle 1...')
+    showLoading('Buscando calle 1...')
     const startTime = performance.now()
 
     try {
@@ -357,7 +361,7 @@ const searchCalles1 = () => {
       handleApiError(error)
       calles1.value = []
     } finally {
-      setLoading(false)
+      hideLoading()
     }
   }, 500)
 }
@@ -373,7 +377,7 @@ const searchCalles2 = () => {
   }
 
   searchTimeout2 = setTimeout(async () => {
-    setLoading(true, 'Buscando calle 2...')
+    showLoading('Buscando calle 2...')
     const startTime = performance.now()
 
     try {
@@ -400,7 +404,7 @@ const searchCalles2 = () => {
       handleApiError(error)
       calles2.value = []
     } finally {
-      setLoading(false)
+      hideLoading()
     }
   }, 500)
 }
@@ -430,7 +434,7 @@ const localizarCruce = async () => {
     return
   }
 
-  setLoading(true, 'Localizando cruce...')
+  showLoading('Localizando cruce...')
   const startTime = performance.now()
 
   try {
@@ -465,7 +469,7 @@ const localizarCruce = async () => {
     handleApiError(error)
     cruceLocalizado.value = null
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -529,106 +533,3 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style scoped>
-.row {
-  display: flex;
-  margin: 0 -15px;
-}
-
-.col-md-6 {
-  flex: 0 0 50%;
-  max-width: 50%;
-  padding: 0 15px;
-  margin-bottom: 20px;
-}
-
-.calles-results {
-  margin-top: 15px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.selected-row {
-  background-color: #e6f3ff !important;
-  border-left: 4px solid #ea8215;
-}
-
-.selection-info {
-  display: flex;
-  gap: 30px;
-  flex-wrap: wrap;
-}
-
-.selection-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.selection-item strong {
-  font-weight: 600;
-  color: #333;
-}
-
-.cruce-details {
-  padding: 10px 0;
-}
-
-.details-grid {
-  display: grid;
-  gap: 20px;
-}
-
-.detail-section {
-  background: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: #333;
-  border-bottom: 2px solid #ea8215;
-  padding-bottom: 8px;
-}
-
-.detail-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.detail-table tr {
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.detail-table tr:last-child {
-  border-bottom: none;
-}
-
-.detail-table td {
-  padding: 10px 0;
-}
-
-.detail-table td.label {
-  font-weight: 600;
-  color: #666;
-  width: 35%;
-}
-
-.toast-content {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.toast-duration {
-  margin-left: auto;
-  font-size: 0.75rem;
-  opacity: 0.8;
-  padding: 0.25rem 0.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-}
-</style>

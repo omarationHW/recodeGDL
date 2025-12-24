@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Reporte de Anuncios para Excel</h1>
-        <p>Padrón de Licencias - Exportación de Anuncios Publicitarios</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Exportación de Anuncios Publicitarios</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -35,7 +38,6 @@
               <select
                 class="municipal-form-control"
                 v-model="filters.vigencia"
-                :disabled="loading"
               >
                 <option value="1">Vigentes</option>
                 <option value="2">Cancelados/Baja</option>
@@ -48,7 +50,6 @@
               <select
                 class="municipal-form-control"
                 v-model="filters.tipoReporte"
-                :disabled="loading"
               >
                 <option value="0">Hasta una fecha</option>
                 <option value="1">Rango de fechas</option>
@@ -64,7 +65,6 @@
                 type="date"
                 class="municipal-form-control"
                 v-model="filters.fechaConsulta"
-                :disabled="loading"
               >
             </div>
           </div>
@@ -76,7 +76,6 @@
                 type="date"
                 class="municipal-form-control"
                 v-model="filters.fechaInicio"
-                :disabled="loading"
               >
             </div>
             <div class="form-group">
@@ -85,7 +84,6 @@
                 type="date"
                 class="municipal-form-control"
                 v-model="filters.fechaFin"
-                :disabled="loading"
               >
             </div>
           </div>
@@ -97,7 +95,6 @@
               <select
                 class="municipal-form-control"
                 v-model="filters.adeudo"
-                :disabled="loading"
               >
                 <option value="1">Sin adeudo</option>
                 <option value="2">Con adeudo del año</option>
@@ -117,7 +114,6 @@
                 :min="2000"
                 :max="new Date().getFullYear()"
                 placeholder="Ej: 2024"
-                :disabled="loading"
               >
             </div>
           </div>
@@ -130,7 +126,6 @@
                 type="date"
                 class="municipal-form-control"
                 v-model="filters.fechaPagoInicio"
-                :disabled="loading"
               >
             </div>
             <div class="form-group">
@@ -139,7 +134,6 @@
                 type="date"
                 class="municipal-form-control"
                 v-model="filters.fechaPagoFin"
-                :disabled="loading"
               >
             </div>
           </div>
@@ -153,7 +147,6 @@
                 class="municipal-form-control"
                 v-model="filters.grupoAnuncioId"
                 placeholder="ID del grupo de anuncios"
-                :disabled="loading"
               >
               <small class="form-text">Dejar vacío para consultar todos</small>
             </div>
@@ -163,7 +156,7 @@
             <button
               class="btn-municipal-primary"
               @click="generarReporte"
-              :disabled="loading || !isFormValid"
+              :disabled="!isFormValid"
             >
               <font-awesome-icon icon="chart-bar" />
               Generar Reporte
@@ -171,7 +164,6 @@
             <button
               class="btn-municipal-secondary"
               @click="clearFilters"
-              :disabled="loading"
             >
               <font-awesome-icon icon="times" />
               Limpiar
@@ -182,20 +174,21 @@
 
       <!-- Tabla de resultados -->
       <div class="municipal-card" v-if="anuncios.length > 0">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header header-with-badge">
           <h5>
             <font-awesome-icon icon="table" />
             Anuncios Encontrados
-            <span class="badge-purple" v-if="anuncios.length > 0">{{ anuncios.length }} anuncios</span>
           </h5>
-          <button
-            class="btn-municipal-primary"
-            @click="exportarExcel"
-            :disabled="loading"
-          >
-            <font-awesome-icon icon="file-excel" />
-            Exportar a Excel
-          </button>
+          <div class="header-right">
+            <span class="badge-purple" v-if="anuncios.length > 0">{{ anuncios.length }} anuncios</span>
+            <button
+              class="btn-municipal-primary"
+              @click="exportarExcel"
+            >
+              <font-awesome-icon icon="file-excel" />
+              Exportar a Excel
+            </button>
+          </div>
         </div>
         <div class="municipal-card-body">
           <div class="table-responsive">
@@ -218,7 +211,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="anun in anuncios" :key="anun.anuncio" class="clickable-row">
+                <tr
+                  v-for="anun in anuncios"
+                  :key="anun.anuncio"
+                  @click="selectedRow = anun"
+                  :class="{ 'table-row-selected': selectedRow === anun }"
+                  class="row-hover"
+                >
                   <td>
                     <strong class="text-primary">{{ anun.anuncio }}</strong>
                   </td>
@@ -290,41 +289,50 @@
         </div>
       </div>
 
-      <!-- Mensaje cuando no hay datos -->
-      <div class="municipal-card" v-if="!loading && anuncios.length === 0 && reporteGenerado">
-        <div class="municipal-card-body text-center text-muted">
-          <font-awesome-icon icon="bullhorn" size="3x" class="empty-icon" />
-          <p>No se encontraron anuncios con los criterios especificados</p>
+      <!-- Empty State - Sin búsqueda -->
+      <div v-if="anuncios.length === 0 && !hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="bullhorn" size="3x" />
         </div>
+        <h4>Reporte de Anuncios para Excel</h4>
+        <p>Configure los filtros y genere el reporte de anuncios publicitarios</p>
       </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Generando reporte de anuncios...</p>
+      <!-- Empty State - Sin resultados -->
+      <div v-else-if="anuncios.length === 0 && hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="inbox" size="3x" />
+        </div>
+        <h4>Sin resultados</h4>
+        <p>No se encontraron anuncios con los criterios especificados</p>
       </div>
-    </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
-  </div>
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'ReporteAnunExcelfrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Reporte de Anuncios para Excel'"
+      @close="showDocModal = false"
     />
-  </template>
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -336,14 +344,22 @@ import { useExcelExport } from '@/composables/useExcelExport'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -356,6 +372,8 @@ const { showLoading, hideLoading } = useGlobalLoading()
 // Estado
 const anuncios = ref([])
 const reporteGenerado = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 const filters = ref({
   vigencia: '1',
@@ -405,8 +423,9 @@ const generarReporte = async () => {
     return
   }
 
-  setLoading(true, 'Generando reporte...')
-  reporteGenerado.value = false
+  showLoading('Generando reporte...', 'Por favor espere')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const params = [
@@ -455,7 +474,6 @@ const generarReporte = async () => {
 
     if (response && response.result) {
       anuncios.value = response.result
-      reporteGenerado.value = true
 
       if (anuncios.value.length > 0) {
         showToast('success', `Se encontraron ${anuncios.value.length} anuncios`)
@@ -464,15 +482,13 @@ const generarReporte = async () => {
       }
     } else {
       anuncios.value = []
-      reporteGenerado.value = true
       showToast('info', 'No se encontraron resultados')
     }
   } catch (error) {
     handleApiError(error)
     anuncios.value = []
-    reporteGenerado.value = true
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -553,7 +569,8 @@ const clearFilters = () => {
     grupoAnuncioId: null
   }
   anuncios.value = []
-  reporteGenerado.value = false
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const formatDate = (dateString) => {

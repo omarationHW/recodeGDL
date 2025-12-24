@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Trámite de Baja de Licencias</h1>
-        <p>Padrón de Licencias - Gestión de bajas de licencias comerciales</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Gestión de bajas de licencias comerciales</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -70,7 +73,7 @@
           <button
             class="btn-municipal-primary"
             @click="buscarLicencia"
-            :disabled="loading || !searchForm.numLicencia"
+            :disabled="!searchForm.numLicencia"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -78,7 +81,6 @@
           <button
             class="btn-municipal-secondary"
             @click="limpiarBusqueda"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -236,7 +238,7 @@
               <button
                 type="submit"
                 class="btn-municipal-primary"
-                :disabled="loading || !canSubmit"
+                :disabled="!canSubmit"
               >
                 <font-awesome-icon icon="check" />
                 Tramitar Baja
@@ -245,7 +247,6 @@
                 type="button"
                 class="btn-municipal-secondary"
                 @click="limpiarFormulario"
-                :disabled="loading"
               >
                 <font-awesome-icon icon="eraser" />
                 Limpiar Formulario
@@ -256,27 +257,31 @@
       </div>
     </div>
 
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'TramiteBajaLic'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Trámite de Baja de Licencias'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -288,22 +293,28 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
-  handleApiError,
-  loadingMessage
+  handleApiError
 } = useLicenciasErrorHandler()
 
 // Estado
@@ -356,7 +367,7 @@ const buscarLicencia = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (licenciaResponse && licenciaResponse.result && licenciaResponse.result.length > 0) {
@@ -373,7 +384,7 @@ const buscarLicencia = async () => {
         ],
         'guadalajara',
         null,
-        'comun'
+        'publico'
       )
 
       if (adeudosResponse && adeudosResponse.result && adeudosResponse.result.length > 0) {
@@ -493,7 +504,7 @@ const tramitarBaja = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (tramiteResponse && tramiteResponse.result && tramiteResponse.result[0]?.success) {
@@ -506,7 +517,7 @@ const tramitarBaja = async () => {
         ],
         'guadalajara',
         null,
-        'comun'
+        'publico'
       )
 
       // Paso 3: Recalcular adeudos (NO-OP)
@@ -518,7 +529,7 @@ const tramitarBaja = async () => {
         ],
         'guadalajara',
         null,
-        'comun'
+        'publico'
       )
 
       limpiarTodo()

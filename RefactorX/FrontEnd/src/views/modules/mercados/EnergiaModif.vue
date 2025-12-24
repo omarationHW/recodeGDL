@@ -28,7 +28,7 @@
                 <select v-model="formBuscar.oficina" @change="onRecaudadoraChange" class="municipal-form-control" required>
                   <option value="">Seleccione...</option>
                   <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                    {{ rec.id_rec }} - {{ rec.recaudadora }}
+                   {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
@@ -186,6 +186,15 @@
             <div class="row mt-3">
               <div class="col-12">
                 <div class="button-group">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
                   <button type="submit" class="btn-municipal-purple" :disabled="loading">
                     <font-awesome-icon icon="check-circle" />
                     <span v-if="loading">Modificando...</span>
@@ -203,13 +212,52 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'EnergiaModif'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - EnergiaModif'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'EnergiaModif'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - EnergiaModif'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
+import Swal from 'sweetalert2';
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const toast = useToast()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -238,6 +286,28 @@ const periodoBaja = ref({
 })
 
 // Inicializar
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - ModificaciÃ³n de EnergÃ­a',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite modificar los registros de energÃ­a elÃ©ctrica.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Busque el local por recaudadora, mercado y nÃºmero de local
+          <li>Puede modificar el consumo, vigencia y otros datos
+          <li>Los cambios quedan registrados en el historial</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
+
 onMounted(async () => {
   showLoading('Cargando Cambios de Energía Eléctrica', 'Preparando catálogos...')
   try {
@@ -250,16 +320,17 @@ onMounted(async () => {
 // Cargar catálogo de recaudadoras
 const fetchRecaudadoras = async () => {
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
+    const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
     // La API devuelve los datos en eResponse.data.result
-    const apiResponse = response.data.eResponse || response.data
+    const apiResponse = response || response.data
     const data = apiResponse.data?.result || apiResponse.data || []
 
     if (Array.isArray(data) && data.length > 0) {
@@ -279,16 +350,17 @@ const fetchRecaudadoras = async () => {
 // Cargar catálogo de secciones
 const fetchSecciones = async () => {
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_catalogo_secciones',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
+    const response = await apiService.execute(
+          'sp_catalogo_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
     // La API devuelve los datos en eResponse.data.result
-    const apiResponse = response.data.eResponse || response.data
+    const apiResponse = response || response.data
     const data = apiResponse.data?.result || apiResponse.data || []
 
     if (Array.isArray(data) && data.length > 0) {
@@ -315,19 +387,20 @@ const onRecaudadoraChange = async () => {
 
   loading.value = true
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_catalogo_mercados',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_id_rec', Valor: parseInt(formBuscar.value.oficina) },
-          { Nombre: 'p_nivel_usuario', Valor: 1 }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
+          { nombre: 'p_id_rec', valor: parseInt(formBuscar.value.oficina) },
+          { nombre: 'p_nivel_usuario', valor: 1 }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
     // La API devuelve los datos en eResponse.data.result
-    const apiResponse = response.data.eResponse || response.data
+    const apiResponse = response || response.data
     const data = apiResponse.data?.result || apiResponse.data || []
 
     if (Array.isArray(data) && data.length > 0) {
@@ -365,24 +438,25 @@ const buscarEnergia = async () => {
   energia.value = null
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_energia_modif_buscar',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(formBuscar.value.oficina) },
-          { Nombre: 'p_num_mercado', Valor: parseInt(formBuscar.value.num_mercado) },
-          { Nombre: 'p_categoria', Valor: parseInt(formBuscar.value.categoria) },
-          { Nombre: 'p_seccion', Valor: formBuscar.value.seccion },
-          { Nombre: 'p_local', Valor: parseInt(formBuscar.value.local) },
-          { Nombre: 'p_letra_local', Valor: formBuscar.value.letra_local || null },
-          { Nombre: 'p_bloque', Valor: formBuscar.value.bloque || null }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_energia_modif_buscar',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(formBuscar.value.oficina) },
+          { nombre: 'p_num_mercado', valor: parseInt(formBuscar.value.num_mercado) },
+          { nombre: 'p_categoria', valor: parseInt(formBuscar.value.categoria) },
+          { nombre: 'p_seccion', valor: formBuscar.value.seccion },
+          { nombre: 'p_local', valor: parseInt(formBuscar.value.local) },
+          { nombre: 'p_letra_local', valor: formBuscar.value.letra_local || null },
+          { nombre: 'p_bloque', valor: formBuscar.value.bloque || null }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
     // La API devuelve los datos en eResponse.data.result
-    const apiResponse = response.data.eResponse || response.data
+    const apiResponse = response || response.data
     const data = apiResponse.data?.result || apiResponse.data || []
 
     if (Array.isArray(data) && data.length > 0) {
@@ -413,29 +487,29 @@ const modificarEnergia = async () => {
   loading.value = true
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_energia_modif_modificar',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_energia', Valor: parseInt(energia.value.id_energia) },
-          { Nombre: 'p_id_local', Valor: parseInt(energia.value.id_local) },
-          { Nombre: 'p_cantidad', Valor: parseFloat(energia.value.cantidad) },
-          { Nombre: 'p_vigencia', Valor: energia.value.vigencia },
-          { Nombre: 'p_fecha_alta', Valor: energia.value.fecha_alta },
-          { Nombre: 'p_fecha_baja', Valor: energia.value.fecha_baja || null },
-          { Nombre: 'p_movimiento', Valor: formBuscar.value.movimiento },
-          { Nombre: 'p_cve_consumo', Valor: energia.value.cve_consumo },
-          { Nombre: 'p_local_adicional', Valor: energia.value.local_adicional || null },
-          { Nombre: 'p_usuario_id', Valor: 1 }, // TODO: obtener usuario real
-          { Nombre: 'p_periodo_baja_axo', Valor: ['B', 'D'].includes(formBuscar.value.movimiento) ? periodoBaja.value.axo : null },
-          { Nombre: 'p_periodo_baja_mes', Valor: ['B', 'D'].includes(formBuscar.value.movimiento) ? periodoBaja.value.mes : null }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_energia_modif_modificar',
+          'mercados',
+          [
+          { nombre: 'p_id_energia', valor: parseInt(energia.value.id_energia) },
+          { nombre: 'p_id_local', valor: parseInt(energia.value.id_local) },
+          { nombre: 'p_cantidad', valor: parseFloat(energia.value.cantidad) },
+          { nombre: 'p_vigencia', valor: formBuscar.value.movimiento === 'B' ? 'B' : energia.value.vigencia },
+          { nombre: 'p_fecha_alta', valor: energia.value.fecha_alta },
+          { nombre: 'p_fecha_baja', valor: energia.value.fecha_baja || null },
+          { nombre: 'p_movimiento', valor: formBuscar.value.movimiento },
+          { nombre: 'p_cve_consumo', valor: energia.value.cve_consumo },
+          { nombre: 'p_local_adicional', valor: energia.value.local_adicional || null },
+          { nombre: 'p_usuario_id', valor: 1 }, // TODO: obtener usuario real
+          { nombre: 'p_periodo_baja_axo', valor: formBuscar.value.movimiento === 'B' ? energia.value.periodo_baja_axo : null }
+        ],
+        '',
+        null,
+        'publico'
+      )
 
     // La API devuelve los datos en eResponse.data.result
-    const apiResponse = response.data.eResponse || response.data
+    const apiResponse = response || response.data
     const data = apiResponse.data?.result || apiResponse.data || []
 
     if (Array.isArray(data) && data.length > 0) {
@@ -476,5 +550,3 @@ const cancelar = () => {
   toast.info('Modificación cancelada')
 }
 </script>
-
-<style src="@/styles/municipal-theme.css"></style>

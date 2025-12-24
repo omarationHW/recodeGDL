@@ -14,11 +14,13 @@
         <p>Configuracion y control del modulo</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -100,42 +102,41 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - AdminPublicos">
-      <h3>Panel de Administracion</h3>
-      <p>Este modulo permite configurar parametros generales del sistema de estacionamientos publicos.</p>
-      <h4>Funciones Disponibles:</h4>
-      <ul>
-        <li><strong>Actualizar Cache:</strong> Refresca datos almacenados en cache</li>
-        <li><strong>Limpiar Temporales:</strong> Elimina archivos temporales del sistema</li>
-        <li><strong>Exportar Config:</strong> Descarga la configuracion actual</li>
-        <li><strong>Ver Estadisticas:</strong> Muestra metricas de uso del modulo</li>
-      </ul>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'AdminPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'AdminPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Administración - Estacionamientos Públicos'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { toast, showToast, hideToast, getToastIcon } = useLicenciasErrorHandler()
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>

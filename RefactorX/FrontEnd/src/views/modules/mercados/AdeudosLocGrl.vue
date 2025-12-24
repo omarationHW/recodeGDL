@@ -10,6 +10,15 @@
         <p>Inicio > Reportes > Adeudos Generales de Locales</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || adeudos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
@@ -18,10 +27,7 @@
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -44,7 +50,7 @@
               <select class="municipal-form-control" v-model="selectedRec" @change="onRecChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -202,7 +208,6 @@
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
-                <option value="250">250</option>
               </select>
             </div>
 
@@ -238,24 +243,26 @@
       </div>
 
     </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'AdeudosLocGrl'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - AdeudosLocGrl'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'AdeudosLocGrl'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - AdeudosLocGrl'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const showFilters = ref(true)
@@ -271,16 +278,9 @@ const loading = ref(false)
 const error = ref('')
 const searchPerformed = ref(false)
 
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
-
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 const totalRecords = computed(() => adeudos.value.length)
 
 // Métodos
@@ -289,32 +289,7 @@ const toggleFilters = () => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Ayuda: Seleccione una oficina, año y mes para consultar los adeudos de locales. El mercado es opcional (puede dejar vacío para todos)')
-}
-
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
+  showToast('Ayuda: Seleccione una oficina, año y mes para consultar los adeudos de locales. El mercado es opcional (puede dejar vacío para todos)', 'info')
 }
 
 const fetchRecaudadoras = async () => {
@@ -322,27 +297,28 @@ const fetchRecaudadoras = async () => {
   loading.value = true
   error.value = ''
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success === true) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al cargar recaudadoras'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar recaudadoras'
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -358,38 +334,32 @@ const onRecChange = async () => {
   error.value = ''
   let p_nivel_usuario = 1; // Nivel de usuario fijo para este contexto
   try {
-    const res = await axios.post('/api/generic', {
-       eRequest: {
-            Operacion: 'sp_get_catalogo_mercados',
-            Base: 'padron_licencias',
-            Parametros: [
-              { nombre: 'p_oficina', tipo: 'integer', valor: selectedRec.value },
-              { nombre: 'p_nivel_usuario', tipo: 'integer', valor: p_nivel_usuario }
-            ]
-          }
-      // eRequest: {
-      //   Operacion: 'sp_get_mercados_by_recaudadora',
-      //   Base: 'mercados',
-      //   Parametros: [
-      //     { nombre: 'p_id_rec', valor: selectedRec.value, tipo: 'integer' }
-      //   ]
-      // }
-    })
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      mercados.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+      'sp_get_catalogo_mercados',
+      'mercados',
+      [
+        { nombre: 'p_oficina', tipo: 'integer', valor: selectedRec.value },
+        { nombre: 'p_nivel_usuario', tipo: 'integer', valor: p_nivel_usuario }
+      ],
+      '',
+      null,
+      'publico'
+    )
+    if (res.success) {
+      mercados.value = res.data.result || []
       if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+        showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
       } else {
-        showToast('info', 'No se encontraron mercados para esta oficina')
+        showToast('No se encontraron mercados para esta oficina', 'info')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al cargar mercados'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al cargar mercados'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al cargar mercados'
     console.error('Error al cargar mercados:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -398,19 +368,19 @@ const onRecChange = async () => {
 const buscar = async () => {
   if (!selectedRec.value || !axo.value || !mes.value) {
     error.value = 'Debe seleccionar oficina, año y mes'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (mes.value < 1 || mes.value > 12) {
     error.value = 'El mes debe estar entre 1 y 12'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (axo.value < 1995 || axo.value > 2999) {
     error.value = 'El año debe estar entre 1995 y 2999'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -422,34 +392,35 @@ const buscar = async () => {
   currentPage.value = 1
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_adeudos_loc_grl',
-        Base: 'mercados',
-        Parametros: [
+    const res = await apiService.execute(
+          'sp_get_adeudos_loc_grl',
+          'mercados',
+          [
           { nombre: 'p_id_rec', valor: selectedRec.value, tipo: 'integer' },
           { nombre: 'p_num_mercado', valor: selectedMercado.value || null, tipo: 'integer' },
           { nombre: 'p_axo', valor: axo.value, tipo: 'integer' },
           { nombre: 'p_mes', valor: mes.value, tipo: 'integer' }
-        ]
-      }
-    })
-    if (res.data.eResponse && res.data.eResponse.success === true) {
-      adeudos.value = res.data.eResponse.data.result || []
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      adeudos.value = res.data.result || []
       if (adeudos.value.length > 0) {
-        showToast('success', `Se encontraron ${adeudos.value.length} adeudos`)
+        showToast(`Se encontraron ${adeudos.value.length} adeudos`, 'success')
         showFilters.value = false
       } else {
-        showToast('info', 'No se encontraron adeudos con los criterios especificados')
+        showToast('No se encontraron adeudos con los criterios especificados', 'info')
       }
     } else {
-      error.value = res.data.eResponse?.message || 'Error al consultar adeudos'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al consultar adeudos'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al consultar adeudos'
     console.error('Error al buscar adeudos:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
   }
@@ -466,25 +437,25 @@ const limpiarFiltros = () => {
   error.value = ''
   searchPerformed.value = false
   currentPage.value = 1
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (adeudos.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
   // TODO: Implementar exportación a Excel
-  showToast('info', 'Funcionalidad de exportación a Excel en desarrollo')
+  showToast('Funcionalidad de exportación a Excel en desarrollo', 'info')
 }
 
 const imprimir = () => {
   if (adeudos.value.length === 0) {
-    showToast('warning', 'No hay datos para imprimir')
+    showToast('No hay datos para imprimir', 'warning')
     return
   }
   // TODO: Implementar impresión
-  showToast('info', 'Funcionalidad de impresión en desarrollo')
+  showToast('Funcionalidad de impresión en desarrollo', 'info')
 }
 
 // Utilidades
@@ -545,41 +516,3 @@ onMounted(() => {
   fetchRecaudadoras()
 })
 </script>
-
-<style scoped>
-/* Los estilos están definidos en municipal-theme.css */
-/* Estilos adicionales específicos del componente si son necesarios */
-
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.text-end {
-  text-align: right;
-}
-
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
-}
-
-.table-row-selected {
-  background-color: #fff3cd !important;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-  cursor: pointer;
-}
-
-.required {
-  color: #dc3545;
-}
-
-/* Override para columnas numéricas */
-.municipal-table td.text-end,
-.municipal-table th.text-end {
-  text-align: right;
-}
-</style>

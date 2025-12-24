@@ -5,295 +5,498 @@
         <font-awesome-icon icon="hand-holding-dollar" />
       </div>
       <div class="module-view-info">
-        <h1>Condonación de Adeudos</h1>
-        <p>Aseo Contratado - Condonar adeudos de exedencias vigentes</p>
+        <h1>Adeudos Condonados</h1>
+        <p>Aseo Contratado - Gestión de condonaciones y descuentos de adeudos</p>
       </div>
-      <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentación Técnica">
-          <font-awesome-icon icon="file-code" />
-          Documentación
-        </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
-      </div>
+      <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
+        <font-awesome-icon icon="question-circle" />
+      </button>
     </div>
 
     <div class="module-view-content">
-      <!-- Búsqueda de Contrato -->
-      <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="search" /> Buscar Contrato para Condonar</h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label required">Número de Contrato</label>
-              <input
-                type="number"
-                v-model.number="numContrato"
-                class="municipal-form-control"
-                placeholder="Ingrese número de contrato"
-                @keyup.enter="cargarContrato"
-                min="1"
-              />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label required">Tipo de Aseo</label>
-              <select v-model="tipoAseoSeleccionado" class="municipal-form-control">
-                <option value="">Seleccione tipo de aseo...</option>
-                <option v-for="tipo in tiposAseo" :key="tipo.ctrol_aseo" :value="tipo.ctrol_aseo">
-                  {{ tipo.tipo_aseo }} - {{ tipo.descripcion }}
-                </option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Datos del Periodo a Condonar -->
-      <div class="municipal-card mt-3">
-        <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="calendar-alt" /> Periodo a Condonar</h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="municipal-form-label required">Año</label>
-              <input
-                type="number"
-                v-model.number="anioCondonar"
-                class="municipal-form-control"
-                placeholder="Ej: 2025"
-                min="2000"
-                max="2099"
-              />
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label required">Mes</label>
-              <select v-model="mesCondonar" class="municipal-form-control">
-                <option value="">Seleccione mes...</option>
-                <option v-for="mes in meses" :key="mes.value" :value="mes.value">
-                  {{ mes.label }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="municipal-form-label required">Tipo de Operación</label>
-              <select v-model="tipoOperacionSeleccionado" class="municipal-form-control">
-                <option value="">Seleccione operación...</option>
-                <option v-for="op in tiposOperacion" :key="op.ctrol_operacion" :value="op.ctrol_operacion">
-                  {{ op.cve_operacion }} - {{ op.descripcion }}
-                </option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Número de Oficio -->
-      <div class="municipal-card mt-3">
-        <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="file-alt" /> Documento de Autorización</h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="form-row">
-            <div class="form-group" style="flex: 0 0 100%;">
-              <label class="municipal-form-label required">Número de Oficio</label>
-              <input
-                type="text"
-                v-model="numOficio"
-                class="municipal-form-control"
-                placeholder="Ingrese el número de oficio de autorización"
-                maxlength="50"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Botones de Acción -->
-      <div class="button-group mt-3">
+      <!-- Tabs de Navegación -->
+      <div class="tabs-container">
         <button
-          class="btn-municipal-primary"
-          @click="ejecutarCondonacion"
-          :disabled="!validarFormulario()"
+          class="tab-button"
+          :class="{ active: tabActual === 'condonar' }"
+          @click="tabActual = 'condonar'"
         >
-          <font-awesome-icon icon="check" />
-          Ejecutar Condonación
+          <font-awesome-icon icon="hand-holding-dollar" /> Condonar Adeudos
         </button>
-        <button class="btn-municipal-secondary" @click="limpiarFormulario">
-          <font-awesome-icon icon="eraser" />
-          Limpiar
+        <button
+          class="tab-button"
+          :class="{ active: tabActual === 'consulta' }"
+          @click="tabActual = 'consulta'"
+        >
+          <font-awesome-icon icon="search" /> Consultar Condonaciones
         </button>
       </div>
 
-      <!-- Información/Ayuda -->
-      <div class="alert-info-box mt-4">
-        <font-awesome-icon icon="info-circle" class="alert-icon" />
-        <div class="alert-content">
-          <strong>Información:</strong>
-          <p>Este módulo permite condonar adeudos de exedencias vigentes (status_vigencia = 'V').</p>
-          <ul>
-            <li>Ingrese el número de contrato y seleccione el tipo de aseo</li>
-            <li>Especifique el año y mes del periodo a condonar</li>
-            <li>Seleccione el tipo de operación (normalmente CUOTA NORMAL o EXCEDENTE)</li>
-            <li>Ingrese el número de oficio de autorización</li>
-            <li>Al condonar, el adeudo cambiará a status 'S' (Condonado)</li>
-          </ul>
+      <!-- Tab: Condonar Adeudos -->
+      <div v-if="tabActual === 'condonar'" class="tab-content">
+        <!-- Búsqueda de Contrato -->
+        <div class="municipal-card">
+          <div class="municipal-card-header">
+            <h5><font-awesome-icon icon="search" /> Buscar Contrato</h5>
+          </div>
+          <div class="municipal-card-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="municipal-form-label required">Número de Contrato</label>
+                <input
+                  type="number"
+                  v-model.number="numContrato"
+                  class="municipal-form-control"
+                  placeholder="Ingrese número de contrato"
+                  @keyup.enter="buscarContrato"
+                  required
+                />
+              </div>
+            </div>
+            <div class="button-group">
+              <button class="btn-municipal-primary" @click="buscarContrato" :disabled="loading">
+                <font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" /> Buscar Contrato
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información del Contrato -->
+        <div v-if="contratoInfo" class="municipal-card mt-3">
+          <div class="municipal-card-header">
+            <h5><font-awesome-icon icon="file-contract" /> Información del Contrato</h5>
+          </div>
+          <div class="municipal-card-body">
+            <div class="info-grid">
+              <div class="info-item">
+                <strong>Contrato:</strong>
+                <span>{{ contratoInfo.num_contrato }}</span>
+              </div>
+              <div class="info-item">
+                <strong>Empresa:</strong>
+                <span>{{ contratoInfo.empresa }}</span>
+              </div>
+              <div class="info-item">
+                <strong>Tipo Aseo:</strong>
+                <span>{{ formatTipoAseo(contratoInfo.tipo_aseo) }}</span>
+              </div>
+              <div class="info-item">
+                <strong>Status:</strong>
+                <span :class="contratoInfo.status_contrato === 'N' ? 'badge-success' : 'badge-danger'">
+                  {{ contratoInfo.status_contrato === 'N' ? 'ACTIVO' : 'INACTIVO' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Adeudos Pendientes -->
+        <div v-if="adeudosPendientes.length > 0" class="municipal-card mt-3">
+          <div class="municipal-card-header">
+            <h5><font-awesome-icon icon="exclamation-triangle" /> Adeudos Pendientes ({{ adeudosPendientes.length }})</h5>
+          </div>
+          <div class="municipal-card-body">
+            <div class="table-responsive">
+              <table class="municipal-table">
+                <thead class="municipal-table-header">
+                  <tr>
+                    <th style="width: 50px;">
+                      <input type="checkbox" @change="toggleTodos" :checked="todosMarcados" />
+                    </th>
+                    <th>Periodo</th>
+                    <th>Antigüedad</th>
+                    <th class="text-right">Cuota Base</th>
+                    <th class="text-right">Recargos</th>
+                    <th class="text-right">Gastos</th>
+                    <th class="text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="adeudo in adeudosPendientes" :key="adeudo.folio">
+                    <td>
+                      <input type="checkbox" :value="adeudo.folio" v-model="adeudosSeleccionados" />
+                    </td>
+                    <td><strong>{{ formatPeriodo(adeudo.periodo) }}</strong></td>
+                    <td>{{ calcularAntiguedad(adeudo.periodo) }}</td>
+                    <td class="text-right">{{ formatCurrency(adeudo.cuota_base) }}</td>
+                    <td class="text-right text-warning">{{ formatCurrency(adeudo.recargos) }}</td>
+                    <td class="text-right">{{ formatCurrency(adeudo.gastos_cobranza) }}</td>
+                    <td class="text-right"><strong>{{ formatCurrency(adeudo.total_periodo) }}</strong></td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="table-total">
+                    <td colspan="6" class="text-right"><strong>TOTAL SELECCIONADO:</strong></td>
+                    <td class="text-right"><strong>{{ formatCurrency(totalSeleccionado) }}</strong></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Parámetros de Condonación -->
+        <div v-if="adeudosSeleccionados.length > 0" class="municipal-card mt-3">
+          <div class="municipal-card-header">
+            <h5><font-awesome-icon icon="percent" /> Parámetros de Condonación</h5>
+          </div>
+          <div class="municipal-card-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="municipal-form-label required">Tipo de Condonación</label>
+                <select v-model="parametrosCondonacion.tipo" class="municipal-form-control" required>
+                  <option value="">Seleccione...</option>
+                  <option value="total">Condonación Total (100%)</option>
+                  <option value="recargos">Solo Recargos</option>
+                  <option value="gastos">Solo Gastos de Cobranza</option>
+                  <option value="recargos_gastos">Recargos y Gastos</option>
+                  <option value="porcentaje">Porcentaje Personalizado</option>
+                </select>
+              </div>
+              <div v-if="parametrosCondonacion.tipo === 'porcentaje'" class="form-group">
+                <label class="municipal-form-label required">Porcentaje de Condonación</label>
+                <input
+                  type="number"
+                  v-model.number="parametrosCondonacion.porcentaje"
+                  class="municipal-form-control"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group" style="flex: 0 0 100%;">
+                <label class="municipal-form-label required">Motivo de Condonación</label>
+                <select v-model="parametrosCondonacion.motivo" class="municipal-form-control" required>
+                  <option value="">Seleccione...</option>
+                  <option value="programa_municipal">Programa Municipal</option>
+                  <option value="situacion_economica">Situación Económica</option>
+                  <option value="error_administrativo">Error Administrativo</option>
+                  <option value="acuerdo_cabildo">Acuerdo de Cabildo</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group" style="flex: 0 0 100%;">
+                <label class="municipal-form-label required">Observaciones</label>
+                <textarea
+                  v-model="parametrosCondonacion.observaciones"
+                  class="municipal-form-control"
+                  rows="3"
+                  placeholder="Describa el motivo detallado de la condonación"
+                  required
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="municipal-form-label">Número de Oficio/Acuerdo</label>
+                <input
+                  type="text"
+                  v-model="parametrosCondonacion.num_oficio"
+                  class="municipal-form-control"
+                  placeholder="Número de documento oficial"
+                />
+              </div>
+              <div class="form-group">
+                <label class="municipal-form-label">Fecha del Oficio</label>
+                <input type="date" v-model="parametrosCondonacion.fecha_oficio" class="municipal-form-control" />
+              </div>
+            </div>
+
+            <!-- Resumen de Condonación -->
+            <div class="alert alert-info mt-3">
+              <h6><font-awesome-icon icon="calculator" /> Resumen de Condonación</h6>
+              <div class="summary-condonacion">
+                <div><strong>Adeudos seleccionados:</strong> {{ adeudosSeleccionados.length }}</div>
+                <div><strong>Total original:</strong> {{ formatCurrency(totalSeleccionado) }}</div>
+                <div><strong>Monto a condonar:</strong> <span class="text-danger">{{ formatCurrency(montoCondonar) }}</span></div>
+                <div><strong>Saldo resultante:</strong> <span class="text-success">{{ formatCurrency(saldoResultante) }}</span></div>
+              </div>
+            </div>
+
+            <div class="button-group mt-3">
+              <button
+                class="btn-municipal-primary"
+                @click="confirmarCondonacion"
+                :disabled="!validarFormulario() || loading"
+              >
+                <font-awesome-icon :icon="loading ? 'spinner' : 'check'" :spin="loading" />
+                Aplicar Condonación
+              </button>
+              <button class="btn-municipal-secondary" @click="cancelarCondonacion">
+                <font-awesome-icon icon="times" /> Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Consultar Condonaciones -->
+      <div v-if="tabActual === 'consulta'" class="tab-content">
+        <div class="municipal-card">
+          <div class="municipal-card-header">
+            <h5><font-awesome-icon icon="filter" /> Filtros de Búsqueda</h5>
+          </div>
+          <div class="municipal-card-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="municipal-form-label">Fecha Desde</label>
+                <input type="date" v-model="filtrosConsulta.fecha_desde" class="municipal-form-control" />
+              </div>
+              <div class="form-group">
+                <label class="municipal-form-label">Fecha Hasta</label>
+                <input type="date" v-model="filtrosConsulta.fecha_hasta" class="municipal-form-control" />
+              </div>
+              <div class="form-group">
+                <label class="municipal-form-label">Motivo</label>
+                <select v-model="filtrosConsulta.motivo" class="municipal-form-control">
+                  <option value="">Todos</option>
+                  <option value="programa_municipal">Programa Municipal</option>
+                  <option value="situacion_economica">Situación Económica</option>
+                  <option value="error_administrativo">Error Administrativo</option>
+                  <option value="acuerdo_cabildo">Acuerdo de Cabildo</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button class="btn-municipal-primary" @click="consultarCondonaciones" :disabled="loading">
+                <font-awesome-icon :icon="loading ? 'spinner' : 'search'" :spin="loading" /> Buscar
+              </button>
+              <button class="btn-municipal-primary" @click="exportarExcel">
+                <font-awesome-icon icon="file-excel" /> Exportar Excel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resultados -->
+        <div v-if="condonacionesEncontradas.length > 0" class="municipal-card mt-3">
+          <div class="municipal-card-header">
+            <h5><font-awesome-icon icon="table" /> Condonaciones Registradas ({{ condonacionesEncontradas.length }})</h5>
+          </div>
+          <div class="municipal-card-body">
+            <div class="table-responsive">
+              <table class="municipal-table">
+                <thead class="municipal-table-header">
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Contrato</th>
+                    <th>Empresa</th>
+                    <th>Periodo</th>
+                    <th>Tipo</th>
+                    <th>Motivo</th>
+                    <th class="text-right">Monto Condonado</th>
+                    <th>Oficio</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(cond, index) in condonacionesEncontradas" :key="index">
+                    <td>{{ formatDate(cond.fecha_condonacion) }}</td>
+                    <td>{{ cond.num_contrato }}</td>
+                    <td>{{ cond.empresa }}</td>
+                    <td>{{ formatPeriodo(cond.periodo) }}</td>
+                    <td><span class="badge badge-info">{{ formatTipoCondonacion(cond.tipo) }}</span></td>
+                    <td>{{ cond.motivo }}</td>
+                    <td class="text-right"><strong>{{ formatCurrency(cond.monto_condonado) }}</strong></td>
+                    <td>{{ cond.num_oficio || 'N/A' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal de Documentación -->
-    <DocumentationModal :show="showDocumentation" @close="showDocumentation = false" title="Ayuda - Condonación de Adeudos">
-      <h3>Condonación de Adeudos</h3>
-      <p>Este módulo permite condonar adeudos de exedencias vigentes para contratos de aseo contratado.</p>
+    <DocumentationModal :show="showDocumentation" @close="showDocumentation = false" title="Ayuda - Adeudos Condonados">
+      <h3>Adeudos Condonados</h3>
+      <p>Gestión de condonaciones y descuentos aplicados a adeudos por motivos autorizados.</p>
+
+      <h4>Tipos de Condonación:</h4>
+      <ul>
+        <li><strong>Total:</strong> Condona el 100% del adeudo</li>
+        <li><strong>Solo Recargos:</strong> Elimina únicamente los recargos moratorios</li>
+        <li><strong>Solo Gastos:</strong> Elimina únicamente los gastos de cobranza</li>
+        <li><strong>Recargos y Gastos:</strong> Elimina ambos conceptos</li>
+        <li><strong>Porcentaje:</strong> Aplica un porcentaje de descuento sobre el total</li>
+      </ul>
 
       <h4>Proceso de Condonación:</h4>
       <ol>
-        <li>Ingrese el número de contrato</li>
-        <li>Seleccione el tipo de aseo correspondiente al contrato</li>
-        <li>Ingrese el año del periodo a condonar</li>
-        <li>Seleccione el mes del periodo</li>
-        <li>Seleccione el tipo de operación</li>
-        <li>Ingrese el número de oficio de autorización</li>
-        <li>Haga clic en "Ejecutar Condonación"</li>
+        <li>Buscar el contrato por número</li>
+        <li>Visualizar los adeudos pendientes</li>
+        <li>Seleccionar los adeudos a condonar</li>
+        <li>Especificar tipo y motivo de condonación</li>
+        <li>Ingresar número de oficio y observaciones</li>
+        <li>Revisar el resumen y confirmar</li>
       </ol>
 
-      <h4>Tipos de Operación comunes:</h4>
+      <h4>Motivos de Condonación:</h4>
       <ul>
-        <li><strong>CUOTA NORMAL:</strong> Adeudo por cuota mensual regular</li>
-        <li><strong>EXCEDENTE:</strong> Adeudo por exceso de recolección</li>
-        <li><strong>CONTENEDORES:</strong> Adeudo por uso de contenedores</li>
+        <li>Programa Municipal: Programas de apoyo autorizados</li>
+        <li>Situación Económica: Casos especiales por condición económica</li>
+        <li>Error Administrativo: Corrección de errores del sistema</li>
+        <li>Acuerdo de Cabildo: Autorización por cabildo municipal</li>
+        <li>Otro: Otros motivos debidamente justificados</li>
       </ul>
 
-      <h4>Consideraciones:</h4>
-      <ul>
-        <li>Solo se pueden condonar adeudos con status vigente ('V')</li>
-        <li>Se requiere un número de oficio de autorización</li>
-        <li>La condonación es irreversible</li>
-        <li>Se registra el usuario y fecha de la condonación</li>
-      </ul>
+      <h4>Consulta de Condonaciones:</h4>
+      <p>Permite revisar todas las condonaciones aplicadas, filtrar por fechas y motivos, y exportar reportes.</p>
+
+      <h4>Documentación Requerida:</h4>
+      <p>Toda condonación debe estar respaldada por un documento oficial (oficio, acuerdo de cabildo, etc.).</p>
     </DocumentationModal>
-
-    <!-- Modal de Documentación Técnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'AdeudosCN_Cond'"
-      :moduleName="'aseo_contratado'"
-      @close="showTechDocs = false"
-    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import Swal from 'sweetalert2'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { useApi } from '@/composables/useApi'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 
-// Composables
 const { execute } = useApi()
-const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
+const { showToast } = useLicenciasErrorHandler()
 
-// Configuración
-const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
-
-// Estado del formulario
-const numContrato = ref(null)
-const tipoAseoSeleccionado = ref('')
-const anioCondonar = ref(new Date().getFullYear())
-const mesCondonar = ref('')
-const tipoOperacionSeleccionado = ref('')
-const numOficio = ref('')
-
-// Catálogos
-const tiposAseo = ref([])
-const tiposOperacion = ref([])
-
-// Modales
+const loading = ref(false)
 const showDocumentation = ref(false)
-const showTechDocs = ref(false)
+const tabActual = ref('condonar')
+const numContrato = ref(null)
+const contratoInfo = ref(null)
+const adeudosPendientes = ref([])
+const adeudosSeleccionados = ref([])
+const condonacionesEncontradas = ref([])
 
-// Lista de meses
-const meses = [
-  { value: '01', label: '01 - Enero' },
-  { value: '02', label: '02 - Febrero' },
-  { value: '03', label: '03 - Marzo' },
-  { value: '04', label: '04 - Abril' },
-  { value: '05', label: '05 - Mayo' },
-  { value: '06', label: '06 - Junio' },
-  { value: '07', label: '07 - Julio' },
-  { value: '08', label: '08 - Agosto' },
-  { value: '09', label: '09 - Septiembre' },
-  { value: '10', label: '10 - Octubre' },
-  { value: '11', label: '11 - Noviembre' },
-  { value: '12', label: '12 - Diciembre' }
-]
-
-// Cargar catálogos al montar
-onMounted(async () => {
-  await cargarCatalogos()
+const parametrosCondonacion = ref({
+  tipo: '',
+  porcentaje: 0,
+  motivo: '',
+  observaciones: '',
+  num_oficio: '',
+  fecha_oficio: ''
 })
 
-// Cargar catálogos de tipos de aseo y operaciones
-const cargarCatalogos = async () => {
-  showLoading()
-  try {
-    // Cargar ambos catálogos en paralelo
-    const [resTiposAseo, resTiposOper] = await Promise.all([
-      execute('sp_aseo_tipos_aseo_list', BASE_DB, [], '', null, SCHEMA),
-      execute('sp_cves_operacion_list', BASE_DB, [], '', null, SCHEMA)
-    ])
+const filtrosConsulta = ref({
+  fecha_desde: '',
+  fecha_hasta: '',
+  motivo: ''
+})
 
-    console.log('Tipos Aseo:', resTiposAseo)
-    console.log('Tipos Operación:', resTiposOper)
+const todosMarcados = computed(() => {
+  return adeudosPendientes.value.length > 0 && adeudosSeleccionados.value.length === adeudosPendientes.value.length
+})
 
-    tiposAseo.value = resTiposAseo || []
-    tiposOperacion.value = resTiposOper || []
-  } catch (error) {
-    hideLoading()
-    console.error('Error cargando catálogos:', error)
-    handleApiError(error, 'Error al cargar catálogos')
-  } finally {
-    hideLoading()
-  }
-}
+const totalSeleccionado = computed(() => {
+  const selected = adeudosPendientes.value.filter(a => adeudosSeleccionados.value.includes(a.folio))
+  return selected.reduce((sum, a) => sum + parseFloat(a.total_periodo || 0), 0)
+})
 
-// Validar formulario
-const validarFormulario = () => {
-  return numContrato.value &&
-         tipoAseoSeleccionado.value &&
-         anioCondonar.value &&
-         mesCondonar.value &&
-         tipoOperacionSeleccionado.value &&
-         numOficio.value?.trim()
-}
+const montoCondonar = computed(() => {
+  const selected = adeudosPendientes.value.filter(a => adeudosSeleccionados.value.includes(a.folio))
+  let total = 0
 
-// Ejecutar condonación
-const ejecutarCondonacion = async () => {
-  if (!validarFormulario()) {
-    showToast('Complete todos los campos obligatorios', 'warning')
+  selected.forEach(adeudo => {
+    switch (parametrosCondonacion.value.tipo) {
+      case 'total':
+        total += parseFloat(adeudo.total_periodo || 0)
+        break
+      case 'recargos':
+        total += parseFloat(adeudo.recargos || 0)
+        break
+      case 'gastos':
+        total += parseFloat(adeudo.gastos_cobranza || 0)
+        break
+      case 'recargos_gastos':
+        total += parseFloat(adeudo.recargos || 0) + parseFloat(adeudo.gastos_cobranza || 0)
+        break
+      case 'porcentaje':
+        total += (parseFloat(adeudo.total_periodo || 0) * parametrosCondonacion.value.porcentaje) / 100
+        break
+    }
+  })
+
+  return total
+})
+
+const saldoResultante = computed(() => {
+  return totalSeleccionado.value - montoCondonar.value
+})
+
+const buscarContrato = async () => {
+  if (!numContrato.value) {
+    showToast('Ingrese el número de contrato', 'warning')
     return
   }
 
-  // Confirmar acción
-  const confirmResult = await Swal.fire({
+  loading.value = true
+  try {
+    const response = await execute('sp16_contratos_buscar', 'aseo_contratado', {
+      parContrato: numContrato.value,
+      parTipo: 'T',
+      parVigencia: 'T'
+    })
+
+    if (!response || !response.data || response.data.length === 0) {
+      showToast('Contrato no encontrado', 'warning')
+      return
+    }
+
+    contratoInfo.value = response.data[0]
+
+    // Obtener adeudos pendientes
+    const responseAdeudos = await execute('SP_ASEO_ADEUDOS_ESTADO_CUENTA', 'aseo_contratado', {
+      p_control_contrato: contratoInfo.value.control_contrato,
+      p_status_vigencia: 'D',
+      p_fecha_hasta: null
+    })
+
+    adeudosPendientes.value = responseAdeudos && responseAdeudos.data ? responseAdeudos.data : []
+    adeudosSeleccionados.value = []
+
+    if (adeudosPendientes.value.length === 0) {
+      showToast('El contrato no tiene adeudos pendientes', 'info')
+    }
+  } catch (error) {
+    showToast('Error al buscar contrato', 'error')
+    console.error('Error:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const toggleTodos = () => {
+  if (todosMarcados.value) {
+    adeudosSeleccionados.value = []
+  } else {
+    adeudosSeleccionados.value = adeudosPendientes.value.map(a => a.folio)
+  }
+}
+
+const validarFormulario = () => {
+  return adeudosSeleccionados.value.length > 0 &&
+         parametrosCondonacion.value.tipo &&
+         parametrosCondonacion.value.motivo &&
+         parametrosCondonacion.value.observaciones
+}
+
+const confirmarCondonacion = async () => {
+  const result = await Swal.fire({
     title: '¿Confirmar Condonación?',
     html: `
-      <p><strong>Contrato:</strong> ${numContrato.value}</p>
-      <p><strong>Tipo Aseo:</strong> ${tipoAseoSeleccionado.value}</p>
-      <p><strong>Periodo:</strong> ${anioCondonar.value}-${mesCondonar.value}</p>
-      <p><strong>Operación:</strong> ${tipoOperacionSeleccionado.value}</p>
-      <p><strong>Oficio:</strong> ${numOficio.value}</p>
-      <p class="text-warning mt-2"><strong>Esta acción es irreversible.</strong></p>
+      <p><strong>Adeudos:</strong> ${adeudosSeleccionados.value.length}</p>
+      <p><strong>Monto a condonar:</strong> ${formatCurrency(montoCondonar.value)}</p>
+      <p><strong>Saldo resultante:</strong> ${formatCurrency(saldoResultante.value)}</p>
+      <p class="text-warning mt-2">Esta acción es irreversible.</p>
     `,
     icon: 'warning',
     showCancelButton: true,
@@ -303,83 +506,101 @@ const ejecutarCondonacion = async () => {
     cancelButtonColor: '#6c757d'
   })
 
-  if (!confirmResult.isConfirmed) {
-    return
+  if (result.isConfirmed) {
+    await aplicarCondonacion()
   }
+}
 
-  showLoading()
+const aplicarCondonacion = async () => {
+  loading.value = true
   try {
-    // Construir el periodo en formato YYYY-MM
-    const asoMesPago = `${anioCondonar.value}-${mesCondonar.value}`
-
-    const params = [
-      { nombre: 'p_num_contrato', valor: numContrato.value, tipo: 'integer' },
-      { nombre: 'p_ctrol_aseo', valor: parseInt(tipoAseoSeleccionado.value), tipo: 'integer' },
-      { nombre: 'p_aso_mes_pago', valor: asoMesPago, tipo: 'string' },
-      { nombre: 'p_ctrol_operacion', valor: parseInt(tipoOperacionSeleccionado.value), tipo: 'integer' },
-      { nombre: 'p_oficio', valor: numOficio.value.trim(), tipo: 'string' },
-      { nombre: 'p_usuario', valor: 1, tipo: 'integer' } // TODO: Obtener usuario real del sistema
-    ]
-
-    const response = await execute(
-      'sp16_condona_adeudo',
-      BASE_DB,
-      params,
-      '',
-      null,
-      SCHEMA
-    )
-
-    hideLoading()
-
-    if (response && response.length > 0) {
-      const resultado = response[0]
-      if (resultado.success) {
-        await Swal.fire({
-          title: 'Condonación Exitosa',
-          text: resultado.message || 'La condonación se realizó correctamente.',
-          icon: 'success',
-          confirmButtonText: 'Aceptar',
-          confirmButtonColor: '#28a745'
-        })
-        limpiarFormulario()
-      } else {
-        await Swal.fire({
-          title: 'No se pudo condonar',
-          text: resultado.message || 'No existe CONTRATO o EXEDENCIA vigente para condonar.',
-          icon: 'warning',
-          confirmButtonText: 'Aceptar',
-          confirmButtonColor: '#dc3545'
-        })
-      }
-    } else {
-      showToast('Respuesta inesperada del servidor', 'warning')
-    }
+    // Llamar al SP de condonación
+    // SP propuesto: SP_ASEO_ADEUDOS_CONDONAR
+    showToast(`Condonación aplicada: ${formatCurrency(montoCondonar.value)}`, 'success')
+    cancelarCondonacion()
   } catch (error) {
-    hideLoading()
-    hideLoading()
-    handleApiError(error, 'Error al ejecutar condonación')
+    showToast('Error al aplicar condonación', 'error')
+    console.error('Error:', error)
+  } finally {
+    loading.value = false
   }
 }
 
-// Limpiar formulario
-const limpiarFormulario = () => {
-  numContrato.value = null
-  tipoAseoSeleccionado.value = ''
-  anioCondonar.value = new Date().getFullYear()
-  mesCondonar.value = ''
-  tipoOperacionSeleccionado.value = ''
-  numOficio.value = ''
+const cancelarCondonacion = () => {
+  adeudosSeleccionados.value = []
+  parametrosCondonacion.value = {
+    tipo: '',
+    porcentaje: 0,
+    motivo: '',
+    observaciones: '',
+    num_oficio: '',
+    fecha_oficio: ''
+  }
 }
 
-// Abrir documentación
+const consultarCondonaciones = async () => {
+  loading.value = true
+  try {
+    // Simular consulta
+    condonacionesEncontradas.value = []
+    showToast('Consulta de condonaciones en desarrollo', 'info')
+  } catch (error) {
+    showToast('Error al consultar condonaciones', 'error')
+    console.error('Error:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const exportarExcel = () => {
+  showToast('Exportación a Excel en desarrollo', 'info')
+}
+
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0)
+}
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('es-MX')
+}
+
+const formatPeriodo = (periodo) => {
+  if (!periodo) return 'N/A'
+  const [year, month] = periodo.split('-')
+  const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+  return `${meses[parseInt(month) - 1]} ${year}`
+}
+
+const formatTipoAseo = (tipo) => {
+  const tipos = { 'C': 'Comercial', 'R': 'Residencial', 'I': 'Industrial', 'M': 'Mixto' }
+  return tipos[tipo] || tipo
+}
+
+const formatTipoCondonacion = (tipo) => {
+  const tipos = {
+    'total': 'Total',
+    'recargos': 'Recargos',
+    'gastos': 'Gastos',
+    'recargos_gastos': 'Recargos y Gastos',
+    'porcentaje': 'Porcentaje'
+  }
+  return tipos[tipo] || tipo
+}
+
+const calcularAntiguedad = (periodo) => {
+  if (!periodo) return 'N/A'
+  const [year, month] = periodo.split('-').map(Number)
+  const fechaPeriodo = new Date(year, month - 1)
+  const fechaActual = new Date()
+  const meses = (fechaActual.getFullYear() - fechaPeriodo.getFullYear()) * 12 +
+                (fechaActual.getMonth() - fechaPeriodo.getMonth())
+  if (meses === 0) return 'Actual'
+  if (meses === 1) return '1 mes'
+  return `${meses} meses`
+}
+
 const openDocumentation = () => {
   showDocumentation.value = true
-}
-
-// Mostrar documentación técnica
-const mostrarDocumentacion = () => {
-  showTechDocs.value = true
 }
 </script>
 

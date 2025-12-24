@@ -10,7 +10,11 @@
         <p>Padrón de Licencias - Asignación de Requisitos a Giros de Licencia</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="openDocumentation">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -111,20 +115,24 @@
           <!-- Columna Izquierda: Requisitos Disponibles -->
           <div class="col-md-6">
             <div class="requisitos-panel">
-              <div class="panel-header">
+              <div class="panel-header header-with-badge">
                 <h6>
                   <font-awesome-icon icon="list" />
                   Requisitos Disponibles
-                  <span class="badge-purple">{{ filteredRequisitosDisponibles.length }}</span>
                 </h6>
-                <button
-                  class="btn-municipal-primary btn-sm"
-                  @click="addSelectedRequisitos"
-                  :disabled="selectedDisponibles.length === 0 || loading"
-                >
-                  <font-awesome-icon icon="arrow-right" />
-                  Agregar ({{ selectedDisponibles.length }})
-                </button>
+                <div class="header-right">
+                  <span class="badge-purple" v-if="filteredRequisitosDisponibles.length > 0">
+                    {{ filteredRequisitosDisponibles.length }} registros
+                  </span>
+                  <button
+                    class="btn-municipal-primary btn-sm"
+                    @click="addSelectedRequisitos"
+                    :disabled="selectedDisponibles.length === 0 || loading"
+                  >
+                    <font-awesome-icon icon="arrow-right" />
+                    Agregar ({{ selectedDisponibles.length }})
+                  </button>
+                </div>
               </div>
               <div class="panel-body">
                 <div class="requisitos-list">
@@ -145,9 +153,12 @@
                       </span>
                     </label>
                   </div>
-                  <div v-if="filteredRequisitosDisponibles.length === 0" class="text-center text-muted">
-                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                    <p>No hay requisitos disponibles</p>
+                  <div v-if="filteredRequisitosDisponibles.length === 0" class="empty-state">
+                    <div class="empty-state-icon">
+                      <font-awesome-icon icon="inbox" size="3x" />
+                    </div>
+                    <h4>Sin requisitos disponibles</h4>
+                    <p>No hay requisitos disponibles para asignar a este giro</p>
                   </div>
                 </div>
               </div>
@@ -157,20 +168,24 @@
           <!-- Columna Derecha: Requisitos Asignados al Giro -->
           <div class="col-md-6">
             <div class="requisitos-panel">
-              <div class="panel-header">
+              <div class="panel-header header-with-badge">
                 <h6>
                   <font-awesome-icon icon="check-circle" />
                   Requisitos Asignados
-                  <span class="badge-purple">{{ filteredRequisitosAsignados.length }}</span>
                 </h6>
-                <button
-                  class="btn-municipal-danger btn-sm"
-                  @click="removeSelectedRequisitos"
-                  :disabled="selectedAsignados.length === 0 || loading"
-                >
-                  <font-awesome-icon icon="arrow-left" />
-                  Quitar ({{ selectedAsignados.length }})
-                </button>
+                <div class="header-right">
+                  <span class="badge-purple" v-if="filteredRequisitosAsignados.length > 0">
+                    {{ filteredRequisitosAsignados.length }} registros
+                  </span>
+                  <button
+                    class="btn-municipal-danger btn-sm"
+                    @click="removeSelectedRequisitos"
+                    :disabled="selectedAsignados.length === 0 || loading"
+                  >
+                    <font-awesome-icon icon="arrow-left" />
+                    Quitar ({{ selectedAsignados.length }})
+                  </button>
+                </div>
               </div>
               <div class="panel-body">
                 <div class="requisitos-list">
@@ -191,8 +206,11 @@
                       </span>
                     </label>
                   </div>
-                  <div v-if="filteredRequisitosAsignados.length === 0" class="text-center text-muted">
-                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                  <div v-if="filteredRequisitosAsignados.length === 0" class="empty-state">
+                    <div class="empty-state-icon">
+                      <font-awesome-icon icon="inbox" size="3x" />
+                    </div>
+                    <h4>Sin requisitos asignados</h4>
                     <p>No hay requisitos asignados a este giro</p>
                   </div>
                 </div>
@@ -231,28 +249,31 @@
       </div>
     </div>
 
-    <!-- Toast Notification -->
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'LigaRequisitos'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Liga de Requisitos a Giros'"
+        @close="showDocModal = false"
+      />
     </div>
     <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
   <!-- /module-view -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'LigaRequisitos'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
   </template>
 
 <script setup>
@@ -264,10 +285,19 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
@@ -291,6 +321,8 @@ const selectedDisponibles = ref([])
 const selectedAsignados = ref([])
 const filterDisponibles = ref('')
 const filterAsignados = ref('')
+const hasSearched = ref(false)
+const selectedRow = ref(null)
 
 // Computed
 const filteredRequisitosDisponibles = computed(() => {
@@ -317,6 +349,8 @@ const filteredRequisitosAsignados = computed(() => {
 const loadGiros = async () => {
   const startTime = Date.now()
   showLoading('Cargando giros...')
+  hasSearched.value = true
+  selectedRow.value = null
   loading.value = true
 
   try {
@@ -359,6 +393,8 @@ const onGiroSelected = () => {
 const loadRequisitosGiro = async () => {
   const startTime = Date.now()
   showLoading('Cargando requisitos...')
+  hasSearched.value = true
+  selectedRow.value = null
   loading.value = true
 
   try {
@@ -438,6 +474,8 @@ const addSelectedRequisitos = async () => {
 
   const startTime = Date.now()
   showLoading('Agregando requisitos...')
+  hasSearched.value = true
+  selectedRow.value = null
   loading.value = true
 
   try {
@@ -528,6 +566,8 @@ const removeSelectedRequisitos = async () => {
 
   const startTime = Date.now()
   showLoading('Quitando requisitos...')
+  hasSearched.value = true
+  selectedRow.value = null
   loading.value = true
 
   try {
@@ -599,6 +639,7 @@ const selectAllAsignados = () => {
 const clearSelections = () => {
   selectedDisponibles.value = []
   selectedAsignados.value = []
+  selectedRow.value = null
 }
 
 // Lifecycle
@@ -614,6 +655,7 @@ watch(selectedGiroId, () => {
 </script>
 
 <style scoped>
+/* Estilos específicos para este componente */
 .info-box {
   margin-top: 1.5rem;
   padding: 1.5rem;
@@ -679,6 +721,8 @@ watch(selectedGiroId, () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .panel-header h6 {
@@ -756,10 +800,5 @@ watch(selectedGiroId, () => {
 .requisito-info small {
   font-size: 0.85rem;
   line-height: 1.3;
-}
-
-.empty-icon {
-  color: #dee2e6;
-  margin-bottom: 0.5rem;
 }
 </style>

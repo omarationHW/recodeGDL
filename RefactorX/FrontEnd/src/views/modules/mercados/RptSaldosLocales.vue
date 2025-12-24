@@ -9,15 +9,22 @@
         <p>Inicio > Mercados > Saldos de Locales</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="consultar" :disabled="loading">
           <font-awesome-icon icon="search" /> Consultar
         </button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -33,7 +40,7 @@
               <select v-model="filters.oficina" class="municipal-form-control" @change="onOficinaChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -157,11 +164,11 @@
             </div>
             <div class="pagination-controls">
               <button class="btn-municipal-secondary btn-sm" @click="currentPage--" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span>
               <button class="btn-municipal-secondary btn-sm" @click="currentPage++" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>
@@ -169,12 +176,20 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptSaldosLocales'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptSaldosLocales'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptSaldosLocales'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptSaldosLocales'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -215,16 +230,17 @@ onMounted(async () => {
 const fetchRecaudadoras = async () => {
   loading.value = true;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      recaudadoras.value = response.data.eResponse.data.result;
+    if (response?.success && response?.data?.result) {
+      recaudadoras.value = response.data.result;
     }
   } catch (error) {
     console.error('Error:', error);
@@ -243,18 +259,19 @@ const onOficinaChange = async () => {
 
   loading.value = true;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_mercados_by_recaudadora',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_id_rec', Valor: parseInt(filters.value.oficina) }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_get_mercados_by_recaudadora',
+          'mercados',
+          [
+          { nombre: 'p_id_rec', valor: parseInt(filters.value.oficina) }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      mercados.value = response.data.eResponse.data.result;
+    if (response?.success && response?.data?.result) {
+      mercados.value = response.data.result;
     }
   } catch (error) {
     console.error('Error:', error);
@@ -274,27 +291,28 @@ const consultar = async () => {
 
   try {
     const parametros = [
-      { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
-      { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) }
+      { nombre: 'p_oficina', valor: parseInt(filters.value.oficina) },
+      { nombre: 'p_mercado', valor: parseInt(filters.value.mercado) }
     ];
 
     // Si hay año especificado, agregarlo como parámetro
     if (filters.value.axo) {
-      parametros.push({ Nombre: 'p_axo', Valor: parseInt(filters.value.axo) });
+      parametros.push({ nombre: 'p_axo', valor: parseInt(filters.value.axo) });
     } else {
-      parametros.push({ Nombre: 'p_axo', Valor: null });
+      parametros.push({ nombre: 'p_axo', valor: null });
     }
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_rpt_saldos_locales',
-        Base: 'mercados',
-        Parametros: parametros
-      }
-    });
+    const response = await apiService.execute(
+          'sp_rpt_saldos_locales',
+          'mercados',
+          parametros,
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      results.value = response.data.eResponse.data.result;
+    if (response?.success && response?.data?.result) {
+      results.value = response.data.result;
       busquedaRealizada.value = true;
       currentPage.value = 1;
     } else {
@@ -358,17 +376,3 @@ const mostrarAyuda = () => {
   alert('Reporte de Saldos de Locales\n\nMuestra el estado de cuenta de cada local en un mercado:\n\n- Total Adeudos: Suma de todos los adeudos del local\n- Total Pagos: Suma de todos los pagos realizados\n- Saldo: Diferencia entre adeudos y pagos\n  • Saldo positivo (rojo): El local debe dinero\n  • Saldo negativo (verde): El local tiene saldo a favor\n- Periodos Adeudo: Número de periodos con adeudos pendientes\n- Último Pago: Fecha del último pago registrado\n\nPuede filtrar por año específico o ver todos los años dejando el campo vacío.');
 };
 </script>
-
-<style scoped>
-@import '@/styles/municipal-theme.css';
-
-.form-text {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-}
-
-.text-muted {
-  color: #6c757d;
-}
-</style>

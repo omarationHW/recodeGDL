@@ -6,9 +6,14 @@
         <h1>Requerimientos de Tránsito</h1>
         <p>CRUD real contra BD</p>
       </div>
-      <div class="module-view-actions">
-        <button class="btn-municipal-primary" :disabled="loading" @click="openCreate()">
-          <font-awesome-icon icon="plus" /> Nuevo
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -159,25 +164,48 @@
             <button class="btn-municipal-danger" @click="confirmDelete">
               <font-awesome-icon icon="trash" /> Eliminar
             </button>
-          </div>
+          
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'ReqTrans'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Requerimientos de Tránsito'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'ReqTrans'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Requerimientos de Tránsito'"
+      @close="showDocumentacion = false"
+    />
+
+  </div>
         </template>
       </Modal>
 
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const BASE_DB = 'multas_reglamentos' // TODO confirmar
 const OP_LIST = 'RECAUDADORA_REQTRANS_LIST' // TODO confirmar
@@ -402,215 +430,3 @@ async function confirmDelete() {
 reload()
 </script>
 
-<style scoped>
-.results-header {
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #007bff;
-}
-
-.results-header h3 {
-  font-size: 1.1rem;
-  color: #333;
-  margin: 0;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.pagination-info {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.btn-pagination {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background-color: #0056b3;
-}
-
-.btn-pagination:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.page-info {
-  font-size: 0.9rem;
-  color: #333;
-  font-weight: 500;
-}
-
-/* Alertas */
-.alert {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  margin-bottom: 1rem;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.alert-success {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
-}
-
-.alert-error {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  color: #721c24;
-}
-
-.alert-content {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.alert-content svg {
-  font-size: 1.25rem;
-}
-
-.alert-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0.5;
-  transition: opacity 0.2s;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.alert-close:hover {
-  opacity: 1;
-}
-
-/* Modal de confirmación de eliminación */
-.delete-confirmation {
-  text-align: center;
-  padding: 1rem 0;
-}
-
-.delete-icon {
-  font-size: 4rem;
-  color: #dc3545;
-  margin-bottom: 1.5rem;
-}
-
-.delete-message {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 1.5rem;
-}
-
-.delete-details {
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  padding: 1rem;
-  margin: 1.5rem 0;
-  text-align: left;
-}
-
-.delete-details p {
-  margin: 0.5rem 0;
-  color: #666;
-}
-
-.delete-details strong {
-  color: #333;
-  font-weight: 600;
-}
-
-.delete-warning {
-  color: #dc3545;
-  font-weight: 500;
-  margin-top: 1.5rem;
-  font-size: 0.95rem;
-}
-
-.modal-footer-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  padding: 1rem 0 0 0;
-}
-
-.btn-municipal-danger {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: background-color 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-municipal-danger:hover {
-  background-color: #c82333;
-}
-
-.btn-municipal-secondary {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.5rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: background-color 0.2s;
-}
-
-.btn-municipal-secondary:hover {
-  background-color: #5a6268;
-}
-
-</style>

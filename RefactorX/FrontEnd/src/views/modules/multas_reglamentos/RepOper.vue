@@ -8,6 +8,16 @@
         <h1>Reporte de Operaciones</h1>
         <p>Estadísticas de operaciones por rango de fechas</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -90,6 +100,18 @@
           <h5>📊 Resultados ({{ rows.length }} dependencias)</h5>
         </div>
         <div class="municipal-card-body">
+          <!-- Botones de reporte -->
+          <div class="report-actions">
+            <button class="btn-report btn-preview" @click="verReporte">
+              <font-awesome-icon icon="eye" />
+              <span>Ver Reporte</span>
+            </button>
+            <button class="btn-report btn-download" @click="descargarReporte">
+              <font-awesome-icon icon="download" />
+              <span>Descargar Reporte</span>
+            </button>
+          </div>
+
           <div class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
@@ -152,20 +174,44 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'RepOper'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Reporte de Operaciones'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'RepOper'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Reporte de Operaciones'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { usePdfGenerator } from '@/composables/usePdfGenerator'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { loading, error: apiError, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
+const { verReporteTabular, descargarReporteTabular } = usePdfGenerator()
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_REP_OPER'
@@ -193,6 +239,125 @@ const paginatedRows = computed(() => {
   return rows.value.slice(start, end)
 })
 
+// Totales para el reporte
+const totalOperaciones = computed(() => {
+  return rows.value.reduce((sum, row) => sum + Number(row.total_operaciones || 0), 0)
+})
+
+const totalEmitidas = computed(() => {
+  return rows.value.reduce((sum, row) => sum + Number(row.multas_emitidas || 0), 0)
+})
+
+const totalCanceladas = computed(() => {
+  return rows.value.reduce((sum, row) => sum + Number(row.multas_canceladas || 0), 0)
+})
+
+const totalPendientes = computed(() => {
+  return rows.value.reduce((sum, row) => sum + Number(row.multas_pendientes || 0), 0)
+})
+
+const totalMultas = computed(() => {
+  return rows.value.reduce((sum, row) => sum + Number(row.total_multas || 0), 0)
+})
+
+const totalGastos = computed(() => {
+  return rows.value.reduce((sum, row) => sum + Number(row.total_gastos || 0), 0)
+})
+
+const totalGeneral = computed(() => {
+  return rows.value.reduce((sum, row) => sum + Number(row.total_general || 0), 0)
+})
+
+function verReporte() {
+  if (rows.value.length === 0) {
+    console.error('No hay datos para generar el reporte')
+    return
+  }
+
+  try {
+    const periodo = `${filters.value.desde} al ${filters.value.hasta}`
+    const opciones = {
+      titulo: 'Reporte de Operaciones',
+      subtitulo: `Estadísticas de Operaciones por Dependencia - ${periodo}`,
+      ejercicio: periodo,
+      columnas: [
+        { key: 'dependencia', header: 'Dep.', type: 'number' },
+        { key: 'nombre_dependencia', header: 'Nombre Dependencia', type: 'text' },
+        { key: 'total_operaciones', header: 'Tot. Oper.', type: 'number' },
+        { key: 'multas_emitidas', header: 'Emitidas', type: 'number' },
+        { key: 'multas_canceladas', header: 'Canceladas', type: 'number' },
+        { key: 'multas_pendientes', header: 'Pendientes', type: 'number' },
+        { key: 'total_multas', header: 'Total Multas', type: 'currency' },
+        { key: 'total_gastos', header: 'Total Gastos', type: 'currency' },
+        { key: 'total_general', header: 'Total General', type: 'currency' },
+        { key: 'promedio_operacion', header: 'Promedio', type: 'currency' }
+      ],
+      totales: {
+        dependencia: '',
+        nombre_dependencia: 'TOTALES',
+        total_operaciones: totalOperaciones.value,
+        multas_emitidas: totalEmitidas.value,
+        multas_canceladas: totalCanceladas.value,
+        multas_pendientes: totalPendientes.value,
+        total_multas: totalMultas.value,
+        total_gastos: totalGastos.value,
+        total_general: totalGeneral.value,
+        promedio_operacion: totalOperaciones.value > 0 ? totalGeneral.value / totalOperaciones.value : 0
+      }
+    }
+
+    verReporteTabular(rows.value, opciones)
+    console.log('✅ Vista previa generada exitosamente')
+  } catch (e) {
+    console.error('❌ Error al generar vista previa:', e)
+  }
+}
+
+function descargarReporte() {
+  if (rows.value.length === 0) {
+    console.error('No hay datos para descargar el reporte')
+    return
+  }
+
+  try {
+    const periodo = `${filters.value.desde} al ${filters.value.hasta}`
+    const opciones = {
+      titulo: 'Reporte de Operaciones',
+      subtitulo: `Estadísticas de Operaciones por Dependencia - ${periodo}`,
+      ejercicio: periodo,
+      columnas: [
+        { key: 'dependencia', header: 'Dep.', type: 'number' },
+        { key: 'nombre_dependencia', header: 'Nombre Dependencia', type: 'text' },
+        { key: 'total_operaciones', header: 'Tot. Oper.', type: 'number' },
+        { key: 'multas_emitidas', header: 'Emitidas', type: 'number' },
+        { key: 'multas_canceladas', header: 'Canceladas', type: 'number' },
+        { key: 'multas_pendientes', header: 'Pendientes', type: 'number' },
+        { key: 'total_multas', header: 'Total Multas', type: 'currency' },
+        { key: 'total_gastos', header: 'Total Gastos', type: 'currency' },
+        { key: 'total_general', header: 'Total General', type: 'currency' },
+        { key: 'promedio_operacion', header: 'Promedio', type: 'currency' }
+      ],
+      totales: {
+        dependencia: '',
+        nombre_dependencia: 'TOTALES',
+        total_operaciones: totalOperaciones.value,
+        multas_emitidas: totalEmitidas.value,
+        multas_canceladas: totalCanceladas.value,
+        multas_pendientes: totalPendientes.value,
+        total_multas: totalMultas.value,
+        total_gastos: totalGastos.value,
+        total_general: totalGeneral.value,
+        promedio_operacion: totalOperaciones.value > 0 ? totalGeneral.value / totalOperaciones.value : 0
+      }
+    }
+
+    descargarReporteTabular(rows.value, opciones)
+    console.log('✅ Reporte descargado exitosamente')
+  } catch (e) {
+    console.error('❌ Error al descargar reporte:', e)
+  }
+}
+
 async function generar() {
   error.value = ''
   success.value = ''
@@ -203,6 +368,7 @@ async function generar() {
     return
   }
 
+  showLoading('Consultando...', 'Por favor espere')
   try {
     const params = [
       { nombre: 'p_desde', valor: String(filters.value.desde || ''), tipo: 'date' },
@@ -238,6 +404,8 @@ async function generar() {
     rows.value = []
     columns.value = []
     searched.value = true
+  } finally {
+    hideLoading()
   }
 }
 
@@ -255,174 +423,3 @@ function limpiar() {
 }
 </script>
 
-<style scoped>
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.municipal-form-label {
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.municipal-form-control {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  transition: border-color 0.2s;
-}
-
-.municipal-form-control:focus {
-  outline: none;
-  border-color: #ea8215;
-  box-shadow: 0 0 0 2px rgba(234, 130, 21, 0.1);
-}
-
-.button-group {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.btn-municipal-primary,
-.btn-municipal-secondary {
-  padding: 0.6rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-municipal-primary {
-  background: linear-gradient(135deg, #ea8215 0%, #d67512 100%);
-  color: white;
-}
-
-.btn-municipal-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(234, 130, 21, 0.3);
-}
-
-.btn-municipal-secondary {
-  background: #6c757d;
-  color: white;
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  background: #5a6268;
-}
-
-.btn-municipal-primary:disabled,
-.btn-municipal-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.help-text {
-  color: #6c757d;
-  font-size: 0.85rem;
-}
-
-.alert {
-  padding: 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.alert-success {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
-}
-
-.alert-danger {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  color: #721c24;
-}
-
-.alert-info {
-  background-color: #d1ecf1;
-  border: 1px solid #bee5eb;
-  color: #0c5460;
-}
-
-.table-responsive {
-  overflow-x: auto;
-  margin-bottom: 1rem;
-}
-
-.municipal-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.municipal-table-header {
-  background: linear-gradient(135deg, #ea8215 0%, #d67512 100%);
-  color: white;
-}
-
-.municipal-table th,
-.municipal-table td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.municipal-table tbody tr:hover {
-  background-color: #f8f9fa;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #dee2e6;
-}
-
-.btn-pagination {
-  padding: 0.4rem 0.8rem;
-  border: 1px solid #dee2e6;
-  background: white;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.85rem;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background: #ea8215;
-  color: white;
-  border-color: #ea8215;
-}
-
-.btn-pagination:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.pagination-info {
-  padding: 0 1rem;
-  font-weight: 500;
-  color: #495057;
-}
-</style>

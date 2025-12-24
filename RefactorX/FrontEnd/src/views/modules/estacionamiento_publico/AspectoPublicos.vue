@@ -14,6 +14,14 @@
         <p>Configuración visual del sistema</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button
           class="btn-municipal-secondary"
           :disabled="loading"
@@ -51,7 +59,7 @@
 
       <!-- Catálogo de Aspectos -->
       <div class="municipal-card">
-        <div class="municipal-card-header d-flex justify-content-between">
+        <div class="municipal-card-header header-with-badge d-flex justify-content-between">
           <span><font-awesome-icon icon="list" /> Catálogo de Aspectos</span>
           <span class="badge bg-secondary">{{ aspectos.length }} disponibles</span>
         </div>
@@ -61,7 +69,7 @@
           </div>
 
           <div v-else-if="aspectos.length === 0" class="text-center py-4 text-muted">
-            <font-awesome-icon icon="inbox" size="2x" class="mb-2" />
+            <font-awesome-icon icon="inbox" size="2x" class="empty-state-icon mb-2" />
             <p>No hay aspectos disponibles</p>
           </div>
 
@@ -148,6 +156,16 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'AspectoPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Aspecto del Sistema'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
@@ -157,9 +175,10 @@ import Swal from 'sweetalert2'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -272,6 +291,20 @@ async function seleccionarAspecto(aspecto) {
     await nextTick()
     handleApiError(e)
   }
+}
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
 }
 
 onMounted(() => {

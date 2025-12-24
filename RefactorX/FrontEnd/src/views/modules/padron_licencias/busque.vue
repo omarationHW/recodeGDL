@@ -9,74 +9,62 @@
         <h1>Búsqueda General</h1>
         <p>Padrón de Licencias - Búsqueda Multicritero</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
 
     <!-- Pestañas de búsqueda -->
-    <div class="municipal-card">
-      <div class="municipal-card-body">
-        <ul class="nav nav-tabs municipal-tabs">
-          <li class="nav-item">
-            <button
-              class="nav-link"
-              :class="{ active: activeTab === 'owner' }"
-              @click="changeTab('owner')"
-            >
-              <font-awesome-icon icon="user" />
-              Por Propietario
-            </button>
-          </li>
-          <li class="nav-item">
-            <button
-              class="nav-link"
-              :class="{ active: activeTab === 'location' }"
-              @click="changeTab('location')"
-            >
-              <font-awesome-icon icon="map-marker-alt" />
-              Por Ubicación
-            </button>
-          </li>
-          <li class="nav-item">
-            <button
-              class="nav-link"
-              :class="{ active: activeTab === 'account' }"
-              @click="changeTab('account')"
-            >
-              <font-awesome-icon icon="file-invoice" />
-              Por Cuenta
-            </button>
-          </li>
-          <li class="nav-item">
-            <button
-              class="nav-link"
-              :class="{ active: activeTab === 'rfc' }"
-              @click="changeTab('rfc')"
-            >
-              <font-awesome-icon icon="id-card" />
-              Por RFC
-            </button>
-          </li>
-          <li class="nav-item">
-            <button
-              class="nav-link"
-              :class="{ active: activeTab === 'cadastral' }"
-              @click="changeTab('cadastral')"
-            >
-              <font-awesome-icon icon="key" />
-              Por Clave Catastral
-            </button>
-          </li>
-        </ul>
-      </div>
+    <div class="municipal-tabs">
+      <button
+        class="municipal-tab"
+        :class="{ active: activeTab === 'owner' }"
+        @click="changeTab('owner')"
+      >
+        <font-awesome-icon icon="user" />
+        Por Propietario
+      </button>
+      <button
+        class="municipal-tab"
+        :class="{ active: activeTab === 'location' }"
+        @click="changeTab('location')"
+      >
+        <font-awesome-icon icon="map-marker-alt" />
+        Por Ubicación
+      </button>
+      <button
+        class="municipal-tab"
+        :class="{ active: activeTab === 'account' }"
+        @click="changeTab('account')"
+      >
+        <font-awesome-icon icon="file-invoice" />
+        Por Cuenta
+      </button>
+      <button
+        class="municipal-tab"
+        :class="{ active: activeTab === 'rfc' }"
+        @click="changeTab('rfc')"
+      >
+        <font-awesome-icon icon="id-card" />
+        Por RFC
+      </button>
+      <button
+        class="municipal-tab"
+        :class="{ active: activeTab === 'cadastral' }"
+        @click="changeTab('cadastral')"
+      >
+        <font-awesome-icon icon="key" />
+        Por Clave Catastral
+      </button>
     </div>
 
     <!-- Formulario de búsqueda por Propietario -->
@@ -331,22 +319,40 @@
     </div>
 
     <!-- Tabla de resultados unificada -->
-    <div class="municipal-card" v-if="resultados.length > 0 || hasSearched">
+    <div class="municipal-card">
       <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Resultados de Búsqueda
         </h5>
-        <div class="header-actions">
-          <span class="badge-purple" v-if="resultados.length > 0">{{ resultados.length }} registros</span>
-          <div v-if="loading" class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
+        <div class="header-right">
+          <span class="badge-purple" v-if="resultados.length > 0">
+            {{ formatNumber(resultados.length) }} registros
+          </span>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="resultados.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="search" size="3x" />
+          </div>
+          <h4>Búsqueda General</h4>
+          <p>Utiliza los filtros de búsqueda para encontrar registros</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="resultados.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron resultados con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla con datos -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -359,7 +365,14 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(resultado, index) in resultados" :key="index" class="clickable-row">
+              <tr
+                v-for="(resultado, index) in paginatedResultados"
+                :key="index"
+                @click="selectedRow = resultado"
+                @dblclick="viewDetalle(resultado)"
+                :class="{ 'table-row-selected': selectedRow === resultado }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary">{{ resultado.id || 'N/A' }}</strong></td>
                 <td>{{ resultado.propietario?.trim() || 'N/A' }}</td>
                 <td>
@@ -373,32 +386,92 @@
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="viewDetalle(resultado)"
+                      @click.stop="viewDetalle(resultado)"
                       title="Ver detalles completos"
                     >
                       <font-awesome-icon icon="eye" />
-                      Ver Detalle
                     </button>
                   </div>
-                </td>
-              </tr>
-              <tr v-if="resultados.length === 0 && !loading && hasSearched">
-                <td colspan="6" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron resultados con los criterios especificados</p>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
+        <!-- Controles de Paginación -->
+        <div v-if="resultados.length > 0" class="pagination-controls">
+          <div class="pagination-info">
+            <span class="text-muted">
+              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+              a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+              de {{ formatNumber(totalRecords) }} registros
+            </span>
+          </div>
+
+          <div class="pagination-size">
+            <label class="municipal-form-label me-2">Registros por página:</label>
+            <select
+              class="municipal-form-control form-control-sm"
+              :value="itemsPerPage"
+              @change="changePageSize($event.target.value)"
+              style="width: auto; display: inline-block;"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+
+          <div class="pagination-buttons">
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(1)"
+              :disabled="currentPage === 1"
+              title="Primera página"
+            >
+              <font-awesome-icon icon="angle-double-left" />
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              title="Página anterior"
+            >
+              <font-awesome-icon icon="angle-left" />
+            </button>
+
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="btn-sm"
+              :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              title="Página siguiente"
+            >
+              <font-awesome-icon icon="angle-right" />
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(totalPages)"
+              :disabled="currentPage === totalPages"
+              title="Última página"
+            >
+              <font-awesome-icon icon="angle-double-right" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -481,12 +554,6 @@
           </button>
         </div>
       </div>
-      <div v-else class="loading-overlay">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando detalles...</p>
-        </div>
-      </div>
     </Modal>
 
     <!-- Toast Notifications -->
@@ -500,53 +567,107 @@
         <font-awesome-icon icon="times" />
       </button>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'busque'"
+      :moduleName="'padron_licencias'"
+      :docType="docType"
+      :title="'Búsqueda General'"
+      @close="showDocModal = false"
+    />
     </div>
     <!-- /module-view-content -->
   </div>
   <!-- /module-view -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'busque'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
-  </template>
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
-  handleApiError,
-  loadingMessage
+  handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const activeTab = ref('owner')
 const resultados = ref([])
 const selectedResultado = ref(null)
+const selectedRow = ref(null)
 const detailData = ref(null)
 const showDetailModal = ref(false)
 const hasSearched = ref(false)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const totalRecords = computed(() => resultados.value.length)
+const totalPages = computed(() => Math.ceil(totalRecords.value / itemsPerPage.value))
+
+const paginatedResultados = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return resultados.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+  selectedRow.value = null
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
 
 // Filtros
 const filters = ref({
@@ -576,6 +697,8 @@ const changeTab = (tab) => {
   activeTab.value = tab
   resultados.value = []
   hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
 }
 
 // Búsqueda por Propietario
@@ -590,8 +713,10 @@ const searchByOwner = async () => {
     return
   }
 
-  setLoading(true, 'Buscando por propietario...')
+  showLoading('Buscando por propietario...', 'Consultando base de datos')
   hasSearched.value = true
+  currentPage.value = 1
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -629,7 +754,7 @@ const searchByOwner = async () => {
     handleApiError(error)
     resultados.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -641,6 +766,8 @@ const clearOwnerFilters = () => {
   }
   resultados.value = []
   hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
 }
 
 // Búsqueda por Ubicación
@@ -655,8 +782,10 @@ const searchByLocation = async () => {
     return
   }
 
-  setLoading(true, 'Buscando por ubicación...')
+  showLoading('Buscando por ubicación...', 'Consultando base de datos')
   hasSearched.value = true
+  currentPage.value = 1
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -694,7 +823,7 @@ const searchByLocation = async () => {
     handleApiError(error)
     resultados.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -706,6 +835,8 @@ const clearLocationFilters = () => {
   }
   resultados.value = []
   hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
 }
 
 // Búsqueda por Cuenta
@@ -720,8 +851,10 @@ const searchByAccount = async () => {
     return
   }
 
-  setLoading(true, 'Buscando por cuenta...')
+  showLoading('Buscando por cuenta...', 'Consultando base de datos')
   hasSearched.value = true
+  currentPage.value = 1
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -757,7 +890,7 @@ const searchByAccount = async () => {
     handleApiError(error)
     resultados.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -767,6 +900,8 @@ const clearAccountFilters = () => {
   }
   resultados.value = []
   hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
 }
 
 // Búsqueda por RFC
@@ -781,8 +916,10 @@ const searchByRfc = async () => {
     return
   }
 
-  setLoading(true, 'Buscando por RFC...')
+  showLoading('Buscando por RFC...', 'Consultando base de datos')
   hasSearched.value = true
+  currentPage.value = 1
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -818,7 +955,7 @@ const searchByRfc = async () => {
     handleApiError(error)
     resultados.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -828,6 +965,8 @@ const clearRfcFilters = () => {
   }
   resultados.value = []
   hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
 }
 
 // Búsqueda por Clave Catastral
@@ -842,8 +981,10 @@ const searchByCadastral = async () => {
     return
   }
 
-  setLoading(true, 'Buscando por clave catastral...')
+  showLoading('Buscando por clave catastral...', 'Consultando base de datos')
   hasSearched.value = true
+  currentPage.value = 1
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -879,7 +1020,7 @@ const searchByCadastral = async () => {
     handleApiError(error)
     resultados.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -889,6 +1030,8 @@ const clearCadastralFilters = () => {
   }
   resultados.value = []
   hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
 }
 
 // Ver detalle completo
@@ -897,7 +1040,7 @@ const viewDetalle = async (resultado) => {
   showDetailModal.value = true
   detailData.value = null
 
-  setLoading(true, 'Cargando detalles...')
+  showLoading('Cargando detalles...', 'Por favor espere')
 
   const startTime = performance.now()
 
@@ -927,7 +1070,7 @@ const viewDetalle = async (resultado) => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 

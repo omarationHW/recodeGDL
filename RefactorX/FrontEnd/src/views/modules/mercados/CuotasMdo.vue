@@ -10,14 +10,20 @@
         <p>Inicio > Mercados > Cuotas</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="openCreate">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="openCreate">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -97,10 +103,10 @@
 
                     <td class="text-center">
                       <div class="button-group button-group-sm">
-                        <button class="btn-municipal-primary btn-sm" @click="editCuota(item)" title="Editar">
+                        <button class="btn-municipal-primary btn-sm" @click="editCuota(cuota)" title="Editar">
                           <font-awesome-icon icon="edit" />
                         </button>
-                        <button class="btn-municipal-danger btn-sm" @click="deleteCuota(item)" title="Eliminar">
+                        <button class="btn-municipal-danger btn-sm" @click="deleteCuota(cuota)" title="Eliminar">
                           <font-awesome-icon icon="trash" />
                         </button>
                       </div>
@@ -199,7 +205,10 @@
           <font-awesome-icon :icon="showEdit ? 'edit' : 'plus-circle'" />
           {{ showEdit ? 'Editar Cuota' : 'Agregar Cuota' }}
         </h5>
-      </template>
+      
+  <DocumentationModal :show="showAyuda" :component-name="'CuotasMdo'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CuotasMdo'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CuotasMdo'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CuotasMdo'" @close="showDocumentacion = false" />
+</template>
 
       <form @submit.prevent="showEdit ? updateCuota() : createCuota()">
         <div class="form-row">
@@ -302,11 +311,47 @@
 </template>
 
 <script setup>
+import Swal from 'sweetalert2'
+
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
 import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 import Modal from '@/components/common/Modal.vue'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 // Composables
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -417,17 +462,18 @@ const fetchCuotas = async () => {
   loading.value = true
   showLoading('Cargando cuotas...', 'Por favor espere')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cuotasmdo_list',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_axo', Valor: axo.value }
-        ]
-      }
-    })
-    if (res.data?.eResponse?.success) {
-      cuotas.value = res.data.eResponse.data?.result || []
+    const res = await apiService.execute(
+          'sp_cuotasmdo_list',
+          'mercados',
+          [
+          { nombre: 'p_axo', valor: axo.value }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      cuotas.value = res.data?.result || []
       currentPage.value = 1 // Reset a la primera página
       showToast(`Se encontraron ${cuotas.value.length} cuotas`, 'success')
     }
@@ -441,65 +487,59 @@ const fetchCuotas = async () => {
 }
 
 const fetchCategorias = async () => {
-  showLoading('Cargando categorías...', 'Por favor espere')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_categorias_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (res.data?.eResponse?.success) {
-      categorias.value = res.data.eResponse.data?.result || []
+    const res = await apiService.execute(
+          'sp_categoria_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      categorias.value = res.data?.result || []
     }
   } catch (err) {
     console.error('Error al cargar categorías:', err)
     showToast('Error al cargar categorías', 'error')
-  } finally {
-    hideLoading()
   }
 }
 
 const fetchSecciones = async () => {
-  showLoading('Cargando secciones...', 'Por favor espere')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_secciones_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (res.data?.eResponse?.success) {
-      secciones.value = res.data.eResponse.data?.result || []
+    const res = await apiService.execute(
+          'sp_get_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      secciones.value = res.data?.result || []
     }
   } catch (err) {
     console.error('Error al cargar secciones:', err)
     showToast('Error al cargar secciones', 'error')
-  } finally {
-    hideLoading()
   }
 }
 
 const fetchClavesCuota = async () => {
-  showLoading('Cargando claves de cuota...', 'Por favor espere')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_clavescuota_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (res.data?.eResponse?.success) {
-      clavesCuota.value = res.data.eResponse.data?.result || []
+    const res = await apiService.execute(
+          'sp_cve_cuota_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      clavesCuota.value = res.data?.result || []
     }
   } catch (err) {
     console.error('Error al cargar claves de cuota:', err)
     showToast('Error al cargar claves de cuota', 'error')
-  } finally {
-    hideLoading()
   }
 }
 
@@ -532,26 +572,27 @@ const createCuota = async () => {
   saving.value = true
   showLoading('Guardando cuota...', 'Por favor espere')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cuotasmdo_create',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_axo', Valor: form.value.axo },
-          { Nombre: 'p_categoria', Valor: form.value.categoria },
-          { Nombre: 'p_seccion', Valor: form.value.seccion },
-          { Nombre: 'p_clave_cuota', Valor: form.value.clave_cuota },
-          { Nombre: 'p_importe_cuota', Valor: form.value.importe_cuota },
-          { Nombre: 'p_id_usuario', Valor: form.value.id_usuario }
-        ]
-      }
-    })
-    if (res.data?.eResponse?.success) {
+    const res = await apiService.execute(
+          'sp_cuotasmdo_create',
+          'mercados',
+          [
+          { nombre: 'p_axo', valor: form.value.axo },
+          { nombre: 'p_categoria', valor: form.value.categoria },
+          { nombre: 'p_seccion', valor: form.value.seccion },
+          { nombre: 'p_clave_cuota', valor: form.value.clave_cuota },
+          { nombre: 'p_importe_cuota', valor: form.value.importe_cuota },
+          { nombre: 'p_id_usuario', valor: form.value.id_usuario }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
       showToast('Cuota creada correctamente', 'success')
       closeModal()
       fetchCuotas()
     } else {
-      showToast(res.data?.eResponse?.message || 'Error al crear cuota', 'error')
+      showToast(res.message || 'Error al crear cuota', 'error')
     }
   } catch (err) {
     console.error('Error al crear cuota:', err)
@@ -572,27 +613,28 @@ const updateCuota = async () => {
   saving.value = true
   showLoading('Actualizando cuota...', 'Por favor espere')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cuotasmdo_update',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_cuotas', Valor: form.value.id_cuotas },
-          { Nombre: 'p_axo', Valor: form.value.axo },
-          { Nombre: 'p_categoria', Valor: form.value.categoria },
-          { Nombre: 'p_seccion', Valor: form.value.seccion },
-          { Nombre: 'p_clave_cuota', Valor: form.value.clave_cuota },
-          { Nombre: 'p_importe_cuota', Valor: form.value.importe_cuota },
-          { Nombre: 'p_id_usuario', Valor: form.value.id_usuario }
-        ]
-      }
-    })
-    if (res.data?.eResponse?.success) {
+    const res = await apiService.execute(
+          'sp_cuotasmdo_update',
+          'mercados',
+          [
+          { nombre: 'p_id_cuotas', valor: form.value.id_cuotas },
+          { nombre: 'p_axo', valor: form.value.axo },
+          { nombre: 'p_categoria', valor: form.value.categoria },
+          { nombre: 'p_seccion', valor: form.value.seccion },
+          { nombre: 'p_clave_cuota', valor: form.value.clave_cuota },
+          { nombre: 'p_importe_cuota', valor: form.value.importe_cuota },
+          { nombre: 'p_id_usuario', valor: form.value.id_usuario }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
       showToast('Cuota actualizada correctamente', 'success')
       closeModal()
       fetchCuotas()
     } else {
-      showToast(res.data?.eResponse?.message || 'Error al actualizar cuota', 'error')
+      showToast(res.message || 'Error al actualizar cuota', 'error')
     }
   } catch (err) {
     console.error('Error al actualizar cuota:', err)
@@ -619,21 +661,22 @@ const confirmDelete = async () => {
   deleting.value = true
   showLoading('Eliminando cuota...', 'Por favor espere')
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cuotasmdo_delete',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_cuotas', Valor: cuotaToDelete.value.id_cuotas }
-        ]
-      }
-    })
-    if (res.data?.eResponse?.success) {
+    const res = await apiService.execute(
+          'sp_cuotasmdo_delete',
+          'mercados',
+          [
+          { nombre: 'p_id_cuotas', valor: cuotaToDelete.value.id_cuotas }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
       showToast('Cuota eliminada correctamente', 'success')
       closeDeleteModal()
       fetchCuotas()
     } else {
-      showToast(res.data?.eResponse?.message || 'Error al eliminar cuota', 'error')
+      showToast(res.message || 'Error al eliminar cuota', 'error')
     }
   } catch (err) {
     console.error('Error al eliminar cuota:', err)
@@ -648,76 +691,12 @@ const confirmDelete = async () => {
 onMounted(async () => {
   showLoading('Cargando datos iniciales...', 'Por favor espere')
   try {
-    await Promise.all([
-      fetchCuotas(),
-      fetchCategorias(),
-      fetchSecciones(),
-      fetchClavesCuota()
-    ])
+    await fetchCuotas()
+    await fetchCategorias()
+    await fetchSecciones()
+    await fetchClavesCuota()
   } finally {
     hideLoading()
   }
 })
 </script>
-
-<style scoped>
-.required {
-  color: #dc3545;
-}
-
-.empty-icon {
-  opacity: 0.25;
-  margin-bottom: 1rem;
-  color: #adb5bd;
-}
-
-.delete-icon-wrapper {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 1rem;
-  background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.delete-icon {
-  font-size: 2.5rem;
-  color: #dc3545;
-}
-
-.delete-message {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 1rem;
-}
-
-.delete-details {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  text-align: left;
-}
-
-.delete-details p {
-  margin: 0.25rem 0;
-  font-size: 0.9rem;
-  color: #495057;
-}
-
-.modal-footer-centered {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  padding-top: 1rem;
-  margin-top: 1rem;
-  border-top: 1px solid #e9ecef;
-}
-
-.small {
-  font-size: 0.85rem;
-}
-</style>

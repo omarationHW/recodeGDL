@@ -7,20 +7,22 @@
       </div>
       <div class="module-view-info">
         <h1>Registro Histórico</h1>
-        <p>Padrón de Licencias - Registro Histórico de Trámites</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Registro Histórico de Trámites</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button
           class="btn-municipal-primary"
           @click="openCreateModal"
-          :disabled="loading"
         >
           <font-awesome-icon icon="plus" />
           Nuevo Registro
@@ -74,7 +76,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchRecords"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -82,7 +83,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -90,7 +90,6 @@
           <button
             class="btn-municipal-secondary"
             @click="loadRecords"
-            :disabled="loading"
           >
             <font-awesome-icon icon="sync-alt" />
             Actualizar
@@ -101,19 +100,39 @@
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Registros Históricos
-          <span class="badge-purple" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="records.length > 0">
+            {{ totalRecords }} registros
+          </span>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="records.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="history" size="3x" />
+          </div>
+          <h4>Registro Histórico</h4>
+          <p>Utilice los filtros para buscar registros históricos de trámites</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="records.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron registros con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla con resultados -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -128,7 +147,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="record in records" :key="record.id" class="clickable-row">
+              <tr
+                v-for="record in records"
+                :key="record.id"
+                @click="selectedRow = record"
+                :class="{ 'table-row-selected': selectedRow === record }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary">{{ record.id }}</strong></td>
                 <td>
                   <small class="text-muted">
@@ -154,25 +179,19 @@
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="viewRecord(record)"
+                      @click.stop="viewRecord(record)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
                     </button>
                     <button
                       class="btn-municipal-danger btn-sm"
-                      @click="confirmDeleteRecord(record)"
+                      @click.stop="confirmDeleteRecord(record)"
                       title="Eliminar"
                     >
                       <font-awesome-icon icon="trash" />
                     </button>
                   </div>
-                </td>
-              </tr>
-              <tr v-if="records.length === 0 && !loading">
-                <td colspan="8" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron registros históricos con los criterios especificados</p>
                 </td>
               </tr>
             </tbody>
@@ -181,61 +200,54 @@
       </div>
 
       <!-- Paginación -->
-      <div class="pagination-container" v-if="totalRecords > 0 && !loading">
+      <div v-if="records.length > 0" class="pagination-controls">
         <div class="pagination-info">
-          <font-awesome-icon icon="info-circle" />
-          Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-          a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
-          de {{ totalRecords }} registros
+          <span class="text-muted">
+            Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+            a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+            de {{ formatNumber(totalRecords) }} registros
+          </span>
         </div>
 
-        <div class="pagination-controls">
-          <div class="page-size-selector">
-            <label>Mostrar:</label>
-            <select v-model="itemsPerPage" @change="changePageSize">
-              <option :value="10">10</option>
-              <option :value="25">25</option>
-              <option :value="50">50</option>
-              <option :value="100">100</option>
-            </select>
-          </div>
-
-          <div class="pagination-nav">
-            <button
-              class="pagination-button"
-              @click="goToPage(currentPage - 1)"
-              :disabled="currentPage === 1"
-            >
-              <font-awesome-icon icon="chevron-left" />
-            </button>
-
-            <button
-              v-for="page in visiblePages"
-              :key="page"
-              class="pagination-button"
-              :class="{ active: page === currentPage }"
-              @click="goToPage(page)"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="pagination-button"
-              @click="goToPage(currentPage + 1)"
-              :disabled="currentPage === totalPages"
-            >
-              <font-awesome-icon icon="chevron-right" />
-            </button>
-          </div>
+        <div class="pagination-size">
+          <label class="municipal-form-label me-2">Registros por página:</label>
+          <select
+            class="municipal-form-control form-control-sm"
+            :value="itemsPerPage"
+            @change="changePageSize($event.target.value)"
+            style="width: auto; display: inline-block;"
+          >
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
         </div>
-      </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading && records.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando registros históricos...</p>
+        <div class="pagination-buttons">
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+            <font-awesome-icon icon="angle-double-left" />
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+            <font-awesome-icon icon="angle-left" />
+          </button>
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            class="btn-sm"
+            :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+            @click="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+            <font-awesome-icon icon="angle-right" />
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+            <font-awesome-icon icon="angle-double-right" />
+          </button>
+        </div>
       </div>
     </div>
 
@@ -379,28 +391,31 @@
       </div>
     </Modal>
 
-    <!-- Toast Notification -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'regHfrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Registro Histórico'"
+      @close="showDocModal = false"
     />
+  </div>
+  <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -409,18 +424,26 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -428,12 +451,16 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const records = ref([])
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const totalRecords = ref(0)
 const selectedRecord = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const showCreateModal = ref(false)
 const showViewModal = ref(false)
 const creatingRecord = ref(false)
@@ -462,10 +489,13 @@ const totalPages = computed(() => {
 
 const visiblePages = computed(() => {
   const pages = []
-  const start = Math.max(1, currentPage.value - 2)
-  const end = Math.min(totalPages.value, currentPage.value + 2)
-
-  for (let i = start; i <= end; i++) {
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
     pages.push(i)
   }
   return pages
@@ -473,7 +503,9 @@ const visiblePages = computed(() => {
 
 // Métodos
 const loadRecords = async () => {
-  setLoading(true, 'Cargando registros históricos...')
+  showLoading('Cargando registros históricos...')
+  hasSearched.value = true
+  selectedRow.value = null
   const startTime = performance.now()
 
   try {
@@ -514,7 +546,7 @@ const loadRecords = async () => {
     records.value = []
     totalRecords.value = 0
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -530,19 +562,24 @@ const clearFilters = () => {
     tipo: '',
     search: ''
   }
+  records.value = []
+  hasSearched.value = false
   currentPage.value = 1
-  loadRecords()
+  selectedRow.value = null
 }
 
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    selectedRow.value = null
     loadRecords()
   }
 }
 
-const changePageSize = () => {
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
   currentPage.value = 1
+  selectedRow.value = null
   loadRecords()
 }
 
@@ -651,7 +688,7 @@ const createRecord = async () => {
 }
 
 const viewRecord = async (record) => {
-  setLoading(true, 'Cargando detalles del registro...')
+  showLoading('Cargando detalles del registro...')
   const startTime = performance.now()
 
   try {
@@ -678,7 +715,7 @@ const viewRecord = async (record) => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -779,9 +816,13 @@ const formatDate = (dateString) => {
   }
 }
 
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
+
 // Lifecycle
 onMounted(() => {
-  loadRecords()
+  // No cargar automáticamente, esperar a que el usuario busque
 })
 
 onBeforeUnmount(() => {

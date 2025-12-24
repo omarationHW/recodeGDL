@@ -9,11 +9,15 @@
         <p>Mercados - Detalle de Pagos Capturados por Mercado</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
         </button>
-      </div>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        </div>
     </div>
 
     <div class="module-view-content">
@@ -109,13 +113,50 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'ConsCapturaMerc'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - ConsCapturaMerc'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'ConsCapturaMerc'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - ConsCapturaMerc'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const router = useRouter();
 
@@ -130,26 +171,23 @@ const formatCurrency = (value) => {
 
 const showToast = (type, message) => {
   Swal.fire({ toast: true, position: 'top-end', icon: type, title: message, showConfirmButton: false, timer: 3000 });
-};
-
-const cerrar = () => router.push('/mercados');
-
-async function cargarMercados() {
+};async function cargarMercados() {
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_captura_merc_get_mercados',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_cons_captura_merc_get_mercados',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      mercados.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      mercados.value = response.data.result || [];
     }
   } catch (error) {
     console.error('Error cargando mercados:', error);
-    showToast('error', 'Error al cargar mercados');
+    showToast('Error al cargar mercados', 'error');
   }
 }
 
@@ -163,29 +201,52 @@ async function buscarPagos() {
   pagos.value = [];
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_captura_merc_get_pagos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: selectedMercado.value.oficina, tipo: 'integer' },
-          { Nombre: 'p_num_mercado', Valor: selectedMercado.value.num_mercado, tipo: 'integer' }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_cons_captura_merc_get_pagos',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: selectedMercado.value.oficina, tipo: 'integer' },
+          { nombre: 'p_num_mercado', valor: selectedMercado.value.num_mercado, tipo: 'integer' }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      pagos.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      pagos.value = response.data.result || [];
       if (pagos.value.length === 0) {
-        showToast('info', 'No se encontraron pagos');
+        showToast('No se encontraron pagos', 'info');
       }
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al buscar pagos');
+    showToast('Error al buscar pagos', 'error');
   } finally {
     loading.value = false;
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Consulta de Captura por Mercado',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite consultar las capturas realizadas por mercado.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione la recaudadora y mercado
+          <li>Indique el perÃ­odo a consultar
+          <li>Los resultados incluyen el detalle de todas las capturas</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => cargarMercados());

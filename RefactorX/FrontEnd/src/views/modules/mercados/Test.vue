@@ -9,6 +9,15 @@
         <p>Mercados - Test Component</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button
           class="btn-municipal-secondary"
           @click="mostrarDocumentacion"
@@ -58,12 +67,19 @@
       <h3>Test</h3>
       <p>Documentacion del modulo mercados.</p>
     </DocumentationModal>
+
+  <DocumentationModal :show="showAyuda" :component-name="'Test'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - Test'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'Test'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - Test'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref } from 'vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 // Documentacion y Ayuda
 const showDocumentation = ref(false)

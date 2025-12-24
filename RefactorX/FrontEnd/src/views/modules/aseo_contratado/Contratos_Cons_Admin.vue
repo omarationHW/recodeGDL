@@ -1,521 +1,419 @@
-<template>
+﻿<template>
   <div class="module-view">
+        <!-- Header del módulo -->
     <div class="module-view-header">
       <div class="module-view-icon">
         <font-awesome-icon icon="clipboard-list" />
       </div>
       <div class="module-view-info">
         <h1>Consulta Administrativa de Contratos</h1>
-        <p>Aseo Contratado - Vista administrativa con detalle de adeudos</p>
+        <p>Aseo Contratado - Vista administrativa completa con filtros avanzados y exportación</p>
       </div>
-      <button type="button" class="btn-help-icon" @click="showDocumentation = true" title="Ayuda">
+      <button
+        type="button"
+        class="btn-help-icon"
+        @click="mostrarAyuda = true"
+        title="Ayuda"
+      >
         <font-awesome-icon icon="question-circle" />
       </button>
     </div>
-
-    <div class="module-view-content">
-      <!-- Busqueda -->
-      <div class="municipal-card">
-        <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="search" /> Buscar Contrato</h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="search-form-inline">
-            <div class="search-field">
-              <label class="municipal-form-label required">No. Contrato</label>
-              <input
-                type="number"
-                v-model.number="numContrato"
-                class="municipal-form-control"
-                placeholder="Ej: 12345"
-                @keyup.enter="buscarContrato"
-              />
-            </div>
-            <div class="search-field search-field-large">
-              <label class="municipal-form-label required">Tipo de Aseo</label>
-              <select v-model="tipoAseoSeleccionado" class="municipal-form-control">
-                <option value="">-- Seleccione tipo de aseo --</option>
-                <option v-for="tipo in tiposAseo" :key="tipo.ctrol_aseo" :value="tipo.tipo_aseo">
-                  {{ tipo.tipo_aseo }} - {{ tipo.descripcion }}
-                </option>
-              </select>
-            </div>
-            <div class="search-field-button">
-              <button type="button" class="btn-municipal-primary" @click="buscarContrato">
-                <font-awesome-icon icon="search" /> Buscar
-              </button>
-            </div>
-          </div>
-        </div>
+<div class="municipal-card shadow-sm mb-4">
+      <div class="municipal-card-header">
+        <h5>Filtros de Consulta Avanzada</h5>
       </div>
-
-      <!-- Datos del Contribuyente (Encabezado) -->
-      <div v-if="contratoEncontrado" class="municipal-card mt-3">
-        <div class="municipal-card-header">
-          <h5><font-awesome-icon icon="user" /> Datos del Contribuyente</h5>
-        </div>
-        <div class="municipal-card-body">
-          <div class="info-grid">
-            <div class="info-item info-item-wide">
-              <span class="info-label">Propietario</span>
-              <span class="info-value info-value-highlight">{{ encabezado.propietario || '-' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">RFC</span>
-              <span class="info-value">{{ encabezado.rfc || '-' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">CURP</span>
-              <span class="info-value">{{ encabezado.curp || '-' }}</span>
-            </div>
+      <div class="municipal-card-body">
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <label class="municipal-form-label">Empresa</label>
+            <select class="municipal-form-control" v-model="filtros.empresa">
+              <option value="">Todas</option>
+              <option v-for="emp in empresas" :key="emp.num_empresa" :value="emp.num_empresa">
+                {{ emp.nombre_empresa }}
+              </option>
+            </select>
           </div>
-
-          <!-- Domicilio -->
-          <div class="info-section">
-            <h6 class="info-section-title"><font-awesome-icon icon="map-marker-alt" /> Domicilio</h6>
-            <div class="info-grid">
-              <div class="info-item info-item-wide">
-                <span class="info-label">Calle</span>
-                <span class="info-value">{{ encabezado.calle || '-' }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">No. Ext.</span>
-                <span class="info-value">{{ encabezado.numext || '-' }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">No. Int.</span>
-                <span class="info-value">{{ encabezado.numint || '-' }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Colonia</span>
-                <span class="info-value">{{ encabezado.colonia || '-' }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">C.P.</span>
-                <span class="info-value">{{ encabezado.cp || '-' }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Municipio</span>
-                <span class="info-value">{{ encabezado.municipio || '-' }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Estado</span>
-                <span class="info-value">{{ encabezado.estado || '-' }}</span>
-              </div>
-            </div>
+          <div class="col-md-2">
+            <label class="municipal-form-label">Tipo de Aseo</label>
+            <select class="municipal-form-control" v-model="filtros.tipoAseo">
+              <option value="">Todos</option>
+              <option value="D">Doméstico</option>
+              <option value="C">Comercial</option>
+              <option value="I">Industrial</option>
+              <option value="S">Servicios</option>
+            </select>
           </div>
-
-          <!-- Leyendas -->
-          <div v-if="encabezado.leyenda" class="municipal-alert municipal-alert-info mt-3">
-            <font-awesome-icon icon="info-circle" />
-            <span>{{ encabezado.leyenda }}</span>
+          <div class="col-md-2">
+            <label class="municipal-form-label">Status</label>
+            <select class="municipal-form-control" v-model="filtros.status">
+              <option value="">Todos</option>
+              <option value="A">Activos</option>
+              <option value="I">Cancelados</option>
+            </select>
           </div>
-
-          <div v-if="encabezado.leyendarecibo" class="municipal-alert municipal-alert-warning mt-2">
-            <font-awesome-icon icon="receipt" />
-            <span>{{ encabezado.leyendarecibo }}</span>
+          <div class="col-md-2">
+            <label class="municipal-form-label">Zona</label>
+            <select class="municipal-form-control" v-model="filtros.zona">
+              <option value="">Todas</option>
+              <option v-for="z in zonas" :key="z.ctrol_zona" :value="z.zona">
+                Zona {{ z.zona }}
+              </option>
+            </select>
           </div>
-
-          <div v-if="encabezado.impidecobro === 1" class="municipal-alert municipal-alert-danger mt-2">
-            <font-awesome-icon icon="ban" />
-            <span><strong>COBRO IMPEDIDO</strong></span>
+          <div class="col-md-3">
+            <label class="municipal-form-label">Búsqueda</label>
+            <input type="text" class="municipal-form-control" v-model="filtros.busqueda"
+              placeholder="Contrato, RFC o contribuyente" />
           </div>
         </div>
-      </div>
-
-      <!-- Tabs: Datos Varios y Detalle Adeudos -->
-      <div v-if="contratoEncontrado" class="municipal-card mt-3">
-        <div class="municipal-card-header">
-          <div class="tab-buttons">
-            <button
-              type="button"
-              :class="['tab-button', { active: tabActiva === 'datos' }]"
-              @click="tabActiva = 'datos'"
-            >
-              <font-awesome-icon icon="list" /> Datos Varios
-            </button>
-            <button
-              type="button"
-              :class="['tab-button', { active: tabActiva === 'adeudos' }]"
-              @click="tabActiva = 'adeudos'"
-            >
-              <font-awesome-icon icon="money-bill-wave" /> Detalle Adeudos
+        <div class="row">
+          <div class="col-md-2">
+            <label class="municipal-form-label">Cuota Mínima</label>
+            <input type="number" class="municipal-form-control" v-model.number="filtros.cuotaMin" min="0" />
+          </div>
+          <div class="col-md-2">
+            <label class="municipal-form-label">Cuota Máxima</label>
+            <input type="number" class="municipal-form-control" v-model.number="filtros.cuotaMax" min="0" />
+          </div>
+          <div class="col-md-2">
+            <label class="municipal-form-label">Con Adeudos</label>
+            <select class="municipal-form-control" v-model="filtros.conAdeudos">
+              <option value="">Todos</option>
+              <option value="S">Sí</option>
+              <option value="N">No</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="municipal-form-label">Registros</label>
+            <select class="municipal-form-control" v-model.number="filtros.limit">
+              <option :value="50">50</option>
+              <option :value="100">100</option>
+              <option :value="500">500</option>
+              <option :value="0">Todos</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="municipal-form-label">&nbsp;</label>
+            <button class="btn-municipal-primary w-100" @click="consultar" :disabled="cargando">
+              <font-awesome-icon icon="search" /> Consultar
             </button>
           </div>
-        </div>
-        <div class="municipal-card-body">
-          <!-- Tab Datos Varios -->
-          <div v-if="tabActiva === 'datos'">
-            <div v-if="datosVarios.length > 0" class="table-responsive">
-              <table class="municipal-table">
-                <thead>
-                  <tr>
-                    <th>Dato</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(dato, idx) in datosVarios" :key="idx">
-                    <td>{{ dato.datovario }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div v-else class="empty-state">
-              <font-awesome-icon icon="inbox" class="empty-state-icon" />
-              <p>No hay datos varios para este contrato</p>
-            </div>
-          </div>
-
-          <!-- Tab Detalle Adeudos -->
-          <div v-if="tabActiva === 'adeudos'">
-            <div v-if="detalleAdeudos.length > 0">
-              <div class="table-responsive">
-                <table class="municipal-table">
-                  <thead>
-                    <tr>
-                      <th>Rubro</th>
-                      <th>Concepto</th>
-                      <th>Cta. Aplicacion</th>
-                      <th>Referencia</th>
-                      <th>Descripcion</th>
-                      <th class="text-right">Monto</th>
-                      <th class="text-right">Acumulado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="(adeudo, idx) in detalleAdeudos"
-                      :key="idx"
-                      @dblclick="filtrarPorReferencia(adeudo.referencia)"
-                      class="cursor-pointer"
-                    >
-                      <td>{{ adeudo.rubro }}</td>
-                      <td>{{ adeudo.concepto }}</td>
-                      <td>{{ adeudo.cuenta_aplicacion }}</td>
-                      <td>{{ adeudo.referencia }}</td>
-                      <td>{{ adeudo.descripcion }}</td>
-                      <td class="text-right">{{ formatCurrency(adeudo.monto) }}</td>
-                      <td class="text-right">{{ formatCurrency(adeudo.acumulado) }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <p class="text-muted mt-2">
-                <font-awesome-icon icon="info-circle" /> Doble clic en una fila para filtrar por referencia
-              </p>
-
-              <!-- Totales -->
-              <div v-if="totalesAdeudos.length > 0" class="mt-3">
-                <h6><font-awesome-icon icon="calculator" /> Totales por Cuenta</h6>
-                <div class="table-responsive">
-                  <table class="municipal-table">
-                    <thead>
-                      <tr>
-                        <th>Cta. Aplicacion</th>
-                        <th>Referencia</th>
-                        <th class="text-right">Monto Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(total, idx) in totalesAdeudos" :key="idx">
-                        <td>{{ total.cuenta_aplicacion }}</td>
-                        <td>{{ total.referencia }}</td>
-                        <td class="text-right font-weight-bold">{{ formatCurrency(total.monto) }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-            <div v-else class="empty-state">
-              <font-awesome-icon icon="check-circle" class="empty-state-icon text-success" />
-              <p>No hay adeudos para este contrato</p>
-            </div>
-
-            <!-- Boton limpiar filtro -->
-            <div v-if="filtroReferencia" class="mt-3">
-              <button type="button" class="btn-municipal-secondary" @click="limpiarFiltroReferencia">
-                <font-awesome-icon icon="times" /> Limpiar filtro ({{ filtroReferencia }})
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Botones -->
-      <div v-if="contratoEncontrado" class="municipal-card mt-3">
-        <div class="municipal-card-body">
-          <div class="button-group">
-            <button type="button" class="btn-municipal-secondary" @click="limpiar">
-              <font-awesome-icon icon="times" /> Limpiar
+          <div class="col-md-2">
+            <label class="municipal-form-label">&nbsp;</label>
+            <button class="btn-municipal-secondary w-100" @click="limpiarFiltros">
+              <font-awesome-icon icon="eraser" /> Limpiar
             </button>
-            <button type="button" class="btn-municipal-secondary" @click="salir">
-              <font-awesome-icon icon="door-open" /> Salir
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sin resultados -->
-      <div v-if="busquedaRealizada && !contratoEncontrado" class="municipal-card mt-3">
-        <div class="municipal-card-body">
-          <div class="empty-state">
-            <font-awesome-icon icon="search" class="empty-state-icon" />
-            <h4>No se encontro el contrato</h4>
-            <p>No existe contrato con el numero y tipo de aseo especificados.</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal de Documentacion -->
-    <DocumentationModal
-      :show="showDocumentation"
-      @close="showDocumentation = false"
-      title="Ayuda - Consulta Administrativa"
-      componentName="Contratos_Cons_Admin"
-    >
-      <h3>Consulta Administrativa de Contratos</h3>
-      <p>Vista administrativa completa con datos del contribuyente y detalle de adeudos.</p>
+    <div v-if="contratos.length > 0">
+      <div class="row mb-3">
+        <div class="col-md-2">
+          <div class="municipal-card bg-primary text-white">
+            <div class="municipal-card-body p-3">
+              <h6 class="card-title" style="font-size: 0.75rem;">Total Contratos</h6>
+              <h3>{{ contratos.length }}</h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="municipal-card bg-success text-white">
+            <div class="municipal-card-body p-3">
+              <h6 class="card-title" style="font-size: 0.75rem;">Activos</h6>
+              <h3>{{ contratosActivos }}</h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="municipal-card bg-danger text-white">
+            <div class="municipal-card-body p-3">
+              <h6 class="card-title" style="font-size: 0.75rem;">Cancelados</h6>
+              <h3>{{ contratosCancelados }}</h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="municipal-card bg-info text-white">
+            <div class="municipal-card-body p-3">
+              <h6 class="card-title" style="font-size: 0.75rem;">Ingresos Mensuales</h6>
+              <h3>${{ formatCurrency(ingresosMensuales) }}</h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="municipal-card bg-warning text-dark">
+            <div class="municipal-card-body p-3">
+              <h6 class="card-title" style="font-size: 0.75rem;">Cuota Promedio</h6>
+              <h3>${{ formatCurrency(cuotaPromedio) }}</h3>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <h4>Procedimiento:</h4>
-      <ol>
-        <li>Ingrese el numero de contrato</li>
-        <li>Seleccione el tipo de aseo</li>
-        <li>Presione Buscar</li>
-        <li>Revise los datos del contribuyente en el encabezado</li>
-        <li>Use las pestanas para ver Datos Varios o Detalle de Adeudos</li>
-      </ol>
+      <div class="municipal-card">
+        <div class="municipal-card-header bg-light d-flex justify-content-between">
+          <h6 class="mb-0">Resultados ({{ contratos.length }})</h6>
+          <div>
+            <button class="btn btn-sm btn-success me-2" @click="exportarExcel">
+              <font-awesome-icon icon="file-excel" /> Excel
+            </button>
+            <button class="btn btn-sm btn-danger" @click="exportarPDF">
+              <font-awesome-icon icon="file-pdf" /> PDF
+            </button>
+          </div>
+        </div>
+        <div class="municipal-card-body">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead>
+                <tr>
+                  <th>Contrato</th>
+                  <th>Contribuyente</th>
+                  <th>RFC</th>
+                  <th>Domicilio</th>
+                  <th>Tipo</th>
+                  <th>Zona</th>
+                  <th>Empresa</th>
+                  <th class="text-end">Cuota</th>
+                  <th>Fecha Alta</th>
+                  <th>Status</th>
+                  <th>Adeudos</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="contrato in contratosPaginados" :key="contrato.control_contrato">
+                  <td><strong>{{ contrato.num_contrato }}</strong></td>
+                  <td>{{ contrato.contribuyente }}</td>
+                  <td>{{ contrato.rfc || 'N/A' }}</td>
+                  <td>{{ contrato.domicilio }}</td>
+                  <td>{{ formatTipoAseo(contrato.tipo_aseo) }}</td>
+                  <td>{{ contrato.zona }}</td>
+                  <td>{{ contrato.empresa }}</td>
+                  <td class="text-end">${{ formatCurrency(contrato.cuota_mensual) }}</td>
+                  <td>{{ formatFecha(contrato.fecha_alta) }}</td>
+                  <td>
+                    <span class="badge" :class="contrato.status === 'A' ? 'bg-success' : 'bg-danger'">
+                      {{ contrato.status === 'A' ? 'Activo' : 'Cancelado' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span v-if="contrato.tiene_adeudos === 'S'" class="badge badge-warning">
+                      {{ contrato.num_adeudos || 0 }}
+                    </span>
+                    <span v-else class="badge badge-secondary">0</span>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-info" @click="verDetalle(contrato)">
+                      <font-awesome-icon icon="eye" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-      <h4>Pestanas:</h4>
+          <div v-if="totalPaginas > 1" class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+              Mostrando {{ ((paginaActual - 1) * itemsPorPagina) + 1 }} -
+              {{ Math.min(paginaActual * itemsPorPagina, contratos.length) }}
+              de {{ contratos.length }}
+            </div>
+            <nav>
+              <ul class="pagination pagination-sm mb-0">
+                <li class="page-item" :class="{ disabled: paginaActual === 1 }">
+                  <a class="page-link" @click="paginaActual--" href="#">Anterior</a>
+                </li>
+                <li class="page-item" v-for="p in paginasVisibles" :key="p"
+                    :class="{ active: p === paginaActual }">
+                  <a class="page-link" @click="paginaActual = p" href="#">{{ p }}</a>
+                </li>
+                <li class="page-item" :class="{ disabled: paginaActual === totalPaginas }">
+                  <a class="page-link" @click="paginaActual++" href="#">Siguiente</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-else-if="!cargando && consultaRealizada" class="alert alert-info">
+      <font-awesome-icon icon="info-circle" class="me-2" />
+      No se encontraron contratos con los criterios especificados.
+    </div>
+
+    <DocumentationModal v-if="mostrarAyuda" :show="mostrarAyuda" @close="mostrarAyuda = false"
+      title="Consulta Administrativa de Contratos">
+      <h6>Descripción</h6>
+      <p>Vista administrativa completa para consulta y análisis de contratos con filtros avanzados.</p>
+      <h6>Filtros Disponibles</h6>
       <ul>
-        <li><strong>Datos Varios:</strong> Informacion adicional del contrato</li>
-        <li><strong>Detalle Adeudos:</strong> Lista de adeudos con rubros, conceptos y montos</li>
+        <li>Empresa prestadora del servicio</li>
+        <li>Tipo de aseo (Doméstico, Comercial, Industrial, Servicios)</li>
+        <li>Status (Activo/Cancelado)</li>
+        <li>Zona geográfica</li>
+        <li>Rango de cuota mensual</li>
+        <li>Contratos con/sin adeudos</li>
+        <li>Búsqueda por contrato, RFC o contribuyente</li>
       </ul>
-
-      <h4>Funcionalidades:</h4>
+      <h6>Funcionalidades</h6>
       <ul>
-        <li>Doble clic en un adeudo para filtrar por referencia</li>
-        <li>Totales por cuenta de aplicacion</li>
-        <li>Leyendas y alertas de cobro</li>
+        <li>Estadísticas en tiempo real</li>
+        <li>Paginación de resultados</li>
+        <li>Exportación a Excel y PDF</li>
+        <li>Vista detallada por contrato</li>
       </ul>
     </DocumentationModal>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-import Swal from 'sweetalert2'
-
-const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
+import { useToast } from '@/composables/useToast'
 
 const { execute } = useApi()
-const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
-const router = useRouter()
+const { handleError } = useLicenciasErrorHandler()
+const { showToast } = useToast()
 
-// Estado
-const showDocumentation = ref(false)
-const tiposAseo = ref([])
-const numContrato = ref(null)
-const tipoAseoSeleccionado = ref('')
-const contratoEncontrado = ref(false)
-const busquedaRealizada = ref(false)
-const tabActiva = ref('datos')
-const filtroReferencia = ref('')
+const cargando = ref(false)
+const mostrarAyuda = ref(false)
+const consultaRealizada = ref(false)
+const contratos = ref([])
+const empresas = ref([])
+const zonas = ref([])
+const paginaActual = ref(1)
+const itemsPorPagina = ref(50)
 
-// Datos
-const encabezado = ref({})
-const datosVarios = ref([])
-const detalleAdeudos = ref([])
-const totalesAdeudos = ref([])
+const filtros = ref({
+  empresa: '',
+  tipoAseo: '',
+  status: '',
+  zona: '',
+  busqueda: '',
+  cuotaMin: 0,
+  cuotaMax: 0,
+  conAdeudos: '',
+  limit: 100
+})
 
-// Formatear moneda
+const contratosActivos = computed(() => contratos.value.filter(c => c.status === 'A').length)
+const contratosCancelados = computed(() => contratos.value.filter(c => c.status === 'I').length)
+
+const ingresosMensuales = computed(() => {
+  return contratos.value
+    .filter(c => c.status === 'A')
+    .reduce((sum, c) => sum + parseFloat(c.cuota_mensual || 0), 0)
+})
+
+const cuotaPromedio = computed(() => {
+  const activos = contratos.value.filter(c => c.status === 'A')
+  return activos.length > 0 ? ingresosMensuales.value / activos.length : 0
+})
+
+const totalPaginas = computed(() => Math.ceil(contratos.value.length / itemsPorPagina.value))
+
+const paginasVisibles = computed(() => {
+  const maxVisible = 5
+  let inicio = Math.max(1, paginaActual.value - Math.floor(maxVisible / 2))
+  let fin = Math.min(totalPaginas.value, inicio + maxVisible - 1)
+
+  if (fin - inicio < maxVisible - 1) {
+    inicio = Math.max(1, fin - maxVisible + 1)
+  }
+
+  const paginas = []
+  for (let i = inicio; i <= fin; i++) {
+    paginas.push(i)
+  }
+  return paginas
+})
+
+const contratosPaginados = computed(() => {
+  const inicio = (paginaActual.value - 1) * itemsPorPagina.value
+  return contratos.value.slice(inicio, inicio + itemsPorPagina.value)
+})
+
+const consultar = async () => {
+  cargando.value = true
+  consultaRealizada.value = false
+  try {
+    const params = {
+      p_empresa: filtros.value.empresa || null,
+      p_tipo_aseo: filtros.value.tipoAseo || null,
+      p_status: filtros.value.status || null,
+      p_zona: filtros.value.zona || null,
+      p_busqueda: filtros.value.busqueda || null,
+      p_cuota_min: filtros.value.cuotaMin || 0,
+      p_cuota_max: filtros.value.cuotaMax || 0,
+      p_con_adeudos: filtros.value.conAdeudos || null,
+      p_limit: filtros.value.limit || 0
+    }
+    const response = await execute('SP_ASEO_CONTRATOS_CONSULTA_ADMIN', 'aseo_contratado', params)
+    contratos.value = response || []
+    consultaRealizada.value = true
+    paginaActual.value = 1
+    showToast(`${contratos.value.length} contrato(s) encontrado(s)`, 'success')
+  } catch (error) {
+    handleError(error, 'Error al consultar contratos')
+  } finally {
+    cargando.value = false
+  }
+}
+
+const limpiarFiltros = () => {
+  filtros.value = {
+    empresa: '',
+    tipoAseo: '',
+    status: '',
+    zona: '',
+    busqueda: '',
+    cuotaMin: 0,
+    cuotaMax: 0,
+    conAdeudos: '',
+    limit: 100
+  }
+  contratos.value = []
+  consultaRealizada.value = false
+}
+
+const verDetalle = (contrato) => {
+  showToast(`Ver detalle de contrato: ${contrato.num_contrato}`, 'info')
+}
+
+const exportarExcel = () => showToast('Exportando a Excel...', 'info')
+const exportarPDF = () => showToast('Exportando a PDF...', 'info')
+
 const formatCurrency = (value) => {
-  return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(value || 0)
+  return new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2 }).format(value || 0)
 }
 
-// Cargar tipos de aseo
-const cargarTiposAseo = async () => {
-  try {
-    const data = await execute('sp_aseo_tipos_aseo_combo', BASE_DB, [], '', null, SCHEMA)
-    if (data && Array.isArray(data)) {
-      tiposAseo.value = data
-      if (data.length >= 3) {
-        tipoAseoSeleccionado.value = data[2].tipo_aseo
-      }
-    }
-  } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al cargar tipos de aseo')
-  }
+const formatFecha = (fecha) => {
+  return fecha ? new Date(fecha).toLocaleDateString('es-MX') : 'N/A'
 }
 
-// Buscar contrato
-const buscarContrato = async () => {
-  if (!numContrato.value || numContrato.value === 0) {
-    showToast('Ingrese un numero de contrato', 'warning')
-    return
-  }
-  if (!tipoAseoSeleccionado.value) {
-    showToast('Seleccione un tipo de aseo', 'warning')
-    return
-  }
-
-  showLoading()
-  busquedaRealizada.value = true
-  contratoEncontrado.value = false
-  encabezado.value = {}
-  datosVarios.value = []
-  detalleAdeudos.value = []
-  totalesAdeudos.value = []
-  filtroReferencia.value = ''
-
-  try {
-    // 1. Cargar encabezado
-    const paramsEnc = [
-      { nombre: 'p_tipo', valor: tipoAseoSeleccionado.value, tipo: 'string' },
-      { nombre: 'p_numero', valor: numContrato.value, tipo: 'integer' }
-    ]
-    const dataEnc = await execute('admin_encabezados_18z', BASE_DB, paramsEnc, '', null, SCHEMA)
-
-    if (dataEnc && dataEnc.length > 0 && dataEnc[0].propietario && dataEnc[0].propietario.trim() !== '') {
-      encabezado.value = dataEnc[0]
-      contratoEncontrado.value = true
-
-      // Mostrar leyenda si existe
-      if (encabezado.value.leyenda) {
-        hideLoading()
-        await Swal.fire({
-          title: 'Informacion',
-          text: encabezado.value.leyenda,
-          icon: 'info'
-        })
-        showLoading()
-      }
-
-      // 2. Cargar datos varios
-      await cargarDatosVarios()
-
-      // 3. Cargar detalle adeudos
-      await cargarDetalleAdeudos('')
-
-    } else {
-      hideLoading()
-      showToast('No se encontro contrato con esos datos', 'warning')
-      return
-    }
-
-  } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al buscar contrato')
-  } finally {
-    hideLoading()
-  }
+const formatTipoAseo = (tipo) => {
+  const tipos = { 'D': 'Doméstico', 'C': 'Comercial', 'I': 'Industrial', 'S': 'Servicios' }
+  return tipos[tipo] || tipo
 }
 
-// Cargar datos varios
-const cargarDatosVarios = async () => {
-  try {
-    const params = [
-      { nombre: 'p_tipo', valor: tipoAseoSeleccionado.value, tipo: 'string' },
-      { nombre: 'p_numero', valor: numContrato.value, tipo: 'integer' }
-    ]
-    const data = await execute('admin_datos_varios_18', BASE_DB, params, '', null, SCHEMA)
-    if (data && Array.isArray(data)) {
-      datosVarios.value = data
-    }
-  } catch (error) {
-    hideLoading()
-    console.error('Error al cargar datos varios:', error)
-  }
-}
-
-// Cargar detalle adeudos
-const cargarDetalleAdeudos = async (pref) => {
-  try {
-    const params = [
-      { nombre: 'p_tipo', valor: tipoAseoSeleccionado.value, tipo: 'string' },
-      { nombre: 'p_numero', valor: numContrato.value, tipo: 'integer' },
-      { nombre: 'pref', valor: pref || '', tipo: 'string' }
-    ]
-
-    // Detalle
-    const dataDetalle = await execute('admin_adeudos_detalle_18', BASE_DB, params, '', null, SCHEMA)
-    if (dataDetalle && Array.isArray(dataDetalle)) {
-      detalleAdeudos.value = dataDetalle
-    }
-
-    // Totales
-    const dataTotales = await execute('admin_adeudos_detalle_18_tot', BASE_DB, params, '', null, SCHEMA)
-    if (dataTotales && Array.isArray(dataTotales)) {
-      totalesAdeudos.value = dataTotales
-    }
-
-  } catch (error) {
-    hideLoading()
-    console.error('Error al cargar adeudos:', error)
-  }
-}
-
-// Filtrar por referencia (doble clic)
-const filtrarPorReferencia = async (referencia) => {
-  if (!referencia) return
-  filtroReferencia.value = referencia
-  showLoading()
-  try {
-    await cargarDetalleAdeudos(referencia)
-  } finally {
-    hideLoading()
-  }
-}
-
-// Limpiar filtro referencia
-const limpiarFiltroReferencia = async () => {
-  filtroReferencia.value = ''
-  showLoading()
-  try {
-    await cargarDetalleAdeudos('')
-  } finally {
-    hideLoading()
-  }
-}
-
-// Limpiar
-const limpiar = () => {
-  numContrato.value = null
-  contratoEncontrado.value = false
-  busquedaRealizada.value = false
-  encabezado.value = {}
-  datosVarios.value = []
-  detalleAdeudos.value = []
-  totalesAdeudos.value = []
-  filtroReferencia.value = ''
-  tabActiva.value = 'datos'
-}
-
-// Salir
-const salir = () => {
-  router.push('/aseo-contratado')
-}
-
-// Inicializar
 onMounted(async () => {
-  showLoading()
   try {
-    await cargarTiposAseo()
+    const [respEmpresas, respZonas] = await Promise.all([
+      execute('SP_ASEO_EMPRESAS_LIST', 'aseo_contratado', {}),
+      execute('SP_ASEO_ZONAS_LIST', 'aseo_contratado', {})
+    ])
+    empresas.value = respEmpresas || []
+    zonas.value = respZonas || []
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al inicializar')
-  } finally {
-    hideLoading()
+    console.error('Error al cargar catálogos:', error)
   }
 })
 </script>
+

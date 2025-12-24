@@ -1,5 +1,5 @@
 <template>
-  <div class="consulta-licencias-container">
+  <div class="module-view-content">
     <!-- Header con título y botones -->
     <div class="page-header">
       <div class="header-content">
@@ -37,11 +37,11 @@
             <font-awesome-icon icon="sync-alt" />
             Actualizar
           </button>
-          <button
-            class="btn-municipal-purple"
-            @click="openDocumentation"
-            title="Ver documentación"
-          >
+          <button class="btn-municipal-info" @click="abrirDocumentacion">
+            <font-awesome-icon icon="book" />
+            Documentación
+          </button>
+          <button class="btn-municipal-purple" @click="abrirAyuda">
             <font-awesome-icon icon="question-circle" />
             Ayuda
           </button>
@@ -261,105 +261,135 @@
     </div>
 
     <!-- Tabla de resultados -->
-    <div class="results-section" v-if="primeraBusqueda">
-      <div class="results-header">
-        <h2 class="results-title">
+    <div class="municipal-card" v-if="primeraBusqueda">
+      <div class="municipal-card-header header-with-badge">
+        <h5>
           <font-awesome-icon icon="table" />
           Resultados de Búsqueda
-        </h2>
-        <span class="results-badge">{{ formatNumber(totalResultados) }} registros</span>
+        </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="licencias.length > 0">
+            {{ formatNumber(totalResultados) }} registros
+          </span>
+        </div>
       </div>
 
-      <div class="table-responsive">
-        <table class="municipal-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Licencia</th>
-              <th>Vigente</th>
-              <th>Propietario</th>
-              <th>RFC</th>
-              <th>Giro</th>
-              <th>Actividad</th>
-              <th>Ubicación</th>
-              <th>Colonia</th>
-              <th>Empleados</th>
-              <th>Fecha Otorg.</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="licencias.length === 0">
-              <td colspan="11" class="text-center">
-                <font-awesome-icon icon="info-circle" />
-                No se encontraron resultados
-              </td>
-            </tr>
-            <tr v-for="lic in licencias" :key="lic.id_licencia">
-              <td :title="lic.id_licencia">{{ lic.id_licencia }}</td>
-              <td :title="lic.licencia">{{ lic.licencia }}</td>
-              <td>
-                <span :class="`badge-vigente badge-${lic.vigente}`">
-                  {{ getVigenteTexto(lic.vigente) }}
-                </span>
-              </td>
-              <td :title="lic.propietario">{{ lic.propietario }}</td>
-              <td :title="lic.rfc">{{ lic.rfc }}</td>
-              <td :title="lic.descripcion_giro">{{ lic.descripcion_giro }}</td>
-              <td :title="lic.actividad">{{ lic.actividad }}</td>
-              <td :title="lic.ubicacion">{{ lic.ubicacion }}</td>
-              <td :title="lic.colonia_ubic">{{ lic.colonia_ubic }}</td>
-              <td :title="lic.num_empleados">{{ lic.num_empleados || 'N/A' }}</td>
-              <td :title="lic.fecha_otorgamiento">{{ formatDate(lic.fecha_otorgamiento) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <div class="municipal-card-body">
+        <!-- Empty State - Sin resultados -->
+        <div v-if="licencias.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron licencias con los criterios especificados</p>
+        </div>
 
-      <!-- Paginación -->
-      <div class="pagination-section">
-        <div class="pagination-info">
-          Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} -
-          {{ Math.min(currentPage * itemsPerPage, totalResultados) }} de
-          {{ formatNumber(totalResultados) }} registros
+        <div v-else class="table-responsive">
+          <table class="municipal-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Licencia</th>
+                <th>Vigente</th>
+                <th>Propietario</th>
+                <th>RFC</th>
+                <th>Giro</th>
+                <th>Actividad</th>
+                <th>Ubicación</th>
+                <th>Colonia</th>
+                <th>Empleados</th>
+                <th>Fecha Otorg.</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="lic in licencias"
+                :key="lic.id_licencia"
+                @click="selectedRow = lic"
+                :class="{ 'table-row-selected': selectedRow === lic }"
+                class="row-hover"
+              >
+                <td :title="lic.id_licencia">{{ lic.id_licencia }}</td>
+                <td :title="lic.licencia">{{ lic.licencia }}</td>
+                <td>
+                  <span :class="`badge-vigente badge-${lic.vigente}`">
+                    {{ getVigenteTexto(lic.vigente) }}
+                  </span>
+                </td>
+                <td :title="lic.propietario">{{ lic.propietario }}</td>
+                <td :title="lic.rfc">{{ lic.rfc }}</td>
+                <td :title="lic.descripcion_giro">{{ lic.descripcion_giro }}</td>
+                <td :title="lic.actividad">{{ lic.actividad }}</td>
+                <td :title="lic.ubicacion">{{ lic.ubicacion }}</td>
+                <td :title="lic.colonia_ubic">{{ lic.colonia_ubic }}</td>
+                <td :title="lic.num_empleados">{{ lic.num_empleados || 'N/A' }}</td>
+                <td :title="lic.fecha_otorgamiento">{{ formatDate(lic.fecha_otorgamiento) }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div class="pagination-controls">
-          <button
-            class="btn-page"
-            :disabled="currentPage === 1"
-            @click="cambiarPagina(currentPage - 1)"
-          >
-            <font-awesome-icon icon="chevron-left" />
-            Anterior
-          </button>
-          <span class="page-number">Página {{ currentPage }} de {{ totalPages }}</span>
-          <button
-            class="btn-page"
-            :disabled="currentPage === totalPages"
-            @click="cambiarPagina(currentPage + 1)"
-          >
-            Siguiente
-            <font-awesome-icon icon="chevron-right" />
-          </button>
-        </div>
-        <div class="items-per-page">
-          <label>Registros por página:</label>
-          <select v-model="itemsPerPage" @change="cambiarItemsPorPagina" class="page-size-select">
-            <option :value="20">20</option>
-            <option :value="50">50</option>
-            <option :value="100">100</option>
-          </select>
+
+        <!-- Paginación -->
+        <div v-if="licencias.length > 0" class="pagination-controls">
+          <div class="pagination-info">
+            <span class="text-muted">
+              Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }}
+              a {{ Math.min(currentPage * itemsPerPage, totalResultados) }}
+              de {{ formatNumber(totalResultados) }} registros
+            </span>
+          </div>
+
+          <div class="pagination-size">
+            <label class="municipal-form-label me-2">Registros por página:</label>
+            <select
+              class="municipal-form-control form-control-sm"
+              :value="itemsPerPage"
+              @change="changePageSize($event.target.value)"
+              style="width: auto; display: inline-block;"
+            >
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+
+          <div class="pagination-buttons">
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+              <font-awesome-icon icon="angle-double-left" />
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+              <font-awesome-icon icon="angle-left" />
+            </button>
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="btn-sm"
+              :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+              <font-awesome-icon icon="angle-right" />
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+              <font-awesome-icon icon="angle-double-right" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'consultaLicenciafrm'"
-    :moduleName="'ayuda/padron_licencias'"
-    @close="closeDocumentation"
-  />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'ConsultaLicenciasfrm'"
+      :moduleName="'padron_licencias'"
+      :docType="docType"
+      :title="'Consulta de Licencias'"
+      @close="showDocModal = false"
+    />
+  </div>
 </template>
 
 <script setup>
@@ -372,12 +402,24 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
 // Composables
-const { execute, loading } = useApi()
+const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
 const { exportToExcel } = useExcelExport()
 const { exportToPdf } = usePdfExport()
-const showDocumentation = ref(false)
-const closeDocumentation = () => showDocumentation.value = false
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Estados
 const licencias = ref([])
@@ -385,6 +427,8 @@ const estadisticas = ref([])
 const loadingEstadisticas = ref(true)
 const showFilters = ref(false)
 const primeraBusqueda = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Paginación
 const currentPage = ref(1)
@@ -409,6 +453,20 @@ const filtros = ref({
 // Computed
 const totalPages = computed(() => {
   return Math.ceil(totalResultados.value / itemsPerPage.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
 })
 
 // Funciones de formato
@@ -457,7 +515,7 @@ const cargarEstadisticas = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response.success && response.data && response.data.length > 0) {
@@ -472,6 +530,8 @@ const cargarEstadisticas = async () => {
 const buscarLicencias = async () => {
   showLoading('Buscando licencias...', 'Consultando base de datos')
   primeraBusqueda.value = true
+  hasSearched.value = true
+  selectedRow.value = null
   showFilters.value = false
 
   try {
@@ -563,7 +623,7 @@ const buscarLicencias = async () => {
       params,
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -604,14 +664,17 @@ const buscarLicencias = async () => {
   }
 }
 
-const cambiarPagina = (nuevaPagina) => {
-  if (nuevaPagina < 1 || nuevaPagina > totalPages.value) return
-  currentPage.value = nuevaPagina
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
   buscarLicencias()
 }
 
-const cambiarItemsPorPagina = () => {
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
   currentPage.value = 1
+  selectedRow.value = null
   buscarLicencias()
 }
 
@@ -629,6 +692,10 @@ const limpiarFiltros = () => {
     ubicacion: '',
     colonia: ''
   }
+  licencias.value = []
+  hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
   establecerFechasPorDefecto()
 }
 
@@ -752,10 +819,6 @@ const exportarPDF = async () => {
   }
 }
 
-const openDocumentation = () => {
-  showDocumentation.value = true
-}
-
 // Lifecycle
 onMounted(async () => {
   establecerFechasPorDefecto()
@@ -764,11 +827,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Los estilos están en municipal-theme.css */
-.consulta-licencias-container {
-  padding: 2rem;
-}
-
 /* Badges personalizados para vigente */
 .badge-vigente {
   display: inline-block;

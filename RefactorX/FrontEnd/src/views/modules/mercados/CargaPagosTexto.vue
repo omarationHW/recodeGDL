@@ -10,10 +10,16 @@
         <p>Mercados > Importación Masiva de Pagos desde Archivo de Texto</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
         </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        
       </div>
     </div>
 
@@ -92,7 +98,7 @@
                   <font-awesome-icon icon="folder-open" />
                   Seleccionar Archivo
                 </button>
-                <button class="btn-municipal-success" @click="procesarPagos" :disabled="loading || procesando || pagos.length === 0">
+                <button class="btn-municipal-primary" @click="procesarPagos" :disabled="loading || procesando || pagos.length === 0">
                   <font-awesome-icon :icon="procesando ? 'spinner' : 'upload'" :spin="procesando" />
                   {{ procesando ? 'Procesando...' : 'Actualizar Pagos' }}
                 </button>
@@ -212,13 +218,21 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'CargaPagosTexto'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CargaPagosTexto'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CargaPagosTexto'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CargaPagosTexto'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading();
 const { showToast } = useToast();
@@ -395,16 +409,17 @@ const procesarPagos = async () => {
           { nombre: 'p_id_usuario_sistema', valor: 1, tipo: 'integer' }
         ];
 
-        const res = await axios.post('/api/generic', {
-          eRequest: {
-            Operacion: 'sp_importar_pago_texto',
-            Base: 'padron_licencias',
-            Parametros: parametros
-          }
-        });
+        const res = await apiService.execute(
+          'sp_importar_pago_texto',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-        if (res.data.eResponse.success) {
-          const result = res.data.eResponse.data.result[0];
+        if (res.success) {
+          const result = res.data.result[0];
 
           if (result.grabado) {
             pago.estado = 'grabado';

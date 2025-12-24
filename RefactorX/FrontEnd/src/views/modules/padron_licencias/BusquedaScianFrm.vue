@@ -19,10 +19,11 @@
           <font-awesome-icon icon="eraser" />
           Limpiar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -67,7 +68,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchScian"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -75,7 +75,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -95,14 +94,30 @@
           <span class="badge-purple" v-if="scianes.length > 0">
             {{ scianes.length }} registros
           </span>
-          <div v-if="loading" class="spinner-border spinner-sm" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="scianes.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="search" size="3x" />
+          </div>
+          <h4>Búsqueda de Códigos SCIAN</h4>
+          <p>Ingrese código o descripción para buscar en el catálogo SCIAN</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="scianes.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron códigos SCIAN con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla de resultados -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -114,7 +129,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="scian in scianes" :key="scian.codigo_scian" class="clickable-row" @click="viewScian(scian)">
+              <tr
+                v-for="scian in scianes"
+                :key="scian.codigo_scian"
+                @click="selectedRow = scian"
+                :class="{ 'table-row-selected': selectedRow === scian }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary"><code>{{ scian.codigo_scian }}</code></strong></td>
                 <td>{{ scian.descripcion?.trim() || 'N/A' }}</td>
                 <td>
@@ -148,12 +169,6 @@
                       Seleccionar
                     </button>
                   </div>
-                </td>
-              </tr>
-              <tr v-if="scianes.length === 0 && !loading">
-                <td colspan="5" class="text-center text-muted empty-state">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron códigos SCIAN. Use los filtros para buscar.</p>
                 </td>
               </tr>
             </tbody>
@@ -211,14 +226,6 @@
             </button>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading && scianes.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Buscando códigos SCIAN...</p>
       </div>
     </div>
 
@@ -311,38 +318,48 @@
         <font-awesome-icon icon="times" />
       </button>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'BusquedaScianFrm'"
+      :moduleName="'padron_licencias'"
+      :docType="docType"
+      :title="'Búsqueda SCIAN'"
+      @close="showDocModal = false"
+    />
     </div>
     <!-- /module-view-content -->
   </div>
   <!-- /module-view -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'BusquedaScianFrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
   </template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -350,10 +367,14 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const scianes = ref([])
 const scianSeleccionado = ref(null)
 const selectedScian = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const showViewModal = ref(false)
 const showFilters = ref(true)
 
@@ -380,7 +401,9 @@ const searchScian = async () => {
     return
   }
 
-  setLoading(true, 'Buscando códigos SCIAN...')
+  showLoading('Buscando códigos SCIAN...', 'Consultando catálogo')
+  hasSearched.value = true
+  selectedRow.value = null
 
   // Medir tiempo de ejecución
   const startTime = performance.now()
@@ -423,7 +446,7 @@ const searchScian = async () => {
     handleApiError(error)
     scianes.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -434,6 +457,8 @@ const clearFilters = () => {
   }
   scianes.value = []
   scianSeleccionado.value = null
+  hasSearched.value = false
+  selectedRow.value = null
   showToast('info', 'Filtros limpiados')
 }
 

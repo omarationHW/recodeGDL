@@ -9,14 +9,16 @@
         <h1>Bloquear/Desbloquear Trámite</h1>
         <p>Padrón de Licencias - Gestión de bloqueos de trámites</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -136,40 +138,22 @@
           <div class="mt-4" v-if="!hasBloqueosActivos">
             <h6 class="section-title">
               <font-awesome-icon icon="lock" />
-              Registrar Bloqueo
+              Bloquear Trámite
             </h6>
             <form @submit.prevent="confirmarBloqueo">
               <div class="form-row">
-                <div class="form-group col-md-6">
-                  <label class="municipal-form-label">Tipo de Bloqueo *:</label>
-                  <select
-                    class="municipal-form-control"
-                    v-model="bloqueoForm.tipo"
-                    required
-                  >
-                    <option value="">Seleccione un tipo...</option>
-                    <option value="ADMINISTRATIVO">Administrativo</option>
-                    <option value="JURIDICO">Jurídico</option>
-                    <option value="FISCAL">Fiscal</option>
-                    <option value="TECNICO">Técnico</option>
-                    <option value="DOCUMENTACION">Documentación incompleta</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-row">
                 <div class="form-group col-md-12">
-                  <label class="municipal-form-label">Motivo del bloqueo *:</label>
-                  <textarea
+                  <label class="municipal-form-label">Observaciones *:</label>
+                  <input
+                    type="text"
                     class="municipal-form-control"
-                    v-model="bloqueoForm.motivo"
-                    rows="3"
-                    maxlength="500"
-                    placeholder="Ingrese el motivo del bloqueo"
+                    v-model="bloqueoForm.observa"
+                    maxlength="80"
+                    placeholder="Ingrese las observaciones del bloqueo"
                     required
-                  ></textarea>
+                  />
                   <small class="form-text text-muted">
-                    {{ bloqueoForm.motivo.length }}/500 caracteres
+                    {{ bloqueoForm.observa.length }}/80 caracteres
                   </small>
                 </div>
               </div>
@@ -207,48 +191,40 @@
               <table class="municipal-table">
                 <thead class="municipal-table-header">
                   <tr>
-                    <th>Tipo</th>
-                    <th>Motivo Bloqueo</th>
-                    <th>Fecha Bloqueo</th>
-                    <th>Usuario Bloqueo</th>
-                    <th>Motivo Desbloqueo</th>
-                    <th>Fecha Desbloqueo</th>
                     <th>Estado</th>
+                    <th>Realizó</th>
+                    <th>Fecha</th>
+                    <th>Motivo</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="bloqueo in bloqueos" :key="bloqueo.id_bloqueo" class="clickable-row">
+                  <tr
+                    v-for="(bloqueo, index) in bloqueos"
+                    :key="index"
+                    @click="selectedRow = bloqueo"
+                    :class="{ 'table-row-selected': selectedRow === bloqueo }"
+                    class="row-hover"
+                  >
                     <td>
-                      <span class="badge-warning">
-                        {{ bloqueo.tipo }}
+                      <span :class="bloqueo.bloqueado === 1 ? 'badge-danger' : 'badge-success'" class="badge">
+                        <font-awesome-icon :icon="bloqueo.bloqueado === 1 ? 'lock' : 'unlock'" />
+                        {{ bloqueo.estado }}
                       </span>
                     </td>
-                    <td>{{ bloqueo.motivo_bloqueo }}</td>
+                    <td><code>{{ bloqueo.capturista }}</code></td>
                     <td>
                       <small class="text-muted">
                         <font-awesome-icon icon="calendar" />
-                        {{ formatDate(bloqueo.fecha_bloqueo) }}
+                        {{ formatDate(bloqueo.fecha_mov) }}
                       </small>
                     </td>
-                    <td><code>{{ bloqueo.usuario_bloqueo }}</code></td>
-                    <td>{{ bloqueo.motivo_desbloqueo || '-' }}</td>
-                    <td>
-                      <small class="text-muted">
-                        {{ formatDate(bloqueo.fecha_desbloqueo) }}
-                      </small>
-                    </td>
-                    <td>
-                      <span :class="bloqueo.activo ? 'badge-danger' : 'badge-success'" class="badge">
-                        <font-awesome-icon :icon="bloqueo.activo ? 'lock' : 'unlock'" />
-                        {{ bloqueo.activo ? 'Bloqueado' : 'Desbloqueado' }}
-                      </span>
-                    </td>
+                    <td>{{ bloqueo.observa || '-' }}</td>
                     <td>
                       <button
-                        v-if="bloqueo.activo"
+                        v-if="bloqueo.vigente === 'V' && bloqueo.bloqueado === 1"
                         class="btn-municipal-success btn-sm"
-                        @click="confirmarDesbloqueo(bloqueo)"
+                        @click.stop="confirmarDesbloqueo(bloqueo)"
                         title="Desbloquear"
                       >
                         <font-awesome-icon icon="unlock" /> Desbloquear
@@ -262,15 +238,29 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'BloquearTramitefrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'BloquearTramitefrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Bloquear/Desbloquear Trámite'"
+        @close="showDocModal = false"
+      />
+    </div>
   </div>
 </template>
 
@@ -283,28 +273,45 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 import Swal from 'sweetalert2'
 
 // Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { handleApiError, showToast } = useLicenciasErrorHandler()
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Estado
 const searchTramite = ref(null)
 const tramiteData = ref(null)
 const bloqueos = ref([])
 const giroDescripcion = ref('')
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 const bloqueoForm = ref({
-  tipo: '',
-  motivo: ''
+  observa: ''
 })
 
 // Computed
 const hasBloqueosActivos = computed(() => {
-  return bloqueos.value.some(b => b.activo)
+  return bloqueos.value.some(b => b.vigente === 'V' && b.bloqueado === 1)
 })
 
 // Métodos
@@ -312,7 +319,9 @@ const buscarTramite = async () => {
   if (!searchTramite.value) return
 
   const startTime = Date.now()
-  showLoading('Buscando trámite...')
+  showLoading('Buscando trámite...', 'Consultando base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const response = await execute(
@@ -323,7 +332,7 @@ const buscarTramite = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -363,7 +372,7 @@ const cargarBloqueos = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -387,7 +396,7 @@ const cargarGiroDescripcion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -400,24 +409,23 @@ const cargarGiroDescripcion = async () => {
 }
 
 const confirmarBloqueo = async () => {
-  if (!bloqueoForm.value.tipo || !bloqueoForm.value.motivo.trim()) {
+  if (!bloqueoForm.value.observa.trim()) {
     await Swal.fire({
       icon: 'warning',
       title: 'Datos incompletos',
-      text: 'Debe completar todos los campos obligatorios',
+      text: 'Debe ingresar las observaciones',
       confirmButtonColor: '#ea8215'
     })
     return
   }
 
-  // Confirmación
+  // Confirmación (igual que en Delphi: inputbox)
   const confirm = await Swal.fire({
     icon: 'warning',
-    title: '¿Bloquear trámite?',
+    title: 'Bloqueando trámite...',
     html: `
       <p>¿Está seguro de bloquear el trámite <strong>#${tramiteData.value.id_tramite}</strong>?</p>
-      <p><strong>Tipo:</strong> ${bloqueoForm.value.tipo}</p>
-      <p><strong>Motivo:</strong> ${bloqueoForm.value.motivo}</p>
+      <p><strong>Observaciones:</strong> ${bloqueoForm.value.observa}</p>
     `,
     showCancelButton: true,
     confirmButtonColor: '#dc3545',
@@ -428,20 +436,20 @@ const confirmarBloqueo = async () => {
 
   if (!confirm.isConfirmed) return
 
-  showLoading('Bloqueando trámite...')
+  showLoading('Bloqueando trámite...', 'Registrando bloqueo')
   try {
     const response = await execute(
       'sp_bloqueartramite_bloquear',
       'padron_licencias',
       [
         { nombre: 'p_id_tramite', valor: searchTramite.value, tipo: 'integer' },
-        { nombre: 'p_tipo', valor: bloqueoForm.value.tipo, tipo: 'string' },
-        { nombre: 'p_motivo', valor: bloqueoForm.value.motivo, tipo: 'string' },
+        { nombre: 'p_tipo', valor: '', tipo: 'string' },
+        { nombre: 'p_motivo', valor: bloqueoForm.value.observa, tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -455,7 +463,7 @@ const confirmarBloqueo = async () => {
         timer: 2000
       })
 
-      bloqueoForm.value = { tipo: '', motivo: '' }
+      bloqueoForm.value = { observa: '' }
       await cargarBloqueos()
       showToast('success', 'Trámite bloqueado exitosamente', 3000, 'bottom-right')
     } else {
@@ -477,12 +485,12 @@ const confirmarDesbloqueo = async (bloqueo) => {
     title: 'Desbloquear trámite',
     html: `
       <p>Ingrese el motivo del desbloqueo:</p>
-      <p><strong>Bloqueo:</strong> ${bloqueo.tipo} - ${bloqueo.motivo_bloqueo}</p>
+      <p><strong>Motivo bloqueo:</strong> ${bloqueo.observa || 'Sin motivo'}</p>
     `,
     input: 'textarea',
-    inputPlaceholder: 'Motivo del desbloqueo...',
+    inputPlaceholder: 'Observaciones...',
     inputAttributes: {
-      'aria-label': 'Motivo del desbloqueo',
+      'aria-label': 'Observaciones del desbloqueo',
       rows: 3
     },
     showCancelButton: true,
@@ -492,26 +500,26 @@ const confirmarDesbloqueo = async (bloqueo) => {
     cancelButtonText: 'Cancelar',
     inputValidator: (value) => {
       if (!value) {
-        return 'Debe ingresar el motivo del desbloqueo'
+        return 'Debe ingresar las observaciones'
       }
     }
   })
 
   if (!motivo) return
 
-  showLoading('Desbloqueando trámite...')
+  showLoading('Desbloqueando trámite...', 'Procesando desbloqueo')
   try {
     const response = await execute(
       'sp_bloqueartramite_desbloquear',
       'padron_licencias',
       [
-        { nombre: 'p_id_bloqueo', valor: bloqueo.id_bloqueo, tipo: 'integer' },
-        { nombre: 'p_motivo_desbloqueo', valor: motivo, tipo: 'string' },
+        { nombre: 'p_id_tramite', valor: bloqueo.id_tramite, tipo: 'integer' },
+        { nombre: 'p_motivo', valor: motivo, tipo: 'string' },
         { nombre: 'p_usuario', valor: 'sistema', tipo: 'string' }
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -546,7 +554,9 @@ const limpiarFormulario = () => {
   tramiteData.value = null
   bloqueos.value = []
   giroDescripcion.value = ''
-  bloqueoForm.value = { tipo: '', motivo: '' }
+  bloqueoForm.value = { observa: '' }
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const getEstadoBadgeClass = (estatus) => {

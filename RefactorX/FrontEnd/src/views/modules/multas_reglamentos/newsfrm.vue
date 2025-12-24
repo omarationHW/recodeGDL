@@ -8,6 +8,16 @@
         <h1>Novedades de Multas</h1>
         <p>Consulta de multas recientes y novedades con paginación</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -122,22 +132,43 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'newsfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Novedades de Multas'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'newsfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Novedades de Multas'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_NEWSFRM'
+const SCHEMA = 'publico'
 
 const filters = ref({ q: '' })
 const rows = ref([])
@@ -154,7 +185,7 @@ async function reload() {
       { nombre: 'p_offset', tipo: 'integer', valor: (page.value - 1) * pageSize.value },
       { nombre: 'p_limit', tipo: 'integer', valor: pageSize.value }
     ]
-    const data = await execute(OP, BASE_DB, params)
+    const data = await execute(OP, BASE_DB, params, '', null, SCHEMA)
     const result = Array.isArray(data?.result) ? data.result : Array.isArray(data) ? data : []
     rows.value = result
     // Extraer total_registros de la primera fila si existe
@@ -198,108 +229,3 @@ function getStatusClass(status) {
 }
 </script>
 
-<style scoped>
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.status-success {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.status-danger {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.status-warning {
-  background-color: #fff3cd;
-  color: #856404;
-}
-
-.status-secondary {
-  background-color: #e2e3e5;
-  color: #383d41;
-}
-
-.text-end {
-  text-align: right;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-muted {
-  color: #6c757d;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  border-top: 1px solid #dee2e6;
-}
-
-.pagination-info {
-  color: #6c757d;
-  font-size: 0.875rem;
-}
-
-.pagination-controls {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.page-size-selector {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.page-size-selector label {
-  font-size: 0.875rem;
-  color: #6c757d;
-}
-
-.page-size-selector select {
-  padding: 0.25rem 0.5rem;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 0.875rem;
-}
-
-.pagination-nav {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.pagination-button {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #ced4da;
-  background-color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.pagination-button:hover:not(:disabled) {
-  background-color: #f8f9fa;
-  border-color: #adb5bd;
-}
-
-.pagination-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-</style>

@@ -8,6 +8,16 @@
         <h1>Pagos Diversos</h1>
         <p>Consulta de pagos diversos registrados</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
     <div class="module-view-content">
       <!-- Card de búsqueda -->
@@ -105,22 +115,44 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'pagosdivfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Pagos Diversos'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'pagosdivfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Pagos Diversos'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useApi } from '@/composables/useApi';
+import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue';
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { loading, execute } = useApi();
+const { showLoading, hideLoading } = useGlobalLoading()
 const BASE_DB = 'multas_reglamentos';
 const OP = 'RECAUDADORA_PAGOSDIVFRM';
+const SCHEMA = 'publico';
 
 const filters = ref({
   cuenta: ''
@@ -166,9 +198,10 @@ async function pagar() {
   cols.value = [];
 
   try {
+    showLoading('Consultando...', 'Por favor espere')
     const data = await execute(OP, BASE_DB, [
       { name: 'clave_cuenta', type: 'C', value: String(filters.value.cuenta || '') }
-    ]);
+    ], '', null, SCHEMA);
 
     // Extraer los datos de la respuesta
     let rows = [];
@@ -188,6 +221,8 @@ async function pagar() {
     allRows.value = [];
     cols.value = [];
     searched.value = true;
+  } finally {
+    hideLoading()
   }
 }
 
@@ -198,109 +233,3 @@ function goToPage(page) {
 }
 </script>
 
-<style scoped>
-.text-center {
-  text-align: center;
-}
-
-.text-muted {
-  color: #6c757d;
-}
-
-.mb-3 {
-  margin-bottom: 1rem;
-}
-
-/* Paginación */
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #dee2e6;
-}
-
-.pagination-info {
-  color: #6c757d;
-  font-size: 0.875rem;
-}
-
-.pagination-controls {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.pagination-pages {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.pagination-button {
-  padding: 0.375rem 0.75rem;
-  border: 1px solid #dee2e6;
-  background-color: #fff;
-  color: #007bff;
-  cursor: pointer;
-  border-radius: 0.25rem;
-  transition: all 0.2s;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.pagination-button:hover:not(:disabled) {
-  background-color: #e9ecef;
-  border-color: #007bff;
-}
-
-.pagination-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-  color: #6c757d;
-}
-
-.pagination-button.active {
-  background-color: #007bff;
-  color: #fff;
-  border-color: #007bff;
-}
-
-.table-responsive {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-  cursor: pointer;
-}
-
-/* Responsive para móviles */
-@media (max-width: 768px) {
-  .pagination-container {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .pagination-controls {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .pagination-pages {
-    justify-content: center;
-  }
-
-  .municipal-table {
-    font-size: 0.875rem;
-  }
-
-  .municipal-table th,
-  .municipal-table td {
-    padding: 0.5rem;
-  }
-}
-</style>

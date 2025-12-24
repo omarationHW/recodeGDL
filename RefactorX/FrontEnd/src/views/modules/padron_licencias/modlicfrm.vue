@@ -10,7 +10,7 @@
         <p>Padrón de Licencias - Editar datos de licencias y anuncios existentes</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="regresarConsulta">
+        <button class="btn-municipal-warning" @click="regresarConsulta">
           <font-awesome-icon icon="arrow-left" />
           Regresar a Consulta
         </button>
@@ -18,7 +18,11 @@
           <font-awesome-icon icon="plus" />
           Nueva Licencia
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -113,9 +117,9 @@
         </div>
 
         <!-- Tabs de Licencia -->
-        <div class="tabs-container">
+        <div class="municipal-tabs">
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'propietario' }"
             @click="setActiveTab('propietario')"
           >
@@ -123,7 +127,7 @@
             Propietario
           </button>
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'domicilioFiscal' }"
             @click="setActiveTab('domicilioFiscal')"
           >
@@ -131,7 +135,7 @@
             Domicilio Fiscal
           </button>
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'giroActividad' }"
             @click="setActiveTab('giroActividad')"
           >
@@ -139,7 +143,7 @@
             Giro y Actividad
           </button>
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'ubicacionNegocio' }"
             @click="setActiveTab('ubicacionNegocio')"
           >
@@ -147,7 +151,7 @@
             Ubicación del Negocio
           </button>
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'datosTecnicos' }"
             @click="setActiveTab('datosTecnicos')"
           >
@@ -599,9 +603,9 @@
         </div>
 
         <!-- Tabs de Anuncio -->
-        <div class="tabs-container">
+        <div class="municipal-tabs">
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'infoAnuncio' }"
             @click="setActiveTab('infoAnuncio')"
           >
@@ -609,7 +613,7 @@
             Información
           </button>
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'dimensiones' }"
             @click="setActiveTab('dimensiones')"
           >
@@ -617,7 +621,7 @@
             Dimensiones
           </button>
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'ubicacionAnuncio' }"
             @click="setActiveTab('ubicacionAnuncio')"
           >
@@ -858,26 +862,33 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'modlicfrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Modificación de Licencias y Anuncios'"
+        @close="showDocModal = false"
+      />
     </div>
+    <!-- /module-view-content -->
   </div>
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'modlicfrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
-  </template>
+  <!-- /module-view -->
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -889,10 +900,19 @@ import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const router = useRouter()
 const { execute } = useApi()
@@ -950,7 +970,7 @@ const buscarLicencia = async () => {
       [{ nombre: 'p_licencia', valor: searchNumber.value, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -992,7 +1012,7 @@ const buscarAnuncio = async () => {
       [{ nombre: 'p_anuncio', valor: searchNumber.value, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -1026,7 +1046,7 @@ const loadGirosScian = async () => {
       [],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result) {
@@ -1047,7 +1067,7 @@ const loadActividades = async (codGiro) => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result) {
@@ -1065,7 +1085,7 @@ const loadTiposAnuncio = async () => {
       [],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result) {
@@ -1083,7 +1103,7 @@ const loadSaldoLicencia = async (idLicencia) => {
       [{ nombre: 'p_id_licencia', valor: idLicencia, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -1168,7 +1188,7 @@ const actualizarLicencia = async () => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -1240,7 +1260,7 @@ const actualizarAnuncio = async () => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -1291,7 +1311,7 @@ const recalcularSaldos = async (idLicencia) => {
       [{ nombre: 'p_id_licencia', valor: idLicencia, tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
   } catch (error) {
   }
@@ -1308,7 +1328,7 @@ const recalcularAdeudoAnuncio = async (idAnuncio, idLicencia) => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     // Recalcular saldos totales de la licencia
@@ -1336,7 +1356,7 @@ const abrirMapa = async () => {
       [],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result[0]?.sessionid) {
@@ -1349,7 +1369,7 @@ const abrirMapa = async () => {
         [{ nombre: 'p_sesion_id', valor: sesionMapa.value, tipo: 'integer' }],
         'guadalajara',
         null,
-        'comun' // esquema
+        'publico' // esquema
       )
 
       // Abrir URL del mapa
@@ -1383,7 +1403,7 @@ const iniciarPollingUbicacion = () => {
         [{ nombre: 'p_sesion_id', valor: sesionMapa.value, tipo: 'integer' }],
         'guadalajara',
         null,
-        'comun' // esquema
+        'publico' // esquema
       )
 
       if (response && response.result && response.result.length > 0) {
@@ -1419,7 +1439,7 @@ const actualizarCoordenadas = async () => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
   } catch (error) {
   }
@@ -1460,7 +1480,7 @@ const solicitarFirma = async () => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result[0]) {
@@ -1519,7 +1539,7 @@ const solicitarFirmaUsuario = async () => {
       ],
       'guadalajara',
       null,
-      'comun' // esquema
+      'publico' // esquema
     )
 
     if (response && response.result && response.result[0]) {

@@ -10,28 +10,15 @@
         <p>Gestión de porcentajes de recargos mensuales</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
       </div>
-    
-      <button class="btn-municipal-info" @click="mostrarAyuda = true">
-        <font-awesome-icon icon="question-circle" />
-        Ayuda
-      </button>
     </div>
 
     <div class="module-view-content">
@@ -89,7 +76,7 @@
           </h5>
         </div>
         <div class="municipal-card-body">
-          <div class="alert-info">
+          <div style="padding: 1rem; background: #d1ecf1; color: #0c5460; border-radius: 0.5rem; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
             <font-awesome-icon icon="info-circle" />
           <span>
             {{ modoEdicion ? 'Modifique el porcentaje mensual' : 'Ingrese el nuevo porcentaje mensual' }}
@@ -109,7 +96,7 @@
               max="100"
               placeholder="0.00"
             />
-            <small class="form-help">Porcentaje que se aplica en este mes específico</small>
+            <small class="text-muted" style="display: block; margin-top: 0.25rem; font-size: 0.875rem;">Porcentaje que se aplica en este mes específico</small>
           </div>
           <div class="form-group">
             <label class="municipal-form-label">Porcentaje Acumulado (%)</label>
@@ -120,20 +107,20 @@
               disabled
               placeholder="0.00"
             />
-            <small class="form-help">Se calcula automáticamente después de guardar</small>
+            <small class="text-muted" style="display: block; margin-top: 0.25rem; font-size: 0.875rem;">Se calcula automáticamente después de guardar</small>
           </div>
         </div>
 
-        <div class="summary-box mt-3">
-          <div class="summary-item">
-            <span class="summary-label">Período:</span>
-            <span class="summary-value">
+        <div style="margin-top: 1rem; padding: 1rem; background: var(--color-bg-secondary); border-radius: 0.5rem; display: flex; gap: 2rem;">
+          <div style="display: flex; gap: 0.5rem;">
+            <span style="font-weight: 600; color: var(--color-text-secondary);">Período:</span>
+            <span style="font-weight: 700;">
               {{ nombreMes(busqueda.mes) }} {{ busqueda.axo }}
             </span>
           </div>
-          <div class="summary-item">
-            <span class="summary-label">Operación:</span>
-            <span class="summary-value" :class="modoEdicion ? 'warning' : 'primary'">
+          <div style="display: flex; gap: 0.5rem;">
+            <span style="font-weight: 600; color: var(--color-text-secondary);">Operación:</span>
+            <span style="font-weight: 700;" :class="modoEdicion ? 'text-warning' : 'text-primary'">
               {{ modoEdicion ? 'Modificación' : 'Alta' }}
             </span>
           </div>
@@ -159,15 +146,38 @@
         </div>
       </div>
 
+      <!-- Empty State - Sin búsqueda -->
+      <div v-if="recargosDelMes.length === 0 && !hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="percent" size="3x" />
+        </div>
+        <h4>ABC de Recargos</h4>
+        <p>Ingrese un año y mes para verificar o registrar recargos mensuales</p>
+      </div>
+
+      <!-- Empty State - Sin resultados -->
+      <div v-else-if="recargosDelMes.length === 0 && hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="inbox" size="3x" />
+        </div>
+        <h4>Sin historial</h4>
+        <p>No se encontró historial de recargos para {{ nombreMes(busqueda.mes) }}</p>
+      </div>
+
       <!-- Historial de Recargos del Mes -->
-      <div v-if="recargosDelMes.length > 0" class="municipal-card">
-        <div class="municipal-card-header">
+      <div v-else-if="recargosDelMes.length > 0" class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
           <h5>
             <font-awesome-icon icon="history" />
             Historial de {{ nombreMes(busqueda.mes) }}
           </h5>
+          <div class="header-right">
+            <span class="badge-purple">
+              {{ formatNumber(totalRecords) }} registros
+            </span>
+          </div>
         </div>
-        <div class="municipal-card-body">
+        <div class="municipal-card-body table-container">
           <div class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
@@ -181,106 +191,181 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="recargo in recargosDelMes" :key="`${recargo.axo}-${recargo.mes}`">
+                <tr
+                  v-for="recargo in paginatedRecargos"
+                  :key="`${recargo.axo}-${recargo.mes}`"
+                  @click="selectedRow = recargo"
+                  :class="{ 'table-row-selected': selectedRow === recargo }"
+                  class="row-hover"
+                >
                   <td>{{ recargo.axo }}</td>
                   <td>{{ nombreMes(recargo.mes) }}</td>
-                  <td class="text-bold">{{ formatPorcentaje(recargo.porcentaje_parcial) }}</td>
-                  <td class="text-bold primary">{{ formatPorcentaje(recargo.porcentaje_global) }}</td>
+                  <td style="font-weight: 600;">{{ formatPorcentaje(recargo.porcentaje_parcial) }}</td>
+                  <td class="text-primary" style="font-weight: 600;">{{ formatPorcentaje(recargo.porcentaje_global) }}</td>
                   <td>{{ recargo.usuario || 'N/A' }}</td>
                   <td>{{ formatDate(recargo.fecha_mov) }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
+
+          <!-- Controles de Paginación -->
+          <div v-if="recargosDelMes.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+                de {{ totalRecords }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      v-if="mostrarAyuda"
-      title="Ayuda - ABC de Recargos"
-      @close="mostrarAyuda = false"
-    >
-      <div class="help-content">
-        <section class="help-section">
-          <h3><font-awesome-icon icon="info-circle" /> Descripción</h3>
-          <p>
-            Este módulo permite gestionar los porcentajes de recargos mensuales que se aplican
-            a los adeudos de cementerios. Los recargos se calculan de forma acumulativa.
-          </p>
-        </section>
-
-        <section class="help-section">
-          <h3><font-awesome-icon icon="calculator" /> Porcentajes</h3>
-          <ul>
-            <li><strong>Porcentaje Mensual:</strong> Es el porcentaje que se aplica específicamente en ese mes</li>
-            <li><strong>Porcentaje Acumulado:</strong> Es la suma de todos los porcentajes mensuales desde 1994</li>
-            <li>El porcentaje acumulado tiene un límite máximo de 100%</li>
-          </ul>
-        </section>
-
-        <section class="help-section">
-          <h3><font-awesome-icon icon="list-ol" /> Proceso</h3>
-          <ol>
-            <li>Seleccione el año y mes que desea configurar</li>
-            <li>Presione "Verificar" para buscar si existe un registro</li>
-            <li>Si existe: el sistema carga los datos y permite modificar</li>
-            <li>Si no existe: el sistema permite dar de alta un nuevo porcentaje</li>
-            <li>Ingrese o modifique el porcentaje mensual</li>
-            <li>Presione "Guardar" o "Modificar"</li>
-            <li>El sistema calcula automáticamente los porcentajes acumulados</li>
-          </ol>
-        </section>
-
-        <section class="help-section">
-          <h3><font-awesome-icon icon="cogs" /> Cálculo Automático</h3>
-          <p>
-            Al guardar o modificar un recargo, el sistema automáticamente:
-          </p>
-          <ul>
-            <li>Recalcula los porcentajes acumulados desde 1994</li>
-            <li>Actualiza los porcentajes de años futuros para el mismo mes</li>
-            <li>Aplica el límite de 100% cuando se alcanza</li>
-          </ul>
-        </section>
-
-        <section class="help-section">
-          <h3><font-awesome-icon icon="table" /> Historial</h3>
-          <p>
-            La tabla muestra todos los años que tienen configurado un porcentaje para el mes seleccionado,
-            ordenados del más reciente al más antiguo.
-          </p>
-        </section>
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
       </div>
-    </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'ABCRecargos'"
-      :moduleName="'cementerios'"
-      @close="closeTechDocs"
-    />
 
+      <!-- Modal de Ayuda -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'ABCRecargos'"
+        :moduleName="'cementerios'"
+        :docType="docType"
+        :title="'ABC de Recargos'"
+        @close="showDocModal = false"
+      />
+    </div>
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, nextTick } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-const { callProcedure } = useApi()
-const { showSuccess, showError } = useToast()
+const { execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Toast State (Manual system like reference)
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+// Toast Methods
+const showToast = (type, message) => {
+  toast.value = { show: true, type, message }
+  setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'times-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Estado
-const mostrarAyuda = ref(false)
 const mostrarFormulario = ref(false)
 const modoEdicion = ref(false)
 const porcentajeInput = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Año actual
 const currentYear = new Date().getFullYear()
@@ -300,6 +385,10 @@ const formulario = ref({
 
 // Recargos del mes
 const recargosDelMes = ref([])
+
+// Paginación para historial
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 // Meses del año
 const meses = [
@@ -330,35 +419,77 @@ const formularioValido = computed(() => {
          formulario.value.porcentaje_parcial <= 100
 })
 
+// Paginación - Computed
+const totalRecords = computed(() => recargosDelMes.value.length)
+
+const totalPages = computed(() => {
+  return Math.ceil(totalRecords.value / itemsPerPage.value)
+})
+
+const paginatedRecargos = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return recargosDelMes.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
 // Verificar si existe el recargo para el período
 const verificarPeriodo = async () => {
   if (!busquedaValida.value) {
-    showError('Por favor ingrese un año y mes válidos')
+    showToast('error', 'Por favor ingrese un año y mes válidos')
     return
   }
 
+  showLoading('Verificando período...')
+  hasSearched.value = true
+  selectedRow.value = null
   try {
-    // Buscar recargo específico
-    const result = await callProcedure('sp_cem_buscar_recargo', {
-      p_axo: busqueda.value.axo,
-      p_mes: busqueda.value.mes
-    })
+    // Buscar recargo específico usando SP existente: sp_recargos_get
+    // Base: cementerio.publico (según postgreok.csv: ta_13_recargosrcm → cementerio.publico)
+    const result = await execute(
+      'sp_recargos_get',
+      'cementerio',
+      [
+        { nombre: 'p_axo', valor: busqueda.value.axo, tipo: 'integer' },
+        { nombre: 'p_mes', valor: busqueda.value.mes, tipo: 'integer' }
+      ],
+      '',
+      null,
+      'publico'
+    )
 
     // Cargar historial del mes
     await cargarRecargosDelMes()
 
-    if (result.resultado === 'S') {
+    if (result?.result?.length > 0) {
       // Existe - modo modificación
+      const recargo = result.result[0]
       modoEdicion.value = true
-      formulario.value.porcentaje_parcial = result.porcentaje_parcial
-      formulario.value.porcentaje_global = result.porcentaje_global
+      formulario.value.porcentaje_parcial = recargo.porcentaje_parcial
+      formulario.value.porcentaje_global = recargo.porcentaje_global
       mostrarFormulario.value = true
 
       await nextTick()
       if (porcentajeInput.value) {
         porcentajeInput.value.focus()
       }
-    } else if (result.resultado === 'N') {
+    } else {
       // No existe - modo alta
       modoEdicion.value = false
       formulario.value.porcentaje_parcial = 1
@@ -369,23 +500,35 @@ const verificarPeriodo = async () => {
       if (porcentajeInput.value) {
         porcentajeInput.value.focus()
       }
-    } else {
-      showError(result.mensaje || 'Error al verificar período')
     }
   } catch (error) {
-    showError('Error al verificar el período')
+    console.error('Error al verificar período:', error)
+    showToast('error', 'Error al verificar el período')
+  } finally {
+    hideLoading()
   }
 }
 
 // Cargar recargos del mes seleccionado
 const cargarRecargosDelMes = async () => {
   try {
-    const result = await callProcedure('sp_cem_listar_recargos_mes', {
-      p_mes: busqueda.value.mes
-    })
+    // Usar SP existente: sp_recargos_list (lista todos los recargos de un mes)
+    // Base: cementerio.publico (según postgreok.csv: ta_13_recargosrcm → cementerio.publico)
+    const result = await execute(
+      'sp_recargos_list',
+      'cementerio',
+      [
+        { nombre: 'p_mes', valor: busqueda.value.mes, tipo: 'integer' }
+      ],
+      '',
+      null,
+      'publico'
+    )
 
-    recargosDelMes.value = result.data || []
+    recargosDelMes.value = result?.result || []
+    currentPage.value = 1 // Reset paginación al cargar nuevos datos
   } catch (error) {
+    console.error('Error al cargar recargos:', error)
     recargosDelMes.value = []
   }
 }
@@ -393,29 +536,52 @@ const cargarRecargosDelMes = async () => {
 // Guardar recargo
 const guardarRecargo = async () => {
   if (!formularioValido.value) {
-    showError('Por favor complete todos los campos requeridos')
+    showToast('error', 'Por favor complete todos los campos requeridos')
     return
   }
 
+  showLoading('Guardando recargo...')
   try {
-    // Guardar o modificar recargo
-    const resultRegistro = await callProcedure('sp_cem_registrar_recargo', {
-      p_operacion: modoEdicion.value ? 2 : 1,
-      p_axo: busqueda.value.axo,
-      p_mes: busqueda.value.mes,
-      p_porcentaje: formulario.value.porcentaje_parcial,
-      p_usuario: 1 // TODO: Obtener de sesión
-    })
+    // Usar SP correspondiente según modo (alta o modificación)
+    // Base: cementerio.publico (según postgreok.csv: ta_13_recargosrcm → cementerio.publico)
+    const spName = modoEdicion.value ? 'sp_recargos_update' : 'sp_recargos_create'
 
-    if (resultRegistro.resultado === 'S') {
-      // Calcular acumulados
-      const resultAcumulado = await callProcedure('sp_cem_calcular_acumulado_recargos', {
-        p_axo: busqueda.value.axo,
-        p_mes: busqueda.value.mes
-      })
+    const resultRegistro = await execute(
+      spName,
+      'cementerio',
+      [
+        { nombre: 'p_axo', valor: busqueda.value.axo, tipo: 'integer' },
+        { nombre: 'p_mes', valor: busqueda.value.mes, tipo: 'integer' },
+        { nombre: 'p_porcentaje_parcial', valor: formulario.value.porcentaje_parcial, tipo: 'numeric' },
+        { nombre: 'p_usuario', valor: 1, tipo: 'integer' } // TODO: Obtener de sesión
+      ],
+      '',
+      null,
+      'publico'
+    )
 
-      if (resultAcumulado.resultado === 'S') {
-        showSuccess(
+    // Verificar resultado del SP (retorna TABLE(result text))
+    const resultado = resultRegistro?.result?.[0]?.result
+
+    if (resultado === 'OK') {
+      // Calcular acumulados usando SP existente: sp_recargos_acumulado, si modifican valores en fechas pasadas puede crear inconsistencias
+      const resultAcumulado = await execute(
+        'sp_recargos_acumulado',
+        'cementerio',
+        {
+          p_axo: busqueda.value.axo,
+          p_mes: busqueda.value.mes
+        },
+        '',
+        null,
+        'publico'
+      )
+
+      const resultadoAcumulado = resultAcumulado?.result?.[0]?.result
+
+      if (resultadoAcumulado === 'OK') {
+        showToast(
+          'success',
           modoEdicion.value
             ? 'Recargo modificado y acumulados actualizados'
             : 'Recargo registrado y acumulados calculados'
@@ -427,13 +593,16 @@ const guardarRecargo = async () => {
         // Ocultar formulario
         cancelarFormulario()
       } else {
-        showError('Recargo guardado pero error al calcular acumulados')
+        showToast('error', 'Recargo guardado pero error al calcular acumulados')
       }
     } else {
-      showError(resultRegistro.mensaje || 'Error al guardar recargo')
+      showToast('error', resultado || 'Error al guardar recargo')
     }
   } catch (error) {
-    showError('Error al guardar el recargo')
+    console.error('Error al guardar recargo:', error)
+    showToast('error', 'Error al guardar el recargo')
+  } finally {
+    hideLoading()
   }
 }
 
@@ -463,76 +632,20 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('es-MX')
 }
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Paginación - Métodos
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
+}
 
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+  selectedRow.value = null
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
 </script>
-
-<style scoped>
-.text-bold {
-  font-weight: 600;
-}
-
-.primary {
-  color: var(--color-primary);
-}
-
-.form-help {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.summary-box {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: var(--color-bg-secondary);
-  border-radius: 0.5rem;
-  display: flex;
-  gap: 2rem;
-}
-
-.summary-item {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.summary-label {
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
-
-.summary-value {
-  font-weight: 700;
-}
-
-.alert-info {
-  padding: 1rem;
-  background: #d1ecf1;
-  color: #0c5460;
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.help-content {
-  line-height: 1.6;
-}
-
-.help-section {
-  margin-bottom: 2rem;
-}
-
-.help-section h3 {
-  color: var(--color-primary);
-  margin-bottom: 1rem;
-}
-</style>

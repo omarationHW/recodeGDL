@@ -8,6 +8,16 @@
         <h1>Reimpresión de Documentos</h1>
         <p>Reimprimir multas, recibos y documentos fiscales</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -215,23 +225,44 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'reimpfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Reimpresión de Documentos'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'reimpfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Reimpresión de Documentos'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { usePdfGenerator } from '@/composables/usePdfGenerator'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_REIMPFRM'
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { verPDF, descargarPDF } = usePdfGenerator()
 
 const filtros = ref({
@@ -281,6 +312,7 @@ async function reimprimir() {
   }
 
   try {
+    showLoading('Consultando...', 'Por favor espere')
     console.log('🖨️ Ejecutando búsqueda:', OP)
     console.log('🖨️ Filtros:', filtros.value)
 
@@ -338,6 +370,8 @@ async function reimprimir() {
     error.value = e.message || 'Error al buscar documentos'
     console.error('❌ Error:', e)
     todosResultados.value = []
+  } finally {
+    hideLoading()
   }
 }
 
@@ -416,292 +450,3 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.municipal-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-}
-
-.municipal-card-header {
-  padding: 15px 20px;
-  border-bottom: 1px solid #e0e0e0;
-  background: linear-gradient(135deg, #ea8215 0%, #d67512 100%);
-  color: white;
-  font-weight: bold;
-  border-radius: 8px 8px 0 0;
-}
-
-.municipal-card-header h5 {
-  margin: 0;
-  color: white;
-}
-
-.municipal-card-body {
-  padding: 20px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.municipal-form-label {
-  font-weight: 600;
-  margin-bottom: 5px;
-  color: #333;
-}
-
-.municipal-form-control {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.btn-municipal-secondary {
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  background: #5a6268;
-  transform: translateY(-1px);
-}
-
-.btn-municipal-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.help-text {
-  margin-top: 10px;
-  color: #666;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-  background: #f8f9fa;
-  border-radius: 4px;
-  border-left: 3px solid #ea8215;
-}
-
-.info-item strong {
-  color: #666;
-  font-size: 0.85rem;
-  margin-bottom: 5px;
-}
-
-.info-item span {
-  color: #333;
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.status-success {
-  color: #28a745 !important;
-  font-weight: 600 !important;
-}
-
-.status-warning {
-  color: #ffc107 !important;
-  font-weight: 600 !important;
-}
-
-.status-danger {
-  color: #dc3545 !important;
-  font-weight: 600 !important;
-}
-
-.status-info {
-  color: #17a2b8 !important;
-  font-weight: 600 !important;
-}
-
-.preview-actions {
-  display: flex;
-  gap: 10px;
-  padding-top: 15px;
-  border-top: 2px solid #ea8215;
-}
-
-.btn-preview,
-.btn-download {
-  flex: 1;
-  padding: 12px;
-  border: 2px solid #ea8215;
-  background: white;
-  color: #ea8215;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.btn-preview:hover,
-.btn-download:hover {
-  background: #ea8215;
-  color: white;
-  transform: translateY(-2px);
-}
-
-.alert {
-  padding: 12px 20px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-}
-
-.alert-success {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
-}
-
-.alert-danger {
-  background-color: #f8d7da;
-  border: 1px solid #f5c2c7;
-  color: #842029;
-}
-
-.alert-info {
-  background-color: #cfe2ff;
-  border: 1px solid #b6d4fe;
-  color: #084298;
-}
-
-.municipal-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-}
-
-.municipal-table-header {
-  background: linear-gradient(135deg, #ea8215 0%, #d67512 100%);
-  color: white;
-}
-
-.municipal-table th,
-.municipal-table td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: left;
-  font-size: 0.9rem;
-}
-
-.municipal-table th {
-  font-weight: bold;
-  color: white;
-}
-
-.row-hover:hover {
-  background-color: #f9f9f9;
-}
-
-.table-responsive {
-  overflow-x: auto;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 5px;
-  justify-content: center;
-}
-
-.btn-action {
-  background: white;
-  border: 1px solid #ea8215;
-  color: #ea8215;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.85rem;
-}
-
-.btn-action:hover {
-  background: #ea8215;
-  color: white;
-  transform: translateY(-1px);
-}
-
-.pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 15px;
-  border-top: 2px solid #ea8215;
-}
-
-.pagination-info {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.pagination-controls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.btn-pagination {
-  background: white;
-  border: 1px solid #ddd;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #ea8215;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background: #ea8215;
-  color: white;
-  border-color: #ea8215;
-}
-
-.btn-pagination:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.pagination-text {
-  color: #333;
-  font-weight: 600;
-  padding: 0 10px;
-}
-</style>

@@ -1,14 +1,14 @@
 <template>
   <div v-if="show" class="help-modal-overlay" @click.self="close">
     <div class="help-modal-container">
-      <div class="help-modal-header">
+      <div class="help-modal-header" :class="{ 'header-docs': docType === 'documentacion' }">
         <div class="help-modal-title">
           <div class="help-icon-circle">
-            <font-awesome-icon icon="book-open" />
+            <font-awesome-icon :icon="docType === 'ayuda' ? 'question-circle' : 'book-open'" />
           </div>
           <div>
-            <h3>Documentación de Ayuda</h3>
-            <p>{{ componentName }}</p>
+            <h3>{{ docType === 'ayuda' ? 'Ayuda' : 'Documentación' }}</h3>
+            <p>{{ title || componentName }}</p>
           </div>
         </div>
         <button type="button" class="help-modal-close" @click="close">
@@ -28,7 +28,7 @@
           <p>{{ error }}</p>
         </div>
 
-        <div v-else-if="sections.length" class="help-accordion">
+        <div v-else-if="sections.length" class="help-accordion" :class="{ 'accordion-docs': docType === 'documentacion' }">
           <div
             v-for="(section, index) in sections"
             :key="index"
@@ -50,7 +50,7 @@
       </div>
 
       <div class="help-modal-footer">
-        <button type="button" class="btn-help-close" @click="close">
+        <button type="button" class="btn-help-close" :class="{ 'btn-docs': docType === 'documentacion' }" @click="close">
           <font-awesome-icon icon="times-circle" />
           Cerrar
         </button>
@@ -76,6 +76,15 @@ export default {
     moduleName: {
       type: String,
       default: 'licencias'
+    },
+    docType: {
+      type: String,
+      default: 'ayuda',
+      validator: (value) => ['ayuda', 'documentacion'].includes(value)
+    },
+    title: {
+      type: String,
+      default: ''
     }
   },
   emits: ['close'],
@@ -236,12 +245,18 @@ export default {
       activeSection.value = 0
 
       try {
-        const possiblePaths = [
-          `/docs/ayuda/${props.moduleName}/${props.componentName}.md`,
-          `/docs/${props.moduleName}/${props.componentName}.md`,
-          `/public/docs/ayuda/${props.moduleName}/${props.componentName}.md`,
-          `/Base/${props.moduleName}/docs/admin/${props.componentName}.md`
-        ]
+        // Rutas según el tipo de documentación solicitado
+        const possiblePaths = props.docType === 'documentacion'
+          ? [
+              `/docs/documentacion/${props.moduleName}/${props.componentName}.md`,
+              `/docs/${props.moduleName}/${props.componentName}.md`,
+              `/Base/${props.moduleName}/docs/admin/${props.componentName}.md`
+            ]
+          : [
+              `/docs/ayuda/${props.moduleName}/${props.componentName}.md`,
+              `/public/docs/ayuda/${props.moduleName}/${props.componentName}.md`,
+              `/docs/${props.moduleName}/${props.componentName}.md`
+            ]
 
         let loaded = false
         for (const docPath of possiblePaths) {
@@ -345,8 +360,8 @@ Por favor contacte al administrador del sistema para más información.
 .help-modal-container {
   background: white;
   border-radius: 16px;
-  width: 90%;
-  max-width: 900px;
+  width: 80%;
+  max-width: 80%;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
@@ -365,7 +380,7 @@ Por favor contacte al administrador del sistema para más información.
   }
 }
 
-/* Header */
+/* Header - Ayuda (morado) */
 .help-modal-header {
   padding: 24px 28px;
   background: linear-gradient(135deg, #9363CD 0%, #7B4CB8 100%);
@@ -375,6 +390,12 @@ Por favor contacte al administrador del sistema para más información.
   align-items: center;
   color: white;
   box-shadow: 0 4px 12px rgba(147, 99, 205, 0.2);
+}
+
+/* Header - Documentación (azul) */
+.help-modal-header.header-docs {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  box-shadow: 0 4px 12px rgba(23, 162, 184, 0.2);
 }
 
 .help-modal-title {
@@ -542,6 +563,12 @@ Por favor contacte al administrador del sistema para más información.
   border-left-color: #9363CD;
 }
 
+/* Acordeón - Documentación (azul) */
+.accordion-docs .accordion-item.active .accordion-header {
+  background: linear-gradient(to right, #e6f7f9 0%, white 100%);
+  border-left-color: #17a2b8;
+}
+
 .accordion-header:hover {
   background: #f8f9fa;
 }
@@ -566,6 +593,11 @@ Por favor contacte al administrador del sistema para más información.
   box-sizing: content-box;
 }
 
+/* Iconos acordeón - Documentación (azul) */
+.accordion-docs .accordion-title svg {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+
 .accordion-arrow {
   color: #6c757d !important;
   transition: transform 0.3s ease;
@@ -576,6 +608,11 @@ Por favor contacte al administrador del sistema para más información.
 .accordion-item.active .accordion-arrow {
   transform: rotate(180deg);
   color: #9363CD;
+}
+
+/* Flecha acordeón - Documentación (azul) */
+.accordion-docs .accordion-item.active .accordion-arrow {
+  color: #17a2b8;
 }
 
 .accordion-content {
@@ -710,6 +747,17 @@ Por favor contacte al administrador del sistema para más información.
   box-shadow: 0 4px 12px rgba(147, 99, 205, 0.5);
 }
 
+/* Botón cerrar - Documentación (azul) */
+.btn-help-close.btn-docs {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+}
+
+.btn-help-close.btn-docs:hover {
+  background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+  box-shadow: 0 4px 12px rgba(23, 162, 184, 0.5);
+}
+
 .btn-help-close svg {
   color: white !important;
   width: 14px !important;
@@ -739,9 +787,17 @@ Por favor contacte al administrador del sistema para más información.
 }
 
 /* Responsive */
+@media (max-width: 1200px) {
+  .help-modal-container {
+    width: 90%;
+    max-width: 90%;
+  }
+}
+
 @media (max-width: 768px) {
   .help-modal-container {
     width: 95%;
+    max-width: 95%;
     max-height: 90vh;
     border-radius: 12px;
   }

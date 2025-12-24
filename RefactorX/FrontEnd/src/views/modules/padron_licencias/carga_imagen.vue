@@ -9,19 +9,21 @@
         <h1>Carga de Imágenes</h1>
         <p>Padrón de Licencias - Gestión de Imágenes y Documentos Digitalizados</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button
           class="btn-municipal-primary"
           @click="openUploadModal"
-          :disabled="!tramiteInfo || loading"
+          :disabled="!tramiteInfo"
         >
           <font-awesome-icon icon="upload" />
           Cargar Imagen
@@ -50,7 +52,7 @@
           <button
             class="btn-municipal-primary"
             @click="loadTramiteInfo"
-            :disabled="!searchTramite || loading"
+            :disabled="!searchTramite"
           >
             <font-awesome-icon icon="search" />
             Buscar Trámite
@@ -58,7 +60,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearSearch"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -107,18 +108,17 @@
 
     <!-- Tabla de documentos/imágenes -->
     <div class="municipal-card" v-if="tramiteInfo">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="images" />
           Documentos Digitalizados
-          <span class="badge-purple" v-if="documentos.length > 0">{{ documentos.length }} documentos</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="documentos.length > 0">{{ documentos.length }} documentos</span>
         </div>
       </div>
 
-      <div class="municipal-card-body" v-if="!loading">
+      <div class="municipal-card-body">
         <div class="documents-grid">
           <div v-for="doc in documentos" :key="doc.id" class="document-card">
             <div class="document-thumbnail">
@@ -143,21 +143,21 @@
             <div class="document-actions">
               <button
                 class="btn-municipal-info btn-sm"
-                @click="viewImage(doc)"
+                @click.stop="viewImage(doc)"
                 title="Ver documento"
               >
                 <font-awesome-icon icon="eye" />
               </button>
               <button
                 class="btn-municipal-primary btn-sm"
-                @click="downloadImage(doc)"
+                @click.stop="downloadImage(doc)"
                 title="Descargar"
               >
                 <font-awesome-icon icon="download" />
               </button>
               <button
                 class="btn-municipal-danger btn-sm"
-                @click="confirmDeleteImage(doc)"
+                @click.stop="confirmDeleteImage(doc)"
                 title="Eliminar"
               >
                 <font-awesome-icon icon="trash" />
@@ -173,14 +173,6 @@
             </button>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading && !tramiteInfo" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando información del trámite...</p>
       </div>
     </div>
 
@@ -298,27 +290,30 @@
     </Modal>
 
     <!-- Toast Notifications -->
-    </div>
-    <!-- /module-view-content -->
-
-    <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'carga_imagen'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Carga de Imágenes'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -327,18 +322,26 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -346,7 +349,11 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const searchTramite = ref('')
 const tramiteInfo = ref(null)
 const documentos = ref([])
@@ -373,7 +380,9 @@ const loadTramiteInfo = async () => {
     return
   }
 
-  setLoading(true, 'Buscando trámite...')
+  showLoading('Buscando trámite...', 'Consultando información del sistema')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const response = await execute(
@@ -400,7 +409,7 @@ const loadTramiteInfo = async () => {
     tramiteInfo.value = null
     documentos.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -453,6 +462,8 @@ const clearSearch = () => {
   tramiteInfo.value = null
   documentos.value = []
   documentTypes.value = []
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const openUploadModal = () => {
@@ -594,7 +605,7 @@ const fileToBase64 = (file) => {
 }
 
 const viewImage = async (doc) => {
-  setLoading(true, 'Cargando documento...')
+  showLoading('Cargando documento...', 'Preparando visualización')
 
   try {
     const response = await execute(
@@ -616,7 +627,7 @@ const viewImage = async (doc) => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -660,7 +671,7 @@ const confirmDeleteImage = async (doc) => {
 }
 
 const deleteImage = async (doc) => {
-  setLoading(true, 'Eliminando documento...')
+  showLoading('Eliminando documento...', 'Procesando solicitud')
 
   try {
     const response = await execute(
@@ -688,7 +699,7 @@ const deleteImage = async (doc) => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 

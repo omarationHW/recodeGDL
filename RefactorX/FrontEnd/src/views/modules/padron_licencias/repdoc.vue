@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Reporte de Documentos y Requisitos</h1>
-        <p>Padrón de Licencias - Requisitos por Giro</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Requisitos por Giro</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -35,7 +38,6 @@
                 class="municipal-form-control"
                 v-model="filters.tipoGiro"
                 @change="loadGiros"
-                :disabled="loading"
               >
                 <option value="">Seleccionar tipo...</option>
                 <option value="L">Licencias</option>
@@ -48,7 +50,7 @@
               <select
                 class="municipal-form-control"
                 v-model="filters.idGiro"
-                :disabled="loading || !filters.tipoGiro || giros.length === 0"
+                :disabled="!filters.tipoGiro || giros.length === 0"
               >
                 <option value="">Seleccionar giro...</option>
                 <option
@@ -65,7 +67,6 @@
               <select
                 class="municipal-form-control"
                 v-model="filters.tipoReporte"
-                :disabled="loading"
               >
                 <option value="requisitos">Requisitos por Giro</option>
                 <option value="permisos">Permisos Eventuales</option>
@@ -76,7 +77,7 @@
             <button
               class="btn-municipal-primary"
               @click="generarReporte"
-              :disabled="loading || !filters.tipoGiro || !filters.idGiro"
+              :disabled="!filters.tipoGiro || !filters.idGiro"
             >
               <font-awesome-icon icon="file-pdf" />
               Generar Reporte
@@ -84,7 +85,6 @@
             <button
               class="btn-municipal-secondary"
               @click="clearFilters"
-              :disabled="loading"
             >
               <font-awesome-icon icon="times" />
               Limpiar
@@ -95,20 +95,23 @@
 
       <!-- Tabla de requisitos -->
       <div class="municipal-card" v-if="requisitos.length > 0">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header header-with-badge">
           <h5>
             <font-awesome-icon icon="list-check" />
             Requisitos del Giro
-            <span class="badge-purple" v-if="requisitos.length > 0">{{ requisitos.length }} requisitos</span>
           </h5>
-          <button
-            class="btn-municipal-primary"
-            @click="exportarExcel"
-            :disabled="loading"
-          >
-            <font-awesome-icon icon="file-excel" />
-            Exportar a Excel
-          </button>
+          <div class="header-right">
+            <span class="badge-purple" v-if="requisitos.length > 0">
+              {{ requisitos.length }} requisitos
+            </span>
+            <button
+              class="btn-municipal-primary"
+              @click="exportarExcel"
+            >
+              <font-awesome-icon icon="file-excel" />
+              Exportar a Excel
+            </button>
+          </div>
         </div>
         <div class="municipal-card-body">
           <div class="table-responsive">
@@ -122,7 +125,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(req, index) in requisitos" :key="req.id_requisito" class="clickable-row">
+                <tr
+                  v-for="(req, index) in requisitos"
+                  :key="req.id_requisito"
+                  @click="selectedRow = req"
+                  :class="{ 'table-row-selected': selectedRow === req }"
+                  class="row-hover"
+                >
                   <td class="text-center">
                     <span class="badge-secondary">{{ index + 1 }}</span>
                   </td>
@@ -143,41 +152,48 @@
         </div>
       </div>
 
-      <!-- Mensaje cuando no hay datos -->
-      <div class="municipal-card" v-if="!loading && requisitos.length === 0 && filters.idGiro">
-        <div class="municipal-card-body text-center text-muted">
-          <font-awesome-icon icon="inbox" size="3x" class="empty-icon" />
-          <p>No hay requisitos registrados para este giro</p>
+      <!-- Empty State - Sin búsqueda -->
+      <div v-if="requisitos.length === 0 && !hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="file-alt" size="3x" />
         </div>
+        <h4>Reporte de Documentos y Requisitos</h4>
+        <p>Seleccione el tipo de giro y el giro para consultar los requisitos asociados</p>
       </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando información...</p>
+      <!-- Empty State - Sin resultados -->
+      <div v-else-if="requisitos.length === 0 && hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="inbox" size="3x" />
+        </div>
+        <h4>Sin resultados</h4>
+        <p>No hay requisitos registrados para el giro seleccionado</p>
       </div>
-    </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'repdoc'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Reporte de Documentos y Requisitos'"
+        @close="showDocModal = false"
+      />
     </div>
   </div>
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'repdoc'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
-  </template>
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -190,27 +206,38 @@ import { usePdfExport } from '@/composables/usePdfExport'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 const { exportToExcel } = useExcelExport()
 const { exportToPdf } = usePdfExport()
-const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const giros = ref([])
 const requisitos = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const filters = ref({
   tipoGiro: '',
   idGiro: '',
@@ -224,7 +251,7 @@ const loadGiros = async () => {
     return
   }
 
-  setLoading(true, 'Cargando giros...')
+  showLoading('Cargando giros...', 'Obteniendo catálogo de giros')
 
   try {
     const response = await execute(
@@ -247,7 +274,7 @@ const loadGiros = async () => {
     handleApiError(error)
     giros.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -257,7 +284,9 @@ const loadRequisitos = async () => {
     return
   }
 
-  setLoading(true, 'Cargando requisitos...')
+  showLoading('Cargando requisitos...', 'Consultando información del giro')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const response = await execute(
@@ -280,7 +309,7 @@ const loadRequisitos = async () => {
     handleApiError(error)
     requisitos.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -412,6 +441,8 @@ const clearFilters = () => {
   }
   giros.value = []
   requisitos.value = []
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 // Lifecycle

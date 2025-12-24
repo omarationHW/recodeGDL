@@ -9,9 +9,16 @@
         <p>Inicio > Catálogos > Fechas de Descuento</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
         </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        
       </div>
     </div>
 
@@ -205,12 +212,50 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'FechasDescuentoMntto'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - FechasDescuentoMntto'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'FechasDescuentoMntto'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - FechasDescuentoMntto'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import Swal from 'sweetalert2'
+
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -281,7 +326,7 @@ const formatDateTime = (dateStr) => {
   return new Date(dateStr).toLocaleString('es-MX')
 }
 
-const showToast = (type, message) => {
+const showToast = (message, type) => {
   toast.value = { show: true, type, message }
   setTimeout(() => hideToast(), 5000)
 }
@@ -301,25 +346,30 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Configure las fechas de descuento y recargos para cada mes del año.')
+  showToast('Configure las fechas de descuento y recargos para cada mes del año.', 'info')
 }
 
 const cargarFechas = async () => {
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'fechas_descuento_get_all', Base: 'mercados', Parametros: [] }
-    })
-    if (res.data.eResponse.success) {
-      fechas.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'fechas_descuento_get_all',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      fechas.value = res.data.result || []
       if (fechas.value.length > 0) {
-        showToast('success', `Se cargaron ${fechas.value.length} registros`)
+        showToast(`Se cargaron ${fechas.value.length} registros`, 'success')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar fechas')
+      showToast(res.message || 'Error al cargar fechas', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión')
+    showToast('Error de conexión', 'error')
     console.error(err)
   } finally {
     loading.value = false
@@ -337,38 +387,39 @@ const editarFecha = (fecha) => {
 
 const guardar = async () => {
   if (!isFormValid.value) {
-    showToast('warning', 'Complete todos los campos correctamente')
+    showToast('Complete todos los campos correctamente', 'warning')
     return
   }
 
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'fechas_descuento_update',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_mes', Valor: parseInt(form.value.mes) },
-          { Nombre: 'p_fecha_descuento', Valor: form.value.fecha_descuento },
-          { Nombre: 'p_fecha_recargos', Valor: form.value.fecha_recargos }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+          'fechas_descuento_update',
+          'mercados',
+          [
+          { nombre: 'p_mes', valor: parseInt(form.value.mes) },
+          { nombre: 'p_fecha_descuento', valor: form.value.fecha_descuento },
+          { nombre: 'p_fecha_recargos', valor: form.value.fecha_recargos }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      const result = res.data.eResponse.data.result
+    if (res.success) {
+      const result = res.data.result
       if (result && result.length > 0 && result[0].success) {
-        showToast('success', result[0].message || 'Fechas actualizadas')
+        showToast(result[0].message || 'Fechas actualizadas', 'success')
         cerrarModal()
         cargarFechas()
       } else {
-        showToast('error', result && result[0] ? result[0].message : 'Error al actualizar')
+        showToast(result && result[0] ? result[0].message : 'Error al actualizar', 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al guardar')
+      showToast(res.message || 'Error al guardar', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión')
+    showToast('Error de conexión', 'error')
     console.error(err)
   } finally {
     loading.value = false
@@ -399,56 +450,3 @@ onMounted(async () => {
   }
 })
 </script>
-
-<style scoped>
-.empty-icon {
-  color: #6c757d;
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
-
-.badge-primary {
-  background: var(--municipal-blue);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.btn-municipal-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
-
-.btn-municipal-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-  color: #000;
-  border: none;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-warning:hover {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
-}
-
-.required {
-  color: #dc3545;
-}
-
-.form-text {
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-
-.alert-info {
-  background-color: #d1ecf1;
-  border-color: #bee5eb;
-  color: #0c5460;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.25rem;
-  margin-bottom: 1rem;
-}
-</style>

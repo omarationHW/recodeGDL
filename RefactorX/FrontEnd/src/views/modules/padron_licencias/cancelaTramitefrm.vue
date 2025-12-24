@@ -10,10 +10,11 @@
         <p>Padrón de Licencias - Cancelar trámites en proceso</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -40,7 +41,6 @@
                   v-model="searchIdTramite"
                   placeholder="Ingrese número de trámite"
                   required
-                  :disabled="loading"
                 />
               </div>
             </div>
@@ -48,7 +48,7 @@
               <button
                 type="submit"
                 class="btn-municipal-primary"
-                :disabled="loading || !searchIdTramite"
+                :disabled="!searchIdTramite"
               >
                 <font-awesome-icon icon="search" />
                 Buscar
@@ -57,7 +57,6 @@
                 type="button"
                 class="btn-municipal-secondary"
                 @click="limpiar"
-                :disabled="loading"
               >
                 <font-awesome-icon icon="times" />
                 Limpiar
@@ -272,83 +271,94 @@
       </div>
 
       <!-- Empty state -->
-      <div class="municipal-card" v-if="!tramiteData && !loading">
+      <div class="municipal-card" v-if="!tramiteData && !hasSearched">
         <div class="municipal-card-body">
-          <div class="empty-state-content">
+          <div class="empty-state">
             <div class="empty-state-icon">
-              <font-awesome-icon icon="search" />
+              <font-awesome-icon icon="search" size="3x" />
             </div>
-            <p class="empty-state-text">No hay trámite seleccionado</p>
-            <p class="empty-state-hint">Ingrese el número de trámite en el formulario de búsqueda</p>
+            <h4>Cancelación de Trámites</h4>
+            <p>Ingrese el número de trámite en el formulario de búsqueda para consultar sus datos y realizar la cancelación</p>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Modal de Ayuda -->
-    <Modal :show="showDocumentation" @close="closeDocumentation">
-      <template #header>
-        <h5>
-          <font-awesome-icon icon="question-circle" class="me-2" />
-          Ayuda - Cancelación de Trámites
-        </h5>
-      </template>
-      <template #body>
-        <h6>Descripción del Módulo</h6>
-        <p>Este módulo permite cancelar trámites que se encuentren en proceso o rechazados.</p>
-
-        <h6 class="mt-3">Estados de Trámites</h6>
-        <ul>
-          <li><strong>T - En Trámite:</strong> Puede ser cancelado</li>
-          <li><strong>R - Rechazado:</strong> Puede ser cancelado</li>
-          <li><strong>A - Autorizado:</strong> NO puede ser cancelado (usar módulo de Baja de Licencias)</li>
-          <li><strong>C - Cancelado:</strong> Ya está cancelado</li>
-        </ul>
-
-        <h6 class="mt-3">Procedimiento</h6>
-        <ol>
-          <li>Ingrese el número de trámite a cancelar</li>
-          <li>Verifique la información del trámite</li>
-          <li>Si el estado lo permite, haga clic en "Cancelar Trámite"</li>
-          <li>Ingrese el motivo de la cancelación</li>
-          <li>Confirme la operación</li>
-        </ol>
-
-        <div class="alert alert-info mt-3">
-          <strong>
-            <font-awesome-icon icon="info-circle" class="me-1" />
-            Nota:
-          </strong>
-          La cancelación de un trámite es una operación irreversible. Asegúrese de ingresar el motivo correcto.
+      <!-- Empty state - Sin resultados -->
+      <div class="municipal-card" v-else-if="!tramiteData && hasSearched">
+        <div class="municipal-card-body">
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
+            </div>
+            <h4>Sin resultados</h4>
+            <p>No se encontró un trámite con el número especificado</p>
+          </div>
         </div>
-      </template>
-      <template #footer>
-        <button class="btn-municipal-secondary" @click="closeDocumentation">
-          Cerrar
+      </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
         </button>
-      </template>
-    </Modal>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'cancelaTramitefrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Cancelación de Trámites'"
+        @close="showDocModal = false"
+      />
+    </div>
+    <!-- /module-view-content -->
   </div>
 </template>
 
 <script setup>
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { handleApiError, showToast, toast, hideToast, getToastIcon } = useLicenciasErrorHandler()
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Estado
 const searchIdTramite = ref('')
 const tramiteData = ref(null)
 const giroDescripcion = ref('')
-const loading = ref(false)
-const showDocumentation = ref(false)
+const hasSearched = ref(false)
 
 // Computed
 const propietarioCompleto = computed(() => {
@@ -375,7 +385,8 @@ const buscarTramite = async () => {
     return
   }
 
-  showLoading('Buscando trámite...')
+  showLoading('Buscando trámite...', 'Consultando información del sistema')
+  hasSearched.value = true
   const startTime = performance.now()
 
   try {
@@ -386,7 +397,7 @@ const buscarTramite = async () => {
       [{ nombre: 'p_id_tramite', valor: parseInt(searchIdTramite.value), tipo: 'integer' }],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (!responseTramite || !responseTramite.result || responseTramite.result.length === 0) {
@@ -408,7 +419,7 @@ const buscarTramite = async () => {
           [{ nombre: 'p_id_giro', valor: parseInt(tramiteData.value.id_giro), tipo: 'integer' }],
           'guadalajara',
           null,
-          'comun'
+          'publico'
         )
 
         if (responseGiro && responseGiro.result && responseGiro.result.length > 0) {
@@ -528,7 +539,7 @@ const confirmarCancelacion = async () => {
   if (!confirmacion.isConfirmed) return
 
   // 3. Ejecutar cancelación
-  showLoading('Cancelando trámite...')
+  showLoading('Cancelando trámite...', 'Procesando solicitud')
   const startTime = performance.now()
 
   try {
@@ -541,7 +552,7 @@ const confirmarCancelacion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -584,6 +595,7 @@ const limpiar = () => {
   searchIdTramite.value = ''
   tramiteData.value = null
   giroDescripcion.value = ''
+  hasSearched.value = false
 }
 
 const getEstatusText = (estatus) => {
@@ -606,13 +618,6 @@ const formatDate = (dateString) => {
   }
 }
 
-const openDocumentation = () => {
-  showDocumentation.value = true
-}
-
-const closeDocumentation = () => {
-  showDocumentation.value = false
-}
 </script>
 
 <!-- NO inline styles - All styles in municipal-theme.css -->

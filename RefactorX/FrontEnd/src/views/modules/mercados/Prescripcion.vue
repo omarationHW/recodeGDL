@@ -10,10 +10,16 @@
         <p>Mercados > Prescripción de Adeudos de Energía Eléctrica</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
         </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        
       </div>
     </div>
 
@@ -34,7 +40,7 @@
               <select class="municipal-form-control" v-model="form.oficina" @change="onOficinaChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -274,12 +280,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'Prescripcion'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - Prescripcion'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'Prescripcion'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - Prescripcion'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -346,7 +361,7 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Complete los datos del local para buscar sus adeudos de energía y proceder con la prescripción')
+  showToast('Complete los datos del local para buscar sus adeudos de energía y proceder con la prescripción', 'info')
 }
 
 const formatCurrency = (value) => {
@@ -356,15 +371,16 @@ const formatCurrency = (value) => {
 
 const fetchRecaudadoras = async () => {
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse.success) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
     }
   } catch (err) {
     console.error('Error al cargar recaudadoras:', err)
@@ -373,15 +389,16 @@ const fetchRecaudadoras = async () => {
 
 const fetchMercados = async () => {
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_reporte_catalogo_mercados',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse.success) {
-      mercados.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_reporte_catalogo_mercados',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      mercados.value = res.data.result || []
     }
   } catch (err) {
     console.error('Error al cargar mercados:', err)
@@ -390,15 +407,16 @@ const fetchMercados = async () => {
 
 const fetchSecciones = async () => {
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_secciones',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse.success) {
-      secciones.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      secciones.value = res.data.result || []
     }
   } catch (err) {
     console.error('Error al cargar secciones:', err)
@@ -420,7 +438,7 @@ const onMercadoChange = () => {
 
 const buscarLocal = async () => {
   if (!form.value.oficina || !form.value.mercado || !form.value.categoria || !form.value.seccion || !form.value.local) {
-    showToast('warning', 'Complete los campos requeridos para buscar el local')
+    showToast('Complete los campos requeridos para buscar el local', 'warning')
     return
   }
 
@@ -432,11 +450,10 @@ const buscarLocal = async () => {
   prescritosSeleccionados.value = []
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_localesmodif_buscar_local',
-        Base: 'mercados',
-        Parametros: [
+    const res = await apiService.execute(
+          'sp_localesmodif_buscar_local',
+          'mercados',
+          [
           { nombre: 'p_oficina', valor: form.value.oficina, tipo: 'integer' },
           { nombre: 'p_num_mercado', valor: form.value.mercado, tipo: 'integer' },
           { nombre: 'p_categoria', valor: form.value.categoria, tipo: 'integer' },
@@ -444,25 +461,27 @@ const buscarLocal = async () => {
           { nombre: 'p_local', valor: form.value.local, tipo: 'integer' },
           { nombre: 'p_letra_local', valor: form.value.letra_local || null, tipo: 'string' },
           { nombre: 'p_bloque', valor: form.value.bloque || null, tipo: 'string' }
-        ]
-      }
-    })
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      const result = res.data.eResponse.data.result || []
+    if (res.success) {
+      const result = res.data.result || []
       if (result.length > 0) {
         localEncontrado.value = result[0]
-        showToast('success', 'Local encontrado')
+        showToast('Local encontrado', 'success')
         await cargarAdeudos()
       } else {
-        showToast('warning', 'No se encontró el local con los datos especificados')
+        showToast('No se encontró el local con los datos especificados', 'warning')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al buscar local')
+      showToast(res.message || 'Error al buscar local', 'error')
     }
   } catch (err) {
     console.error('Error al buscar local:', err)
-    showToast('error', 'Error de conexión al buscar local')
+    showToast('Error de conexión al buscar local', 'error')
   } finally {
     loading.value = false
   }
@@ -476,37 +495,39 @@ const cargarAdeudos = async () => {
 
   try {
     // Cargar adeudos pendientes
-    const resAdeudos = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_listar_adeudos_energia',
-        Base: 'mercados',
-        Parametros: [
+    const resAdeudos = await apiService.execute(
+          'sp_listar_adeudos_energia',
+          'mercados',
+          [
           { nombre: 'p_id_energia', valor: localEncontrado.value.id_energia, tipo: 'integer' }
-        ]
-      }
-    })
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (resAdeudos.data.eResponse.success) {
-      adeudosPendientes.value = resAdeudos.data.eResponse.data.result || []
+    if (resAdeudos.success) {
+      adeudosPendientes.value = resAdeudos.data.result || []
     }
 
     // Cargar adeudos prescritos
-    const resPrescritos = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_listar_prescripciones',
-        Base: 'mercados',
-        Parametros: [
+    const resPrescritos = await apiService.execute(
+          'sp_listar_prescripciones',
+          'mercados',
+          [
           { nombre: 'p_id_energia', valor: localEncontrado.value.id_energia, tipo: 'integer' }
-        ]
-      }
-    })
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (resPrescritos.data.eResponse.success) {
-      adeudosPrescritos.value = resPrescritos.data.eResponse.data.result || []
+    if (resPrescritos.success) {
+      adeudosPrescritos.value = resPrescritos.data.result || []
     }
   } catch (err) {
     console.error('Error al cargar adeudos:', err)
-    showToast('error', 'Error al cargar adeudos del local')
+    showToast('Error al cargar adeudos del local', 'error')
   } finally {
     loadingAdeudos.value = false
     loadingPrescritos.value = false
@@ -515,12 +536,12 @@ const cargarAdeudos = async () => {
 
 const prescribirSeleccionados = async () => {
   if (adeudosSeleccionados.value.length === 0) {
-    showToast('warning', 'Seleccione al menos un adeudo para prescribir')
+    showToast('Seleccione al menos un adeudo para prescribir', 'warning')
     return
   }
 
   if (!numeroOficio.value.trim()) {
-    showToast('warning', 'Debe ingresar el número de oficio')
+    showToast('Debe ingresar el número de oficio', 'warning')
     return
   }
 
@@ -528,11 +549,10 @@ const prescribirSeleccionados = async () => {
 
   try {
     for (const adeudo of adeudosSeleccionados.value) {
-      await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_prescribir_adeudo',
-          Base: 'mercados',
-          Parametros: [
+      await apiService.execute(
+          'sp_prescribir_adeudo',
+          'mercados',
+          [
             { nombre: 'p_id_energia', valor: localEncontrado.value.id_energia, tipo: 'integer' },
             { nombre: 'p_axo', valor: adeudo.axo, tipo: 'smallint' },
             { nombre: 'p_periodo', valor: adeudo.periodo, tipo: 'smallint' },
@@ -542,17 +562,19 @@ const prescribirSeleccionados = async () => {
             { nombre: 'p_clave_canc', valor: numeroOficio.value, tipo: 'string' },
             { nombre: 'p_observacion', valor: 'Prescripción de adeudo', tipo: 'string' },
             { nombre: 'p_id_usuario', valor: 1, tipo: 'integer' }
-          ]
-        }
-      })
+          ],
+          '',
+          null,
+          'publico'
+        )
     }
 
-    showToast('success', `Se prescribieron ${adeudosSeleccionados.value.length} adeudo(s) exitosamente`)
+    showToast(`Se prescribieron ${adeudosSeleccionados.value.length} adeudo(s) exitosamente`, 'success')
     adeudosSeleccionados.value = []
     await cargarAdeudos()
   } catch (err) {
     console.error('Error al prescribir adeudos:', err)
-    showToast('error', 'Error al prescribir adeudos')
+    showToast('Error al prescribir adeudos', 'error')
   } finally {
     loading.value = false
   }
@@ -560,7 +582,7 @@ const prescribirSeleccionados = async () => {
 
 const quitarPrescripcionSeleccionados = async () => {
   if (prescritosSeleccionados.value.length === 0) {
-    showToast('warning', 'Seleccione al menos una prescripción para quitar')
+    showToast('Seleccione al menos una prescripción para quitar', 'warning')
     return
   }
 
@@ -568,11 +590,10 @@ const quitarPrescripcionSeleccionados = async () => {
 
   try {
     for (const prescrito of prescritosSeleccionados.value) {
-      await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_quitar_prescripcion',
-          Base: 'mercados',
-          Parametros: [
+      await apiService.execute(
+          'sp_quitar_prescripcion',
+          'mercados',
+          [
             { nombre: 'p_id_energia', valor: localEncontrado.value.id_energia, tipo: 'integer' },
             { nombre: 'p_axo', valor: prescrito.axo, tipo: 'smallint' },
             { nombre: 'p_periodo', valor: prescrito.periodo, tipo: 'smallint' },
@@ -581,17 +602,19 @@ const quitarPrescripcionSeleccionados = async () => {
             { nombre: 'p_importe', valor: prescrito.importe, tipo: 'numeric' },
             { nombre: 'p_id_usuario', valor: 1, tipo: 'integer' },
             { nombre: 'p_id_cancelacion', valor: prescrito.id_cancelacion, tipo: 'integer' }
-          ]
-        }
-      })
+          ],
+          '',
+          null,
+          'publico'
+        )
     }
 
-    showToast('success', `Se quitaron ${prescritosSeleccionados.value.length} prescripción(es) exitosamente`)
+    showToast(`Se quitaron ${prescritosSeleccionados.value.length} prescripción(es) exitosamente`, 'success')
     prescritosSeleccionados.value = []
     await cargarAdeudos()
   } catch (err) {
     console.error('Error al quitar prescripción:', err)
-    showToast('error', 'Error al quitar prescripción')
+    showToast('Error al quitar prescripción', 'error')
   } finally {
     loading.value = false
   }

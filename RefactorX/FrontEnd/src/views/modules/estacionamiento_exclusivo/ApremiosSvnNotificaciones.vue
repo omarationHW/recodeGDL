@@ -10,6 +10,14 @@
         <p>Gestión de notificaciones de cobranza coactiva</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button class="btn-municipal-primary" @click="reload">
           <font-awesome-icon icon="sync-alt" />
           Actualizar
@@ -106,30 +114,34 @@
 
       <!-- ========== TABLA CON BADGE PÚRPURA ========== -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
-          <div class="header-with-badge">
-            <h5>
-              <font-awesome-icon icon="list" />
-              Resultados de Búsqueda
-            </h5>
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Resultados de Búsqueda
+          </h5>
+          <div class="header-right">
             <span class="badge-purple" v-if="totalResultados > 0">
-              {{ formatNumber(totalResultados) }} registros totales
+              {{ formatNumber(totalResultados) }} registros
             </span>
-          </div>
-          <div v-if="loading" class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
           </div>
         </div>
 
-        <div class="municipal-card-body table-container" v-if="!loading">
-          <!-- Estados vacíos diferenciados -->
-          <div v-if="rows.length === 0 && !primeraBusqueda" class="empty-state">
-            <font-awesome-icon icon="search" size="3x" class="empty-icon" />
+        <div class="municipal-card-body table-container">
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="rows.length === 0 && !hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="bell" size="3x" />
+            </div>
+            <h4>Notificaciones SVN</h4>
             <p>Utiliza los filtros de búsqueda para encontrar notificaciones</p>
           </div>
 
-          <div v-else-if="rows.length === 0" class="empty-state">
-            <font-awesome-icon icon="inbox" size="3x" class="empty-icon" />
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="rows.length === 0 && hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
+            </div>
+            <h4>Sin resultados</h4>
             <p>No se encontraron notificaciones con los criterios especificados</p>
           </div>
 
@@ -148,7 +160,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(r, idx) in rows" :key="idx" class="clickable-row">
+                <tr
+                  v-for="(r, idx) in rows"
+                  :key="idx"
+                  @click="selectedRow = r"
+                  :class="{ 'table-row-selected': selectedRow === r }"
+                  class="row-hover"
+                >
                   <td><strong>{{ r.numero_expediente }}</strong></td>
                   <td>{{ r.contribuyente }}</td>
                   <td>{{ r.tipo_notificacion }}</td>
@@ -162,7 +180,7 @@
                   <td>{{ r.notificador || '-' }}</td>
                   <td>
                     <div class="button-group button-group-sm">
-                      <button class="btn-municipal-info btn-sm" @click="openDetail(r)" title="Ver detalle">
+                      <button class="btn-municipal-info btn-sm" @click.stop="openDetail(r)" title="Ver detalle">
                         <font-awesome-icon icon="eye" />
                       </button>
                     </div>
@@ -247,6 +265,18 @@
         </div>
       </div>
 
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
       <!-- ========== MODAL DE DETALLE ========== -->
       <Modal :show="showDetail" title="Detalle de notificación" @close="showDetail=false" :showDefaultFooter="true">
         <div v-if="selected">
@@ -290,31 +320,23 @@
           </div>
         </div>
       </Modal>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'ApremiosSvnNotificaciones'"
+        :moduleName="'estacionamiento_exclusivo'"
+        :docType="docType"
+        :title="'Notificaciones SVN'"
+        @close="showDocModal = false"
+      />
     </div>
-    
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      @close="closeDocumentation"
-      title="Ayuda - ApremiosSvnNotificaciones"
-    >
-      <h3>Apremios Svn Notificaciones</h3>
-      <p>Documentacion del modulo Estacionamiento Exclusivo.</p>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'ApremiosSvnNotificaciones'"
-      :moduleName="'estacionamiento_exclusivo'"
-      @close="closeTechDocs"
-    />
-
+    <!-- /module-view-content -->
   </div>
+  <!-- /module-view -->
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
@@ -328,9 +350,15 @@ const OP_LIST = 'apremiossvn_notificaciones_list'
 const OP_STATS = 'apremiossvn_notificaciones_estadisticas'
 
 // ========== COMPOSABLES ==========
-const { loading, execute } = useApi()
+const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
 
 // ========== ESTADO - FILTROS ==========
 const showFilters = ref(false)
@@ -345,6 +373,8 @@ const filters = ref({
 const rows = ref([])
 const totalResultados = ref(0)
 const primeraBusqueda = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // ========== ESTADO - ESTADÍSTICAS ==========
 const loadingEstadisticas = ref(true)
@@ -396,6 +426,8 @@ const cargarEstadisticas = async () => {
 // ========== FUNCIONES - BÚSQUEDA ==========
 const reload = async () => {
   showLoading('Buscando notificaciones...', 'Consultando base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
   const startTime = performance.now()
   const params = [
     { name: 'q', type: 'C', value: String(filters.value.q || '') },
@@ -422,7 +454,8 @@ const reload = async () => {
       ? `${Math.round(duration)}ms`
       : `${(duration / 1000).toFixed(2)}s`
 
-    showToast('success', `Se encontraron ${totalResultados.value} notificación(es) en ${durationText}`)
+    toast.value.duration = durationText
+    showToast('success', `Se encontraron ${totalResultados.value} notificación(es)`)
   } catch (error) {
     rows.value = []
     totalResultados.value = 0
@@ -446,19 +479,24 @@ const limpiarFiltros = () => {
     hasta: '',
     estado: ''
   }
+  rows.value = []
+  hasSearched.value = false
   currentPage.value = 1
+  selectedRow.value = null
 }
 
 // ========== FUNCIONES - PAGINACIÓN ==========
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    selectedRow.value = null
     reload()
   }
 }
 
 const changePageSize = () => {
   currentPage.value = 1
+  selectedRow.value = null
   reload()
 }
 
@@ -511,13 +549,19 @@ onMounted(() => {
   reload() // Cargar datos automaticamente
 })
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 </script>
 

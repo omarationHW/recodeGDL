@@ -10,6 +10,15 @@
         <p>Inicio > Reportes > Cuentas por Cobrar</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button 
           class="btn-municipal-primary" 
           @click="exportarExcel" 
@@ -49,7 +58,7 @@
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
             <font-awesome-icon 
-              :icon="showFilters ? 'chevron-up' : 'chevron-down'" 
+              :icon="showFilters ? 'angle-up' : 'angle-down'" 
               class="ms-2" 
             />
           </h5>
@@ -188,20 +197,20 @@
             </div>
             
             <div class="pagination-buttons">
-              <button 
-                @click="previousPage" 
-                :disabled="currentPage === 1" 
-                class="btn btn-sm btn-outline-primary"
+              <button
+                @click="previousPage"
+                :disabled="currentPage === 1"
+                class="btn-municipal-secondary"
               >
-                <font-awesome-icon icon="chevron-left" />
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button 
-                @click="nextPage" 
-                :disabled="currentPage === totalPages" 
-                class="btn btn-sm btn-outline-primary"
+              <button
+                @click="nextPage"
+                :disabled="currentPage === totalPages"
+                class="btn-municipal-secondary"
               >
-                <font-awesome-icon icon="chevron-right" />
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>
@@ -218,12 +227,20 @@
       <span>{{ toast.message }}</span>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptCuentaPublica'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptCuentaPublica'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptCuentaPublica'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptCuentaPublica'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -272,20 +289,21 @@ const consultar = async () => {
   showLoading('Consultando datos', 'Por favor espere')
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'rpt_cuenta_publica',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_axo', Valor: filters.value.axo },
-          { Nombre: 'p_oficina', Valor: filters.value.oficina }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'rpt_cuenta_publica',
+          'mercados',
+          [
+          { nombre: 'p_axo', valor: filters.value.axo },
+          { nombre: 'p_oficina', valor: filters.value.oficina }
+        ],
+          '',
+          null,
+          'publico'
+        );
 // p_axo integer, p_oficina integer
 
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      datos.value = response.data.eResponse.data.result;
+    if (response?.success && response?.data?.result) {
+      datos.value = response.data.result;
       showToast(
         datos.value.length === 0 
           ? 'No se encontraron resultados' 

@@ -8,6 +8,16 @@
         <h1>Proyecto</h1>
         <p>Gestión de proyectos</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -71,7 +81,7 @@
           </div>
 
           <!-- Paginación -->
-          <div class="pagination-container" v-if="!loading && totalPages > 1" style="margin-top: 20px;">
+          <div class="pagination-controls mt-3" v-if="!loading && totalPages > 1">
             <div class="pagination-info">
               Mostrando {{ startRecord }} - {{ endRecord }} de {{ totalRecords }}
             </div>
@@ -105,22 +115,44 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'proyecfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Proyecto'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'proyecfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Proyecto'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_PROYECFRM'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({ q: '' })
 const rows = ref([])
@@ -187,7 +219,8 @@ async function reload() {
   console.log('🔍 Parámetros:', params)
 
   try {
-    const data = await execute(OP_LIST, BASE_DB, params)
+    showLoading('Consultando...', 'Por favor espere')
+    const data = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
     console.log('✅ Datos recibidos completos:', data)
 
     // Los datos vienen en data.result como array
@@ -218,121 +251,11 @@ async function reload() {
     columns.value = []
     console.error('❌ Error cargando datos:', e)
     alert('Error cargando datos: ' + e.message)
+  } finally {
+    hideLoading()
   }
 }
 
 reload()
 </script>
 
-<style scoped>
-.municipal-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-}
-
-.municipal-card-header {
-  padding: 15px 20px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.municipal-card-body {
-  padding: 20px;
-}
-
-.table-container {
-  min-height: 200px;
-}
-
-.municipal-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-}
-
-.municipal-table-header {
-  background: #f5f5f5;
-}
-
-.municipal-table th,
-.municipal-table td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: left;
-}
-
-.row-hover:hover {
-  background-color: #f9f9f9;
-}
-
-.alert {
-  padding: 12px 20px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-}
-
-.alert-info {
-  background-color: #e3f2fd;
-  border: 1px solid #90caf9;
-  color: #1976d2;
-}
-
-.alert-warning {
-  background-color: #fff3cd;
-  border: 1px solid #ffc107;
-  color: #856404;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
-  padding: 1rem;
-  border-top: 1px solid #ddd;
-}
-
-.pagination-info {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.pagination-controls {
-  display: flex;
-  gap: 0.25rem;
-  align-items: center;
-}
-
-.pagination-pages {
-  display: flex;
-  gap: 0.25rem;
-  margin: 0 0.5rem;
-}
-
-.btn-pagination {
-  padding: 0.4rem 0.8rem;
-  border: 1px solid #ddd;
-  background: white;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
-  font-size: 0.9rem;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background: #f5f5f5;
-  border-color: #999;
-}
-
-.btn-pagination:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-pagination.active {
-  background: #0066cc;
-  color: white;
-  border-color: #0066cc;
-}
-</style>

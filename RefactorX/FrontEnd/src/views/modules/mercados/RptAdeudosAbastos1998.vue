@@ -10,6 +10,15 @@
         <p>Inicio > Reportes > Adeudos Abastos 1998</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || adeudos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
@@ -18,10 +27,7 @@
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -32,7 +38,7 @@
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+            <font-awesome-icon :icon="showFilters ? 'angle-up' : 'angle-down'" class="ms-2" />
           </h5>
         </div>
 
@@ -49,7 +55,7 @@
               <select class="municipal-form-control" v-model.number="filters.oficina" @change="onOficinaChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -175,7 +181,7 @@
             </div>
             <div class="pagination-controls">
               <label>Registros por página:</label>
-              <select v-model.number="pageSize" class="form-select form-select-sm">
+              <select v-model.number="pageSize" class="municipal-form-control" style="width: auto;">
                 <option :value="10">10</option>
                 <option :value="25">25</option>
                 <option :value="50">50</option>
@@ -184,12 +190,12 @@
               </select>
             </div>
             <div class="pagination-buttons">
-              <button @click="previousPage" :disabled="currentPage === 1" class="btn btn-sm btn-outline-primary">
-                <font-awesome-icon icon="chevron-left" />
+              <button @click="previousPage" :disabled="currentPage === 1" class="btn-municipal-secondary">
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn btn-sm btn-outline-primary">
-                <font-awesome-icon icon="chevron-right" />
+              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-municipal-secondary">
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>
@@ -203,12 +209,20 @@
       <span>{{ toast.message }}</span>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptAdeudosAbastos1998'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptAdeudosAbastos1998'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptAdeudosAbastos1998'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptAdeudosAbastos1998'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -291,16 +305,17 @@ const toggleFilters = () => {
 const fetchRecaudadoras = async () => {
   loading.value = true;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      recaudadoras.value = response.data.eResponse.data.result;
+    if (response?.success && response?.data?.result) {
+      recaudadoras.value = response.data.result;
     }
   } catch (error) {
     showToast('Error al cargar recaudadoras', 'error');
@@ -330,20 +345,21 @@ const consultar = async () => {
   currentPage.value = 1;
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_adeudos_abastos_1998',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
-          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
-          { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_get_adeudos_abastos_1998',
+          'mercados',
+          [
+          { nombre: 'p_axo', valor: parseInt(filters.value.axo) },
+          { nombre: 'p_oficina', valor: parseInt(filters.value.oficina) },
+          { nombre: 'p_periodo', valor: parseInt(filters.value.periodo) }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      adeudos.value = response.data.eResponse.data.result;
+    if (response?.success && response?.data?.result) {
+      adeudos.value = response.data.result;
       if (adeudos.value.length === 0) {
         showToast('No se encontraron adeudos con los criterios especificados', 'info');
       } else {
@@ -460,135 +476,3 @@ onMounted(async () => {
   }
 });
 </script>
-
-<style scoped>
-@media print {
-  .module-view-header,
-  .municipal-card-header,
-  .pagination-container,
-  .button-group {
-    display: none !important;
-  }
-
-  .municipal-table {
-    font-size: 10px;
-  }
-
-  .sticky-header {
-    position: static !important;
-  }
-}
-
-.sticky-header {
-  position: sticky;
-  top: 0;
-  background-color: #fff;
-  z-index: 10;
-}
-
-.table-container {
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.row-hover:hover {
-  background-color: #f0f8ff;
-  cursor: pointer;
-}
-
-.table-row-selected {
-  background-color: #e3f2fd !important;
-}
-
-.header-with-badge {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-right {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
-  padding: 1rem;
-  border-top: 1px solid #dee2e6;
-}
-
-.pagination-info {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.pagination-controls label {
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.pagination-controls select {
-  width: auto;
-}
-
-.pagination-buttons {
-  display: flex;
-  align-items: center;
-}
-
-.toast-notification {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  padding: 1rem 1.5rem;
-  border-radius: 0.5rem;
-  background-color: #fff;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  z-index: 9999;
-  animation: slideIn 0.3s ease-out;
-}
-
-.toast-success { border-left: 4px solid #28a745; }
-.toast-error { border-left: 4px solid #dc3545; }
-.toast-warning { border-left: 4px solid #ffc107; }
-.toast-info { border-left: 4px solid #17a2b8; }
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.required {
-  color: #dc3545;
-}
-</style>

@@ -9,11 +9,15 @@
         <p>Mercados - Detalle de Pagos de Energía por Fecha</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
         </button>
-      </div>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        </div>
     </div>
 
     <div class="module-view-content">
@@ -123,14 +127,22 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'ConsCapturaFechaEnergia'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - ConsCapturaFechaEnergia'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'ConsCapturaFechaEnergia'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - ConsCapturaFechaEnergia'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -154,23 +166,20 @@ const formatCurrency = (value) => {
 
 const showToast = (type, message) => {
   Swal.fire({ toast: true, position: 'top-end', icon: type, title: message, showConfirmButton: false, timer: 3000 });
-};
-
-const cerrar = () => router.push('/mercados');
-
-async function cargarOficinas() {
+};async function cargarOficinas() {
   showLoading('Cargando Captura por Fecha', 'Preparando oficinas...');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_captura_fecha_get_oficinas',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_cons_captura_fecha_get_oficinas',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      oficinas.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      oficinas.value = response.data.result || [];
     }
   } catch (error) {
     console.error('Error cargando oficinas:', error);
@@ -181,7 +190,7 @@ async function cargarOficinas() {
 
 async function buscarPagos() {
   if (!form.value.fecha || !form.value.oficina || !form.value.caja || !form.value.operacion) {
-    showToast('warning', 'Complete todos los campos');
+    showToast('Complete todos los campos', 'warning');
     return;
   }
 
@@ -191,28 +200,29 @@ async function buscarPagos() {
   selectAll.value = false;
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_captura_fecha_energia_get_pagos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_fecha', Valor: form.value.fecha, tipo: 'date' },
-          { Nombre: 'p_oficina', Valor: form.value.oficina, tipo: 'integer' },
-          { Nombre: 'p_caja', Valor: form.value.caja },
-          { Nombre: 'p_operacion', Valor: form.value.operacion, tipo: 'integer' }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_cons_captura_fecha_energia_get_pagos',
+          'mercados',
+          [
+          { nombre: 'p_fecha', valor: form.value.fecha, tipo: 'date' },
+          { nombre: 'p_oficina', valor: form.value.oficina, tipo: 'integer' },
+          { nombre: 'p_caja', valor: form.value.caja },
+          { nombre: 'p_operacion', valor: form.value.operacion, tipo: 'integer' }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      pagos.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      pagos.value = response.data.result || [];
       if (pagos.value.length === 0) {
-        showToast('info', 'No se encontraron pagos');
+        showToast('No se encontraron pagos', 'info');
       }
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al buscar pagos');
+    showToast('Error al buscar pagos', 'error');
   } finally {
     loading.value = false;
   }
@@ -228,7 +238,7 @@ function toggleAll() {
 
 async function borrarPagos() {
   if (selected.value.length === 0) {
-    showToast('warning', 'Seleccione al menos un pago');
+    showToast('Seleccione al menos un pago', 'warning');
     return;
   }
 
@@ -249,30 +259,53 @@ async function borrarPagos() {
 
   try {
     for (const pago of selected.value) {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_cons_captura_fecha_energia_delete',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_id_pago_energia', Valor: pago.id_pago_energia, tipo: 'integer' },
-            { Nombre: 'p_usuario', Valor: 1, tipo: 'integer' }
-          ]
-        }
-      });
+      const response = await apiService.execute(
+          'sp_cons_captura_fecha_energia_delete',
+          'mercados',
+          [
+            { nombre: 'p_id_pago_energia', valor: pago.id_pago_energia, tipo: 'integer' },
+            { nombre: 'p_usuario', valor: 1, tipo: 'integer' }
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success) {
+      if (response.success) {
         exitosos++;
       }
     }
 
-    showToast('success', `${exitosos} pago(s) de energía eliminado(s)`);
+    showToast(`${exitosos} pago(s) de energía eliminado(s)`, 'success');
     buscarPagos();
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al borrar pagos');
+    showToast('Error al borrar pagos', 'error');
   } finally {
     loading.value = false;
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Consulta de Captura de EnergÃ­a por Fecha',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite consultar las capturas de energÃ­a en un perÃ­odo especÃ­fico.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Indique el rango de fechas
+          <li>Seleccione la recaudadora y mercado si desea filtrar
+          <li>Puede exportar el reporte a Excel</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => cargarOficinas());

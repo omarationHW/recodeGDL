@@ -24,10 +24,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -94,7 +95,7 @@
               <tbody>
                 <tr v-if="rubros.length === 0">
                   <td colspan="4" class="text-center text-muted">
-                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                    <font-awesome-icon icon="inbox" size="2x" class="empty-state-icon" />
                     <p>No hay tablas disponibles</p>
                   </td>
                 </tr>
@@ -103,7 +104,7 @@
                   v-for="rubro in rubros"
                   :key="rubro.cve_tab"
                   @click="seleccionarRubro(rubro)"
-                  :class="{ 'row-hover': true, 'selected-row': rubroSeleccionado?.cve_tab === rubro.cve_tab }"
+                  :class="{ 'row-hover': true, 'table-row-selected': rubroSeleccionado?.cve_tab === rubro.cve_tab }"
                   style="cursor: pointer;"
                 >
                   <td class="text-center">
@@ -156,7 +157,7 @@
               <tbody>
                 <tr v-if="statusDisponibles.length === 0">
                   <td colspan="3" class="text-center text-muted">
-                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                    <font-awesome-icon icon="inbox" size="2x" class="empty-state-icon" />
                     <p>No hay status disponibles</p>
                   </td>
                 </tr>
@@ -165,7 +166,7 @@
                   v-for="status in statusDisponibles"
                   :key="status.cve_stat"
                   @click="toggleStatus(status)"
-                  :class="{ 'row-hover': true, 'selected-row': isStatusSeleccionado(status) }"
+                  :class="{ 'row-hover': true, 'table-row-selected': isStatusSeleccionado(status) }"
                   style="cursor: pointer;"
                 >
                   <td class="text-center">
@@ -314,26 +315,19 @@
       </button>
     </div>
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentacion -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'Rubros'"
       :moduleName="'otras_obligaciones'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Catálogo de Rubros'"
+      @close="showDocModal = false"
     />
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'Rubros'"
-      :moduleName="'otras_obligaciones'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
@@ -355,10 +349,22 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+// Documentacion y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
+
 // Estado
 const loading = ref(false)
-const showDocumentation = ref(false)
-const showTechDocs = ref(false)
 const showFormulario = ref(false)
 const showDetalleModal = ref(false)
 const showEditModal = ref(false)
@@ -625,23 +631,6 @@ const handleEditar = async () => {
 // Utilidades
 const formatNumber = (num) => {
   return new Intl.NumberFormat('es-MX').format(num)
-}
-
-// Documentación
-const openDocumentation = () => {
-  showDocumentation.value = true
-}
-
-const closeDocumentation = () => {
-  showDocumentation.value = false
-}
-
-const openTechDocs = () => {
-  showTechDocs.value = true
-}
-
-const closeTechDocs = () => {
-  showTechDocs.value = false
 }
 
 // Lifecycle

@@ -1,183 +1,264 @@
 <template>
   <div class="module-view">
+    <!-- Header del módulo -->
     <div class="module-view-header">
-      <h1 class="module-view-info">
-        <font-awesome-icon icon="user-search" />
-        Consulta por Nombre del Titular
-      </h1>
+      <div class="module-view-icon">
+        <font-awesome-icon icon="user" />
+      </div>
+      <div class="module-view-info">
+        <h1>Consulta por Nombre del Titular</h1>
+        <p>Cementerios - Búsqueda de folios por nombre</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    </div>
+
+    <div class="module-view-content">
+      <!-- Búsqueda -->
+      <div class="municipal-card mb-3">
+        <div class="municipal-card-header">
+          <font-awesome-icon icon="search" />
+          Buscar por Nombre
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-grid-two">
+            <div class="form-group">
+              <label class="form-label required">Nombre del Titular</label>
+              <input
+                v-model="nombreBuscar"
+                type="text"
+                class="municipal-form-control"
+                placeholder="Ingrese nombre o parte del nombre..."
+                @keyup.enter="buscarPorNombre"
+                autofocus
+              />
+            </div>
+            <div class="form-actions">
+              <button @click="buscarPorNombre" class="btn-municipal-primary">
+                <font-awesome-icon icon="search" />
+                Buscar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State - Sin búsqueda -->
+      <div v-if="folios.length === 0 && !hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="user" size="3x" />
+        </div>
+        <h4>Consulta por Nombre del Titular</h4>
+        <p>Ingrese el nombre del titular para buscar folios en cementerios</p>
+      </div>
+
+      <!-- Empty State - Sin resultados -->
+      <div v-else-if="folios.length === 0 && hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="inbox" size="3x" />
+        </div>
+        <h4>Sin resultados</h4>
+        <p>No se encontraron folios con el nombre especificado</p>
+      </div>
+
+      <!-- Resultados -->
+      <div v-else class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Folios Encontrados
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="folios.length > 0">
+              {{ folios.length }} registros
+            </span>
+          </div>
+        </div>
+        <div class="municipal-card-body">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Folio</th>
+                  <th>Nombre</th>
+                  <th>Cementerio</th>
+                  <th>Ubicación</th>
+                  <th>Tipo</th>
+                  <th>Año Pagado</th>
+                  <th>Domicilio</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="folio in folios"
+                  :key="folio.control_rcm"
+                  @click="selectedRow = folio"
+                  :class="{ 'table-row-selected': selectedRow === folio }"
+                  class="row-hover"
+                >
+                  <td><strong>{{ folio.control_rcm }}</strong></td>
+                  <td>{{ folio.nombre }}</td>
+                  <td>{{ folio.cementerio }}</td>
+                  <td>{{ formatearUbicacion(folio) }}</td>
+                  <td>{{ folio.tipo || 'N/A' }}</td>
+                  <td>
+                    <span :class="`badge badge-${getAnioPagadoBadge(folio.axo_pagado)}`">
+                      {{ folio.axo_pagado }}
+                    </span>
+                  </td>
+                  <td>{{ formatearDomicilio(folio) }}</td>
+                  <td>
+                    <button @click.stop="verDetalle(folio.control_rcm)" class="btn-municipal-secondary btn-sm">
+                      <font-awesome-icon icon="eye" />
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda/Documentación -->
       <DocumentationModal
-        title="Ayuda - Consulta por Nombre"
-        :sections="helpSections"
+        :show="showDocModal"
+        :componentName="'ConsultaNombre'"
+        :moduleName="'cementerios'"
+        :docType="docType"
+        :title="'Consulta por Nombre del Titular'"
+        @close="showDocModal = false"
       />
     </div>
-
-    <!-- Búsqueda -->
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="search" />
-        Buscar por Nombre
-      </div>
-      <div class="municipal-card-body">
-        <div class="form-grid-two">
-          <div class="form-group">
-            <label class="form-label required">Nombre del Titular</label>
-            <input
-              v-model="nombreBuscar"
-              type="text"
-              class="municipal-form-control"
-              placeholder="Ingrese nombre o parte del nombre..."
-              @keyup.enter="buscarPorNombre"
-              autofocus
-            />
-          </div>
-          <div class="form-actions">
-            <button @click="buscarPorNombre" class="btn-municipal-primary">
-              <font-awesome-icon icon="search" />
-              Buscar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Resultados -->
-    <div v-if="folios.length > 0" class="municipal-card">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="list" />
-        Folios Encontrados ({{ folios.length }})
-      </div>
-      <div class="municipal-card-body">
-        <div class="table-responsive">
-          <table class="municipal-table">
-            <thead class="municipal-table-header">
-              <tr>
-                <th>Folio</th>
-                <th>Nombre</th>
-                <th>Cementerio</th>
-                <th>Ubicación</th>
-                <th>Tipo</th>
-                <th>Año Pagado</th>
-                <th>Domicilio</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="folio in folios" :key="folio.control_rcm">
-                <td><strong>{{ folio.control_rcm }}</strong></td>
-                <td>{{ folio.nombre }}</td>
-                <td>{{ folio.cementerio }}</td>
-                <td>{{ formatearUbicacion(folio) }}</td>
-                <td>{{ folio.tipo || 'N/A' }}</td>
-                <td>
-                  <span :class="`badge badge-${getAnioPagadoBadge(folio.axo_pagado)}`">
-                    {{ folio.axo_pagado }}
-                  </span>
-                </td>
-                <td>{{ formatearDomicilio(folio) }}</td>
-                <td>
-                  <button @click="verDetalle(folio.control_rcm)" class="btn-municipal-secondary btn-sm">
-                    <font-awesome-icon icon="eye" />
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div v-else-if="busquedaRealizada" class="alert-info">
-      <font-awesome-icon icon="info-circle" />
-      No se encontraron folios con el nombre especificado
-    </div>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'ConsultaNombre'"
-      :moduleName="'cementerios'"
-      @close="closeTechDocs"
-    />
-
+    <!-- /module-view-content -->
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import { useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const toast = useToast()
-
-// Modal de documentación
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
 const router = useRouter()
 
+// Sistema de Toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+const showToast = (type, message) => {
+  toast.value = { show: true, type, message }
+  setTimeout(() => {
+    hideToast()
+  }, 4000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
+
+// Variables de estado
 const nombreBuscar = ref('')
 const folios = ref([])
-const busquedaRealizada = ref(false)
-
-const helpSections = [
-  {
-    title: 'Consulta por Nombre del Titular',
-    content: `
-      <p>Búsqueda de folios por nombre del titular.</p>
-      <h4>Uso:</h4>
-      <ol>
-        <li>Ingrese el nombre completo o parte del nombre del titular</li>
-        <li>La búsqueda no distingue mayúsculas/minúsculas</li>
-        <li>Se mostrarán todos los folios que coincidan</li>
-        <li>Haga clic en el ícono de ojo para ver el detalle completo</li>
-      </ol>
-      <h4>Columnas de Año Pagado:</h4>
-      <ul>
-        <li><span style="color: green;">Verde:</span> Al corriente</li>
-        <li><span style="color: orange;">Naranja:</span> 1-2 años atrasado</li>
-        <li><span style="color: red;">Rojo:</span> 3+ años atrasado</li>
-      </ul>
-    `
-  }
-]
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 const buscarPorNombre = async () => {
   if (!nombreBuscar.value || nombreBuscar.value.trim().length < 3) {
-    toast.warning('Ingrese al menos 3 caracteres para buscar')
+    showToast('warning', 'Ingrese al menos 3 caracteres para buscar')
     return
   }
 
+  showLoading('Buscando folios...', 'Consultando en cementerios')
+  hasSearched.value = true
+  selectedRow.value = null
+
   try {
-    const params = [
-      {
-        nombre: 'p_nombre',
-        valor: nombreBuscar.value.trim(),
-        tipo: 'string'
-      }
-    ]
-
-    const response = await execute('sp_cem_consultar_por_nombre', 'cementerios', params,
-      'cementerios',
+    // Usar SP: sp_consultanombre_buscar
+    // Base: cementerio.public (según 07_SP_CEMENTERIOS_CONSULTANOMBRE_EXACTO_all_procedures.sql)
+    const response = await execute(
+      'sp_consultanombre_buscar',
+      'cementerio',
+      [
+         { nombre: 'p_nombre', valor: nombreBuscar.value.trim(), tipo: 'string' }
+      ],
+      '',
       null,
-      'public'
-    , '', null, 'comun')
+      'publico'
+    )
 
-    folios.value = response.result || []
-    busquedaRealizada.value = true
+    /* TODO FUTURO: Query SQL original (comentado - ahora usa SP)
+    SELECT FIRST 50 *
+    FROM padron_licencias.comun.ta_13_datosrcm
+    WHERE UPPER(nombre) LIKE UPPER([nombre] || '%')
+      AND vigencia = 'A'
+    ORDER BY nombre
+    */
+
+    if (response && response.result) {
+      folios.value = response.result
+    }
 
     if (folios.value.length > 0) {
-      toast.success(`Se encontraron ${folios.value.length} folio(s)`)
+      showToast('success', `Se encontraron ${folios.value.length} folio(s)`)
     } else {
-      toast.info('No se encontraron folios con el nombre especificado')
+      showToast('info', 'No se encontraron folios con el nombre especificado')
     }
   } catch (error) {
-    toast.error('Error al buscar folios')
+    console.error('Error al buscar por nombre:', error)
+    showToast('error', 'Error al buscar folios')
     folios.value = []
+  } finally {
+    hideLoading()
   }
 }
 

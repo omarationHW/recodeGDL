@@ -4,7 +4,17 @@
       <div class="module-view-icon"><font-awesome-icon icon="percent" /></div>
       <div class="module-view-info">
         <h1>Descuentos Derechos de Mercado</h1>
-        <p>Consulta y administración de descuentos</p>
+        <p>Consulta de descuentos aplicables a derechos de mercado por cuenta y ejercicio</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
       </div>
     </div>
 
@@ -14,15 +24,41 @@
           <div class="form-row">
             <div class="form-group">
               <label class="municipal-form-label">Cuenta</label>
-              <input class="municipal-form-control" v-model="filters.cuenta" @keyup.enter="reload" />
+              <input
+                class="municipal-form-control"
+                v-model="filters.cuenta"
+                @keyup.enter="filters.cuenta.trim() && reload()"
+              />
             </div>
             <div class="form-group">
               <label class="municipal-form-label">Año</label>
-              <input class="municipal-form-control" type="number" v-model.number="filters.ejercicio" @keyup.enter="reload" />
+              <input
+                class="municipal-form-control"
+                type="number"
+                v-model.number="filters.ejercicio"
+                placeholder="Ej: 2024"
+                @keyup.enter="filters.cuenta.trim() && reload()"
+              />
             </div>
           </div>
           <div class="button-group">
-            <button class="btn-municipal-primary" :disabled="loading" @click="reload"><font-awesome-icon icon="search" /> Buscar</button>
+            <button
+              class="btn-municipal-primary"
+              :disabled="loading || !filters.cuenta.trim()"
+              @click="reload"
+            >
+              <font-awesome-icon icon="search" v-if="!loading" />
+              <font-awesome-icon icon="spinner" spin v-if="loading" />
+              {{ loading ? 'Buscando...' : 'Buscar' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              :disabled="loading"
+              @click="limpiar"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
+            </button>
           </div>
         </div>
       </div>
@@ -86,26 +122,47 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'DescDerechosMerc'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Descuentos Derechos de Mercado'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'DescDerechosMerc'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Descuentos Derechos de Mercado'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_DESCDERECHOS_MERC'
-const SCHEMA = 'multas_reglamentos'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
-const filters = ref({ cuenta: '', ejercicio: new Date().getFullYear() })
+const filters = ref({ cuenta: '', ejercicio: 2024 })
 const rows = ref([])
 const currentPage = ref(1)
 const itemsPerPage = 10
@@ -122,62 +179,33 @@ async function reload() {
     { nombre: 'p_ejercicio', tipo: 'int', valor: Number(filters.value.ejercicio || 0) }
   ]
 
+  showLoading('Consultando...', 'Por favor espere')
   try {
-    const data = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
-    rows.value = Array.isArray(data?.result) ? data.result : Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : []
+    const response = await execute(OP_LIST, BASE_DB, params, '', null, 'publico')
+    console.log('Respuesta completa:', response)
+
+    // Extraer datos con fallbacks
+    const responseData = response?.eResponse?.data || response?.data || response
+    const arr = Array.isArray(responseData?.result) ? responseData.result :
+                 Array.isArray(responseData?.rows) ? responseData.rows :
+                 Array.isArray(responseData) ? responseData : []
+
+    console.log('Registros extraídos:', arr.length, arr)
+    rows.value = arr
     currentPage.value = 1 // Reset a la primera página
   } catch (e) {
+    console.error('Error al consultar descuentos:', e)
     rows.value = []
+  } finally {
+    hideLoading()
   }
 }
 
-reload()
+function limpiar() {
+  filters.value = { cuenta: '', ejercicio: 2024 }
+  rows.value = []
+  currentPage.value = 1
+}
 </script>
 
-<style scoped>
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding: 15px;
-  border-top: 1px solid #dee2e6;
-}
-
-.pagination-info {
-  color: #6c757d;
-  font-size: 14px;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.pagination-page {
-  color: #495057;
-  font-weight: 500;
-}
-
-.btn-pagination {
-  padding: 8px 16px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  background-color: #fff;
-  color: #495057;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.btn-pagination:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-</style>
 

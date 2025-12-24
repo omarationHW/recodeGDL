@@ -1,275 +1,550 @@
 <template>
   <div class="module-view">
+    <!-- Header del módulo -->
     <div class="module-view-header">
-      <h1 class="module-view-info">
+      <div class="module-view-icon">
         <font-awesome-icon icon="leaf" />
-        Consulta Cementerio Jardín
-      </h1>
+      </div>
+      <div class="module-view-info">
+        <h1>Consulta Cementerio Jardín</h1>
+        <p>Cementerios - Búsqueda de folios del Cementerio Jardín</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    </div>
+
+    <div class="module-view-content">
+      <!-- Filtros de Búsqueda -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="filter" />
+            Filtros de Consulta
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <!-- Tipo de búsqueda -->
+          <div class="form-row mb-3">
+            <div class="form-group">
+              <label class="municipal-form-label">Tipo de Búsqueda</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" v-model="tipoBusqueda" value="ubicacion" />
+                  Por Ubicación (Clase/Sección/Línea)
+                </label>
+                <label class="radio-label">
+                  <input type="radio" v-model="tipoBusqueda" value="nombre" />
+                  Por Nombre del Titular
+                </label>
+                <label class="radio-label">
+                  <input type="radio" v-model="tipoBusqueda" value="todos" />
+                  Listar Todos
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtros por ubicación -->
+          <div v-if="tipoBusqueda === 'ubicacion'" class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label required">Clase</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="filtros.clase"
+                placeholder="Número de clase..."
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label required">Sección</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="filtros.seccion"
+                placeholder="Número de sección..."
+              />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label required">Línea (desde)</label>
+              <input
+                type="number"
+                class="municipal-form-control"
+                v-model.number="filtros.linea"
+                placeholder="Número de línea..."
+              />
+            </div>
+          </div>
+
+          <!-- Filtro por nombre -->
+          <div v-if="tipoBusqueda === 'nombre'" class="form-row">
+            <div class="form-group full-width">
+              <label class="municipal-form-label required">Nombre del Titular</label>
+              <input
+                type="text"
+                class="municipal-form-control"
+                v-model="filtros.nombre"
+                @keyup.enter="buscarFolios"
+                placeholder="Ingrese nombre del titular..."
+              />
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="button-group">
+            <button
+              class="btn-municipal-primary"
+              @click="buscarFolios"
+            >
+              <font-awesome-icon icon="search" />
+              Buscar
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              @click="limpiarFiltros"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resultados -->
+      <div class="municipal-card" v-if="folios.length > 0">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Folios del Cementerio Jardín
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple">
+              {{ formatNumber(totalRecords) }} registros
+            </span>
+          </div>
+        </div>
+        <div class="municipal-card-body">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Folio</th>
+                  <th>Titular</th>
+                  <th>Domicilio</th>
+                  <th>Ubicación</th>
+                  <th>Año Pagado</th>
+                  <th>Metros</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="folio in paginatedFolios"
+                  :key="folio.control_rcm"
+                  @click="selectedRow = folio"
+                  :class="{ 'table-row-selected': selectedRow === folio }"
+                  class="row-hover"
+                >
+                  <td><strong>{{ folio.control_rcm }}</strong></td>
+                  <td>{{ folio.nombre }}</td>
+                  <td>{{ formatearDomicilio(folio) }}</td>
+                  <td>{{ formatearUbicacion(folio) }}</td>
+                  <td>{{ folio.axo_pagado }}</td>
+                  <td>{{ folio.metros }} m²</td>
+                  <td>
+                    <button
+                      @click.stop="verDetalle(folio.control_rcm)"
+                      class="btn-municipal-secondary btn-sm"
+                    >
+                      <font-awesome-icon icon="eye" />
+                      Ver
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Controles de Paginación -->
+          <div v-if="folios.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+                de {{ totalRecords }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State - Sin búsqueda -->
+      <div v-if="folios.length === 0 && !hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="leaf" size="3x" />
+        </div>
+        <h4>Consulta Cementerio Jardín</h4>
+        <p>Utilice los filtros para buscar folios por ubicación, nombre del titular o listar todos los registros</p>
+      </div>
+
+      <!-- Empty State - Sin resultados -->
+      <div v-else-if="folios.length === 0 && hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="inbox" size="3x" />
+        </div>
+        <h4>Sin resultados</h4>
+        <p>No se encontraron folios con los criterios especificados</p>
+      </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
       <DocumentationModal
-        title="Ayuda - Cementerio Jardín"
-        :sections="helpSections"
+        :show="showDocModal"
+        :componentName="'ConsultaJardin'"
+        :moduleName="'cementerios'"
+        :docType="docType"
+        :title="'Consulta Cementerio Jardín'"
+        @close="showDocModal = false"
       />
     </div>
-
-    <!-- Filtros -->
-    <div class="municipal-card mb-3">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="filter" />
-        Filtros de Consulta
-      </div>
-      <div class="municipal-card-body">
-        <div class="form-grid-two">
-          <div class="form-group">
-            <label class="municipal-form-label">Buscar por Titular</label>
-            <input
-              v-model="filtros.nombre"
-              type="text"
-              class="municipal-form-control"
-              placeholder="Nombre del titular..."
-            />
-          </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Buscar por Folio</label>
-            <input
-              v-model.number="filtros.folio"
-              type="number"
-              class="municipal-form-control"
-              placeholder="Número de folio..."
-            />
-          </div>
-        </div>
-        <div class="form-actions">
-          <button @click="buscarFolios" class="btn-municipal-primary">
-            <font-awesome-icon icon="search" />
-            Buscar
-          </button>
-          <button @click="limpiarFiltros" class="btn-municipal-secondary">
-            <font-awesome-icon icon="eraser" />
-            Limpiar
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Resultados -->
-    <div v-if="folios.length > 0" class="municipal-card">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="list" />
-        Folios del Cementerio Jardín ({{ folios.length }})
-      </div>
-      <div class="municipal-card-body">
-        <div class="table-responsive">
-          <table class="municipal-table">
-            <thead class="municipal-table-header">
-              <tr>
-                <th>Folio</th>
-                <th>Titular</th>
-                <th>Domicilio</th>
-                <th>Ubicación</th>
-                <th>Año Pagado</th>
-                <th>Metros</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="folio in folios" :key="folio.control_rcm">
-                <td>{{ folio.control_rcm }}</td>
-                <td>{{ folio.nombre }}</td>
-                <td>{{ formatearDomicilio(folio) }}</td>
-                <td>{{ formatearUbicacion(folio) }}</td>
-                <td>{{ folio.axo_pagado }}</td>
-                <td>{{ folio.metros }} m²</td>
-                <td>
-                  <button
-                    @click="verDetalle(folio.control_rcm)"
-                    class="btn-municipal-secondary btn-sm"
-                  >
-                    <font-awesome-icon icon="eye" />
-                    Ver
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div v-if="hayMasResultados" class="text-center mt-3">
-          <button @click="cargarMas" class="btn-municipal-primary">
-            <font-awesome-icon icon="chevron-down" />
-            Cargar Más Resultados
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div v-else-if="busquedaRealizada" class="alert-info">
-      <font-awesome-icon icon="info-circle" />
-      No se encontraron folios en este cementerio
-    </div>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'ConsultaJardin'"
-      :moduleName="'cementerios'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
-import { ref, reactive } from 'vue'
-import { useApi } from '@/composables/useApi'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useRouter } from 'vue-router'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const toast = useToast()
-
-// Modal de documentación
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
 const router = useRouter()
 
-const CEMENTERIO_CODIGO = 'JARDIN'
-const LIMITE_RESULTADOS = 100
+// Error Handler
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
 
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
+
+// Estado
+const selectedRow = ref(null)
+const hasSearched = ref(false)
+const tipoBusqueda = ref('todos') // ubicacion, nombre, todos
 const filtros = reactive({
-  nombre: '',
-  folio: null
+  clase: null,
+  seccion: null,
+  linea: null,
+  nombre: ''
+})
+const folios = ref([])
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
+// Computed - Paginación
+const totalRecords = computed(() => folios.value.length)
+
+const totalPages = computed(() => {
+  return Math.ceil(totalRecords.value / itemsPerPage.value)
 })
 
-const folios = ref([])
-const busquedaRealizada = ref(false)
-const hayMasResultados = ref(false)
-const ultimoFolio = ref(0)
+const paginatedFolios = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return folios.value.slice(start, end)
+})
 
-const helpSections = [
-  {
-    title: 'Consulta Cementerio Jardín',
-    content: `
-      <p>Consulta y visualización de folios del Cementerio Jardín.</p>
-      <h4>Opciones de Búsqueda:</h4>
-      <ul>
-        <li><strong>Por Titular:</strong> Busca por nombre del propietario</li>
-        <li><strong>Por Folio:</strong> Busca un folio específico</li>
-        <li><strong>Sin Filtros:</strong> Lista todos los folios (paginados)</li>
-      </ul>
-    `
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
   }
-]
 
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Métodos
 const buscarFolios = async () => {
+  // Validaciones según tipo de búsqueda
+  if (tipoBusqueda.value === 'ubicacion') {
+    if (!filtros.clase || !filtros.seccion || !filtros.linea) {
+      showToast('warning', 'Debe completar Clase, Sección y Línea')
+      return
+    }
+  }
+
+  if (tipoBusqueda.value === 'nombre') {
+    if (!filtros.nombre.trim()) {
+      showToast('warning', 'Debe ingresar un nombre para buscar')
+      return
+    }
+    if (filtros.nombre.trim().length < 3) {
+      showToast('warning', 'El nombre debe tener al menos 3 caracteres')
+      return
+    }
+  }
+
+  showLoading('Buscando folios...', 'Por favor espere')
+  hasSearched.value = true
+  selectedRow.value = null
+  currentPage.value = 1
+
   try {
-    ultimoFolio.value = 0
-    folios.value = []
+    /* TODO FUTURO: Queries SQL originales (Pascal ConsultaJardin.pas)
+    -- Por ubicación (RCM):
+    SELECT * FROM regprop WHERE clase=:vclase AND seccion=:vsec AND linea>=:vlinea
 
-    const params = [
-      {
-        nombre: 'p_cementerio',
-        valor: CEMENTERIO_CODIGO,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_ultimo_folio',
-        valor: 0,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_limite',
-        valor: LIMITE_RESULTADOS,
-        tipo: 'string'
-      }
-    ]
+    -- Por nombre:
+    SELECT * FROM regprop WHERE nombre LIKE :nom
 
-    const response = await execute('sp_cem_consultar_cementerio', 'cementerios', params,
-      'cementerios',
-      null,
-      'public'
-    , '', null, 'comun')
+    -- Por ppago (OMITIDO - campo no existe en ta_13_datosrcm):
+    SELECT * FROM regprop WHERE ppago LIKE :vpago
+    */
 
-    let resultados = response.result || []
+    let response
 
-    if (filtros.nombre.trim()) {
-      const nombreBusqueda = filtros.nombre.toLowerCase()
-      resultados = resultados.filter(f =>
-        f.nombre && f.nombre.toLowerCase().includes(nombreBusqueda)
+    if (tipoBusqueda.value === 'ubicacion') {
+      // Búsqueda por ubicación usando SP
+      response = await execute(
+        'sp_consultajardin_buscar_por_ubicacion',
+        'cementerio',
+        [
+        { nombre: 'p_clase', valor: filtros.clase, tipo: 'integer' },
+        { nombre: 'p_seccion', valor: filtros.seccion, tipo: 'integer' },
+        { nombre: 'p_linea', valor: filtros.linea, tipo: 'integer' }  
+        ],
+        'function',
+        null,
+        'publico'
+      )
+    } else if (tipoBusqueda.value === 'nombre') {
+      // Búsqueda por nombre usando SP
+      response = await execute(
+        'sp_consultajardin_buscar_por_nombre',
+        'cementerio',
+        [
+         { nombre: 'p_nombre', valor: filtros.nombre, tipo: 'varchar' },
+         { nombre: 'p_limite', valor: 1000, tipo: 'integer' },
+         { nombre: 'p_offset', valor: 0, tipo: 'integer' }
+        ],
+        'function',
+        null,
+        'publico'
+      )
+    } else {
+      // Listar todos usando SP
+      response = await execute(
+        'sp_consultajardin_listar_todos',
+        'cementerio',
+        [
+        { nombre: 'p_limite', valor: 1000, tipo: 'integer' },
+        { nombre: 'p_offset', valor: 0, tipo: 'integer' }
+        ],
+        'function',
+        null,
+        'publico'
       )
     }
 
-    if (filtros.folio) {
-      resultados = resultados.filter(f => f.control_rcm === filtros.folio)
+    if (response?.result?.length > 0) {
+      folios.value = response.result
     }
 
-    folios.value = resultados
-    busquedaRealizada.value = true
-    hayMasResultados.value = resultados.length === LIMITE_RESULTADOS && !filtros.nombre && !filtros.folio
-
-    if (resultados.length > 0) {
-      ultimoFolio.value = resultados[resultados.length - 1].control_rcm
-      toast.success(`Se encontraron ${resultados.length} folio(s)`)
+    if (folios.value.length > 0) {
+      showToast('success', `Se encontraron ${folios.value.length} folio(s)`)
     } else {
-      toast.info('No se encontraron folios con los criterios especificados')
+      showToast('info', 'No se encontraron folios con los criterios especificados')
     }
   } catch (error) {
-    toast.error('Error al buscar folios')
+    console.error('Error al buscar folios:', error)
+    handleApiError(error, 'Error al buscar folios')
+    folios.value = []
+  } finally {
+    hideLoading()
   }
 }
 
+// MÉTODO COMENTADO - Reemplazado por sistema de paginación con botones
+/*
 const cargarMas = async () => {
+  loading.value = true
+  showLoading()
+  paginaActual.value++
+
   try {
-    const params = [
-      {
-        nombre: 'p_cementerio',
-        valor: CEMENTERIO_CODIGO,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_ultimo_folio',
-        valor: ultimoFolio.value,
-        tipo: 'string'
-      },
-      {
-        nombre: 'p_limite',
-        valor: LIMITE_RESULTADOS,
-        tipo: 'string'
-      }
-    ]
+    const offset = paginaActual.value * LIMITE_RESULTADOS
+    let response
 
-    const response = await execute('sp_cem_consultar_cementerio', 'cementerios', params,
-      'cementerios',
-      null,
-      'public'
-    , '', null, 'comun')
-
-    const nuevosFolios = response.result || []
+    if (tipoBusqueda.value === 'nombre') {
+      response = await execute(
+        'sp_consultajardin_buscar_por_nombre',
+        'cementerio',
+        [
+        { nombre: 'p_nombre', valor: filtros.nombre, tipo: 'varchar' },
+         { nombre: 'p_limite', valor: LIMITE_RESULTADOS, tipo: 'integer' },
+         { nombre: 'p_offset', valor: offset, tipo: 'integer' }
+        ],
+        'function',
+        null,
+        'publico'
+      )
+    } else {
+      // Para listar todos (ubicación no aplica paginación porque es filtro específico)
+      response = await execute(
+        'sp_consultajardin_listar_todos',
+        'cementerio',
+        [
+          { nombre: 'p_limite', valor: LIMITE_RESULTADOS, tipo: 'integer' },
+          { nombre: 'p_offset', valor: offset, tipo: 'integer' }
+      ],
+        'function',
+        null,
+        'publico'
+      )
+    }
+    const nuevosFolios = []
+    if(response?.result?.length > 0) {
+      nuevosFolios= response.result
+    }
 
     if (nuevosFolios.length === 0) {
       hayMasResultados.value = false
-      toast.info('No hay más registros')
+      showToast('info', 'No hay más registros')
     } else {
       folios.value = [...folios.value, ...nuevosFolios]
-      ultimoFolio.value = folios.value[folios.value.length - 1].control_rcm
       hayMasResultados.value = nuevosFolios.length === LIMITE_RESULTADOS
-      toast.success(`Se cargaron ${nuevosFolios.length} folio(s) adicionales`)
+      showToast('success', `Se cargaron ${nuevosFolios.length} folio(s) adicionales`)
     }
   } catch (error) {
-    toast.error('Error al cargar más folios')
+    console.error('Error al cargar más folios:', error)
+    showToast('error', 'Error al cargar más folios: ' + error.message)
+  } finally {
+    loading.value = false
+    hideLoading()
   }
 }
+*/
 
 const limpiarFiltros = () => {
+  filtros.clase = null
+  filtros.seccion = null
+  filtros.linea = null
   filtros.nombre = ''
-  filtros.folio = null
   folios.value = []
-  busquedaRealizada.value = false
-  hayMasResultados.value = false
-  ultimoFolio.value = 0
+  hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
 }
 
 const verDetalle = (folio) => {
@@ -289,8 +564,26 @@ const formatearUbicacion = (folio) => {
 }
 
 const formatearDomicilio = (folio) => {
-  const partes = [folio.domicilio]
+  const partes = []
+  if (folio.domicilio) partes.push(folio.domicilio)
   if (folio.colonia) partes.push(folio.colonia)
-  return partes.filter(p => p).join(', ')
+  return partes.join(', ') || 'N/A'
+}
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+  selectedRow.value = null
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
 }
 </script>

@@ -11,11 +11,11 @@
         <p v-else>Otras Obligaciones - Reactivación de Registros</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -355,7 +355,7 @@
 
       <!-- Empty State - Sin búsqueda -->
       <div v-if="!registroEncontrado && !loading" class="empty-state">
-        <font-awesome-icon icon="search" class="empty-icon" />
+        <font-awesome-icon icon="search" class="empty-state-icon" />
         <h3>Buscar Registro</h3>
         <p>Ingrese los datos de búsqueda para localizar el registro a reactivar</p>
       </div>
@@ -367,10 +367,12 @@
 
   <!-- Modal de Ayuda -->
   <DocumentationModal
-    :show="showDocumentation"
+    :show="showDocModal"
     :componentName="'GAdeudos_OpcMult_RA'"
     :moduleName="'otras_obligaciones'"
-    @close="closeDocumentation"
+    :docType="docType"
+    :title="'Reactivación de Adeudos'"
+    @close="showDocModal = false"
   />
 </template>
 
@@ -388,9 +390,18 @@ const router = useRouter()
 const route = useRoute()
 
 // Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const BASE_DB = 'otras_obligaciones'

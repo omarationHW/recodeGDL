@@ -14,11 +14,13 @@
         <p>Procesamiento de archivos CSV de valet parking</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -242,7 +244,7 @@ folio,placa,fecha_entrada,fecha_salida,tarifa,importe
           </div>
 
           <div v-else-if="consultado" class="empty-state">
-            <font-awesome-icon icon="inbox" size="3x" />
+            <font-awesome-icon icon="inbox" size="3x" class="empty-state-icon" />
             <p>No se encontraron registros</p>
           </div>
         </div>
@@ -290,37 +292,22 @@ folio,placa,fecha_entrada,fecha_salida,tarifa,importe
             </table>
           </div>
           <div v-else class="empty-state">
-            <font-awesome-icon icon="chart-line" size="3x" />
+            <font-awesome-icon icon="chart-line" size="3x" class="empty-state-icon" />
             <p>No hay datos de resumen</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - Valet Paso">
-      <h3>Valet Paso - Estacionamientos</h3>
-      <p>Este modulo permite procesar archivos CSV con informacion de valet parking.</p>
-      <h4>Formato del archivo:</h4>
-      <ul>
-        <li><strong>Columna 1:</strong> Folio (numero unico)</li>
-        <li><strong>Columna 2:</strong> Placa del vehiculo</li>
-        <li><strong>Columna 3:</strong> Fecha y hora de entrada</li>
-        <li><strong>Columna 4:</strong> Fecha y hora de salida</li>
-        <li><strong>Columna 5:</strong> Tarifa aplicada</li>
-        <li><strong>Columna 6:</strong> Importe total</li>
-      </ul>
-      <h4>Instrucciones:</h4>
-      <ol>
-        <li>Cargue el archivo CSV o pegue su contenido</li>
-        <li>Verifique el numero de lineas detectadas</li>
-        <li>Presione "Procesar Archivo"</li>
-        <li>Revise el resultado del procesamiento</li>
-      </ol>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'ValetPasoPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'ValetPasoPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Valet Paso'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
@@ -330,11 +317,10 @@ import Swal from 'sweetalert2'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
@@ -589,13 +575,19 @@ onMounted(() => {
   cargarResumen()
 })
 
-// Documentacion
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>
@@ -894,6 +886,10 @@ const closeTechDocs = () => showTechDocs.value = false
   text-align: center;
   padding: 3rem;
   color: #6c757d;
+}
+
+.empty-state-icon {
+  opacity: 0.5;
 }
 
 .empty-state p {

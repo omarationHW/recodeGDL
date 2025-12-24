@@ -14,11 +14,13 @@
         <p>Listados, Resumen por Sector, Estado de Cuenta y Adeudos</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -95,7 +97,7 @@
             <span class="section-subtitle">{{ resultados.length }} registros encontrados</span>
           </div>
           <div class="section-actions">
-            <span class="total-badge"><font-awesome-icon icon="car" /> Total Cajones: {{ totalCajones }}</span>
+            <span class="header-with-badge"><font-awesome-icon icon="car" /> Total Cajones: {{ totalCajones }}</span>
           </div>
         </div>
         <div class="section-body">
@@ -290,7 +292,7 @@
             <span class="section-subtitle">{{ resultados.length }} registros con adeudos</span>
           </div>
           <div class="section-actions">
-            <span class="total-badge">Total: {{ formatMoney(totalesAdeudos.ant + totalesAdeudos.act) }}</span>
+            <span class="header-with-badge">Total: {{ formatMoney(totalesAdeudos.ant + totalesAdeudos.act) }}</span>
           </div>
         </div>
         <div class="section-body">
@@ -370,41 +372,34 @@
         </div>
         <div class="section-body">
           <div class="empty-state-panel">
-            <font-awesome-icon icon="search" size="3x" class="empty-icon" />
+            <font-awesome-icon icon="search" size="3x" class="empty-state-icon" />
             <p>No se encontraron datos para el reporte seleccionado</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - Reportes">
-      <h3>Reportes de Estacionamientos Publicos</h3>
-      <p>Este modulo permite generar diversos reportes del padron de estacionamientos.</p>
-      <h4>Tipos de Reportes:</h4>
-      <ul>
-        <li><strong>Listado:</strong> Todos los estacionamientos con opcion de ordenamiento</li>
-        <li><strong>Resumen por Sector:</strong> Tabla cruzada por categoria y sector</li>
-        <li><strong>Estado de Cuenta:</strong> Datos de un estacionamiento especifico</li>
-        <li><strong>Adeudos:</strong> Lista con adeudos anteriores, actuales y proyectados</li>
-      </ul>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'ReportesPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'ReportesPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Reportes Estacionamientos'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
@@ -582,13 +577,19 @@ function exportarExcel() {
   showToast('success', `Archivo ${filename} descargado`)
 }
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>
@@ -632,7 +633,7 @@ const closeTechDocs = () => showTechDocs.value = false
 .section-subtitle { font-size: 0.85rem; opacity: 0.9; }
 .section-actions { margin-left: auto; }
 
-.total-badge, .status-badge {
+.header-with-badge, .status-badge {
   background: rgba(255,255,255,0.2);
   padding: 0.5rem 1rem;
   border-radius: 20px;
@@ -697,7 +698,7 @@ const closeTechDocs = () => showTechDocs.value = false
 
 /* Empty state */
 .empty-state-panel { display: flex; flex-direction: column; align-items: center; padding: 3rem; text-align: center; color: #6c757d; }
-.empty-icon { margin-bottom: 1rem; opacity: 0.5; }
+.empty-state-icon { margin-bottom: 1rem; opacity: 0.5; }
 
 .text-center { text-align: center; }
 .text-end { text-align: right; }

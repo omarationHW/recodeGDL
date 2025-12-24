@@ -9,19 +9,11 @@
         <p>Otras Obligaciones - Reporte completo del padrón</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
           Documentacion
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -63,7 +55,7 @@
       </div>
 
       <div class="municipal-card" v-if="padron.length > 0">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header header-with-badge">
           <h5><font-awesome-icon icon="list" /> Padrón</h5>
           <span class="badge-purple">Total: {{ padron.length }} registros</span>
         </div>
@@ -99,25 +91,19 @@
 
     </div>
 
+    <!-- Modal de Ayuda y Documentacion -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'RRep_Padron'"
       :moduleName="'otras_obligaciones'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Reporte Repositorio Padrón'"
+      @close="showDocModal = false"
     />
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'RRep_Padron'"
-      :moduleName="'otras_obligaciones'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
@@ -133,8 +119,20 @@ const BASE_DB = 'otras_obligaciones'
 const { showLoading, hideLoading } = useGlobalLoading()
 const { handleApiError, showToast } = useLicenciasErrorHandler()
 const { exportToPdf } = usePdfExport()
-const showDocumentation = ref(false)
-const showTechDocs = ref(false)
+
+// Documentacion y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 const padron = ref([])
 
 const formData = reactive({
@@ -233,22 +231,6 @@ const handleImprimir = () => {
     subtitle: `Vigencia: ${vigenciaTxt[formData.vigencia]} - Total: ${padron.value.length} registros`,
     orientation: 'landscape'
   })
-}
-
-const openDocumentation = () => {
-  showDocumentation.value = true
-}
-
-const closeDocumentation = () => {
-  showDocumentation.value = false
-}
-
-const mostrarDocumentacion = () => {
-  showTechDocs.value = true
-}
-
-const closeTechDocs = () => {
-  showTechDocs.value = false
 }
 
 const formatNumber = (value, decimals = 2) => {

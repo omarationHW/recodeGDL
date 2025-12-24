@@ -10,10 +10,11 @@
         <p>Padrón de Licencias - Gestión de Zonas y Asignación de Licencias</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -48,54 +49,52 @@
     <!-- Tabs -->
     <div class="municipal-card" v-if="selectedRecaudadora">
       <div class="municipal-card-body">
-        <div class="tabs-container">
-          <div class="tabs-header">
-            <button
-              class="tab-button"
-              :class="{ active: activeTab === 'zonas' }"
-              @click="activeTab = 'zonas'"
-            >
-              <font-awesome-icon icon="map" />
-              Zonas
-            </button>
-            <button
-              class="tab-button"
-              :class="{ active: activeTab === 'subzonas' }"
-              @click="activeTab = 'subzonas'"
-            >
-              <font-awesome-icon icon="map-pin" />
-              Subzonas
-            </button>
-            <button
-              class="tab-button"
-              :class="{ active: activeTab === 'asignacion' }"
-              @click="activeTab = 'asignacion'"
-            >
-              <font-awesome-icon icon="link" />
-              Asignación
-            </button>
-          </div>
+        <div class="municipal-tabs">
+          <button
+            class="municipal-tab"
+            :class="{ active: activeTab === 'zonas' }"
+            @click="activeTab = 'zonas'"
+          >
+            <font-awesome-icon icon="map" />
+            Zonas
+          </button>
+          <button
+            class="municipal-tab"
+            :class="{ active: activeTab === 'subzonas' }"
+            @click="activeTab = 'subzonas'"
+          >
+            <font-awesome-icon icon="map-pin" />
+            Subzonas
+          </button>
+          <button
+            class="municipal-tab"
+            :class="{ active: activeTab === 'asignacion' }"
+            @click="activeTab = 'asignacion'"
+          >
+            <font-awesome-icon icon="link" />
+            Asignación
+          </button>
+        </div>
 
           <div class="tabs-content">
             <!-- Tab Zonas -->
             <div v-if="activeTab === 'zonas'" class="tab-panel">
               <div class="municipal-card">
-                <div class="municipal-card-header">
+                <div class="municipal-card-header header-with-badge">
                   <h5>
                     <font-awesome-icon icon="map" />
                     Catálogo de Zonas
                   </h5>
                   <div class="header-right">
                     <span class="badge-purple" v-if="zonas.length > 0">{{ zonas.length }} zonas</span>
+                    <button
+                      class="btn-municipal-secondary"
+                      @click="loadZonas"
+                    >
+                      <font-awesome-icon icon="sync-alt" />
+                      Actualizar
+                    </button>
                   </div>
-                  <button
-                    class="btn-municipal-secondary"
-                    @click="loadZonas"
-                    :disabled="loading"
-                  >
-                    <font-awesome-icon icon="sync-alt" />
-                    Actualizar
-                  </button>
                 </div>
                 <div class="municipal-card-body">
                   <div class="table-responsive">
@@ -109,20 +108,29 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <tr v-for="zona in zonas" :key="zona.cvezona" class="clickable-row">
+                        <tr
+                          v-for="zona in zonas"
+                          :key="zona.cvezona"
+                          @click="selectedRow = zona"
+                          :class="{ 'table-row-selected': selectedRow === zona }"
+                          class="row-hover"
+                        >
                           <td><strong class="text-primary">{{ zona.cvezona }}</strong></td>
                           <td>{{ zona.zona?.trim() || 'N/A' }}</td>
                           <td>{{ selectedRecaudadora }}</td>
                           <td>{{ zona.descripcion?.trim() || 'N/A' }}</td>
                         </tr>
-                        <tr v-if="zonas.length === 0 && !loading">
-                          <td colspan="4" class="text-center text-muted empty-state">
-                            <font-awesome-icon icon="search" size="2x" class="empty-state-icon" />
-                            <p class="empty-state-text">No hay zonas registradas</p>
-                          </td>
-                        </tr>
                       </tbody>
                     </table>
+                  </div>
+
+                  <!-- Empty State -->
+                  <div v-if="zonas.length === 0 && hasSearched" class="empty-state">
+                    <div class="empty-state-icon">
+                      <font-awesome-icon icon="inbox" size="3x" />
+                    </div>
+                    <h4>Sin resultados</h4>
+                    <p>No se encontraron zonas registradas</p>
                   </div>
                 </div>
               </div>
@@ -160,19 +168,28 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <tr v-for="subzona in subzonas" :key="subzona.cvesubzona" class="clickable-row">
+                        <tr
+                          v-for="subzona in subzonas"
+                          :key="subzona.cvesubzona"
+                          @click="selectedRow = subzona"
+                          :class="{ 'table-row-selected': selectedRow === subzona }"
+                          class="row-hover"
+                        >
                           <td><strong class="text-primary">{{ subzona.cvesubzona }}</strong></td>
                           <td>{{ subzona.descsubzon?.trim() || 'N/A' }}</td>
                           <td>{{ subzona.descripcion?.trim() || 'N/A' }}</td>
                         </tr>
-                        <tr v-if="subzonas.length === 0 && !loading">
-                          <td colspan="3" class="text-center text-muted empty-state">
-                            <font-awesome-icon icon="search" size="2x" class="empty-state-icon" />
-                            <p class="empty-state-text">No hay subzonas para esta zona</p>
-                          </td>
-                        </tr>
                       </tbody>
                     </table>
+                  </div>
+
+                  <!-- Empty State -->
+                  <div v-if="subzonas.length === 0 && hasSearched" class="empty-state">
+                    <div class="empty-state-icon">
+                      <font-awesome-icon icon="inbox" size="3x" />
+                    </div>
+                    <h4>Sin resultados</h4>
+                    <p>No hay subzonas para esta zona</p>
                   </div>
                 </div>
               </div>
@@ -204,7 +221,7 @@
                       <button
                         class="btn-municipal-primary mt-label-offset"
                         @click="buscarLicencia"
-                        :disabled="loading || !asignacion.numeroLicencia"
+                        :disabled="!asignacion.numeroLicencia"
                       >
                         <font-awesome-icon icon="search" />
                         Buscar
@@ -269,7 +286,7 @@
                       <button
                         class="btn-municipal-primary"
                         @click="guardarAsignacion"
-                        :disabled="loading || !asignacion.zonaId"
+                        :disabled="!asignacion.zonaId"
                       >
                         <font-awesome-icon icon="save" />
                         Guardar Asignación
@@ -277,7 +294,6 @@
                       <button
                         class="btn-municipal-secondary"
                         @click="limpiarAsignacion"
-                        :disabled="loading"
                       >
                         <font-awesome-icon icon="times" />
                         Limpiar
@@ -288,20 +304,8 @@
               </div>
             </div>
           </div>
-        </div>
       </div>
     </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
-      </div>
-    </div>
-
-    </div>
-    <!-- /module-view-content -->
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
@@ -314,17 +318,22 @@
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'ZonaLicencia'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Zonas de Licencias'"
+      @close="showDocModal = false"
     />
-  </template>
+
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -332,24 +341,33 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
-  loadingMessage,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const activeTab = ref('zonas')
@@ -360,6 +378,8 @@ const subzonas = ref([])
 const subzonasAsignacion = ref([])
 const selectedZonaForSubzonas = ref('')
 const licenciaEncontrada = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Formulario de asignación
 const asignacion = ref({
@@ -370,7 +390,9 @@ const asignacion = ref({
 
 // Métodos
 const loadRecaudadoras = async () => {
-  setLoading(true, 'Cargando recaudadoras...')
+  showLoading('Cargando recaudadoras...')
+  hasSearched.value = true
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -400,7 +422,7 @@ const loadRecaudadoras = async () => {
     handleApiError(error)
     recaudadoras.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -422,7 +444,9 @@ const loadZonas = async () => {
     return
   }
 
-  setLoading(true, 'Cargando zonas...')
+  showLoading('Cargando zonas...')
+  hasSearched.value = true
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -454,7 +478,7 @@ const loadZonas = async () => {
     handleApiError(error)
     zonas.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -464,7 +488,9 @@ const loadSubzonas = async () => {
     return
   }
 
-  setLoading(true, 'Cargando subzonas...')
+  showLoading('Cargando subzonas...')
+  hasSearched.value = true
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -496,7 +522,7 @@ const loadSubzonas = async () => {
     handleApiError(error)
     subzonas.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -508,7 +534,7 @@ const onZonaChange = async () => {
     return
   }
 
-  setLoading(true, 'Cargando subzonas...')
+  showLoading('Cargando subzonas...')
 
   try {
     const response = await execute(
@@ -530,7 +556,7 @@ const onZonaChange = async () => {
     handleApiError(error)
     subzonasAsignacion.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -539,7 +565,9 @@ const buscarLicencia = async () => {
     return
   }
 
-  setLoading(true, 'Buscando licencia...')
+  showLoading('Buscando licencia...')
+  hasSearched.value = true
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -586,7 +614,7 @@ const buscarLicencia = async () => {
     handleApiError(error)
     licenciaEncontrada.value = null
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -628,7 +656,7 @@ const guardarAsignacion = async () => {
     return
   }
 
-  setLoading(true, 'Guardando asignación...')
+  showLoading('Guardando asignación...')
 
   const startTime = performance.now()
 
@@ -676,7 +704,7 @@ const guardarAsignacion = async () => {
       confirmButtonColor: '#ea8215'
     })
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -688,6 +716,8 @@ const limpiarAsignacion = () => {
   }
   licenciaEncontrada.value = null
   subzonasAsignacion.value = []
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 // Lifecycle

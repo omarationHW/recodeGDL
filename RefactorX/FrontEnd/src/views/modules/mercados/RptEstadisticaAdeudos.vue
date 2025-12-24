@@ -53,7 +53,7 @@
             <button type="button" class="btn-municipal-secondary" @click="limpiarFiltros">
               <i class="fas fa-eraser"></i> Limpiar
             </button>
-            <button type="button" class="btn-municipal-success" @click="exportarExcel" :disabled="!resultados.length">
+            <button type="button" class="btn-municipal-primary" @click="exportarExcel" :disabled="!resultados.length">
               <i class="fas fa-file-excel"></i> Exportar
             </button>
           </div>
@@ -144,11 +144,19 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptEstadisticaAdeudos'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptEstadisticaAdeudos'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptEstadisticaAdeudos'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptEstadisticaAdeudos'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed } from 'vue';
-import axios from 'axios';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 // Referencias reactivas
 const filters = ref({
@@ -210,21 +218,22 @@ const consultar = async () => {
   busquedaRealizada.value = false;
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'rpt_estadistica_adeudos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
-          { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) },
-          { Nombre: 'p_importe', Valor: parseFloat(filters.value.importe) || 0 },
-          { Nombre: 'p_opc', Valor: parseInt(filters.value.opc) }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'rpt_estadistica_adeudos',
+          'mercados',
+          [
+          { nombre: 'p_axo', valor: parseInt(filters.value.axo) },
+          { nombre: 'p_periodo', valor: parseInt(filters.value.periodo) },
+          { nombre: 'p_importe', valor: parseFloat(filters.value.importe) || 0 },
+          { nombre: 'p_opc', valor: parseInt(filters.value.opc) }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      resultados.value = response.data.eResponse.data.result;
+    if (response?.success && response?.data?.result) {
+      resultados.value = response.data.result;
       busquedaRealizada.value = true;
       currentPage.value = 1;
 
@@ -291,33 +300,3 @@ const showToast = (message, type = 'info') => {
   // alert(message);
 };
 </script>
-
-<style scoped>
-@import '@/styles/municipal-theme.css';
-
-.sticky-top {
-  position: sticky;
-  top: 0;
-  background-color: #f8f9fa;
-  z-index: 10;
-}
-
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
-
-@media print {
-  .municipal-card-header,
-  .municipal-card-footer,
-  .breadcrumb,
-  button,
-  .no-print {
-    display: none !important;
-  }
-
-  table {
-    font-size: 10px;
-  }
-}
-</style>

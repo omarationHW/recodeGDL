@@ -7,23 +7,24 @@
       </div>
       <div class="module-view-info">
         <h1>Formatos de Ecología</h1>
-        <p>Padrón de Licencias - Generación de Formatos Ecológicos para Trámites</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
-      <div class="module-view-actions">
+        <p>Padrón de Licencias - Generación de Formatos Ecológicos para Trámites</p>
+      </div>
+      <div class="button-group ms-auto">
         <button
-          class="btn-municipal-primary"
+          class="btn-municipal-success"
           @click="generarReporte"
-          :disabled="loading || tramites.length === 0"
+          :disabled="tramites.length === 0"
         >
           <font-awesome-icon icon="file-pdf" />
           Generar Reporte
+        </button>
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -90,19 +91,39 @@
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list" />
           Trámites Capturados
-          <span class="badge-purple" v-if="tramites.length > 0">{{ tramites.length }} trámites</span>
         </h5>
-        <div v-if="loading" class="spinner-border" role="status">
-          <span class="visually-hidden">Cargando...</span>
+        <div class="header-right">
+          <span class="badge-purple" v-if="tramites.length > 0">
+            {{ formatNumber(tramites.length) }} trámites
+          </span>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="tramites.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="leaf" size="3x" />
+          </div>
+          <h4>Formatos de Ecología</h4>
+          <p>Seleccione una fecha o ingrese un ID de trámite para buscar</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="tramites.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron trámites con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla con datos -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -119,21 +140,28 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="tramite in tramites" :key="tramite.id_tramite" class="clickable-row">
+              <tr
+                v-for="tramite in paginatedTramites"
+                :key="tramite.id_tramite"
+                @click="selectedRow = tramite"
+                @dblclick="viewTramite(tramite)"
+                :class="{ 'table-row-selected': selectedRow === tramite }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary">{{ tramite.id_tramite }}</strong></td>
                 <td><code class="text-muted">{{ tramite.folio }}</code></td>
                 <td>
                   <span class="badge-secondary">{{ tramite.tipo_tramite || 'N/A' }}</span>
                 </td>
                 <td>
-                  <small class="actividad-text">{{ tramite.actividad?.trim() || 'N/A' }}</small>
+                  <small>{{ tramite.actividad?.trim() || 'N/A' }}</small>
                 </td>
                 <td>{{ tramite.propietarionvo?.trim() || tramite.propietario?.trim() || 'N/A' }}</td>
                 <td>
-                  <small class="domicilio-text">{{ tramite.domcompleto?.trim() || tramite.ubicacion?.trim() || 'N/A' }}</small>
+                  <small class="text-muted">{{ tramite.domcompleto?.trim() || tramite.ubicacion?.trim() || 'N/A' }}</small>
                 </td>
                 <td>
-                  <div class="zona-info">
+                  <div class="button-group button-group-sm">
                     <span class="badge-purple">Z: {{ tramite.zona || tramite.zona_1 || 'N/A' }}</span>
                     <span class="badge-purple">SZ: {{ tramite.subzona || tramite.subzona_1 || 'N/A' }}</span>
                   </div>
@@ -153,21 +181,21 @@
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="viewTramite(tramite)"
+                      @click.stop="viewTramite(tramite)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
                     </button>
                     <button
                       class="btn-municipal-primary btn-sm"
-                      @click="verCruceCalles(tramite.id_tramite)"
+                      @click.stop="verCruceCalles(tramite.id_tramite)"
                       title="Ver cruce de calles"
                     >
                       <font-awesome-icon icon="road" />
                     </button>
                     <button
                       class="btn-municipal-success btn-sm"
-                      @click="generarFormato(tramite)"
+                      @click.stop="generarFormato(tramite)"
                       title="Generar formato"
                     >
                       <font-awesome-icon icon="file-alt" />
@@ -175,24 +203,84 @@
                   </div>
                 </td>
               </tr>
-              <tr v-if="tramites.length === 0 && !loading">
-                <td colspan="10" class="text-center text-muted">
-                  <font-awesome-icon icon="calendar-times" size="2x" class="empty-icon" />
-                  <p>No se encontraron trámites para la fecha seleccionada</p>
-                  <p><small>Seleccione una fecha y presione Buscar</small></p>
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading && tramites.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando trámites...</p>
+        <!-- Controles de Paginación -->
+        <div v-if="tramites.length > 0" class="pagination-controls">
+          <div class="pagination-info">
+            <span class="text-muted">
+              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+              a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+              de {{ formatNumber(totalRecords) }} registros
+            </span>
+          </div>
+
+          <div class="pagination-size">
+            <label class="municipal-form-label me-2">Registros por página:</label>
+            <select
+              class="municipal-form-control form-control-sm"
+              :value="itemsPerPage"
+              @change="changePageSize($event.target.value)"
+              style="width: auto; display: inline-block;"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+
+          <div class="pagination-buttons">
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(1)"
+              :disabled="currentPage === 1"
+              title="Primera página"
+            >
+              <font-awesome-icon icon="angle-double-left" />
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              title="Página anterior"
+            >
+              <font-awesome-icon icon="angle-left" />
+            </button>
+
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="btn-sm"
+              :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              title="Página siguiente"
+            >
+              <font-awesome-icon icon="angle-right" />
+            </button>
+
+            <button
+              class="btn-municipal-secondary btn-sm"
+              @click="goToPage(totalPages)"
+              :disabled="currentPage === totalPages"
+              title="Última página"
+            >
+              <font-awesome-icon icon="angle-double-right" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -408,10 +496,6 @@
       </div>
     </Modal>
 
-    <!-- Toast Notification -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
@@ -420,36 +504,48 @@
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'formatosEcologiafrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Formatos de Ecología'"
+      @close="showDocModal = false"
     />
-  </template>
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
+</template>
 
 <script setup>
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -457,13 +553,59 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const tramites = ref([])
 const selectedTramite = ref(null)
+const selectedRow = ref(null)
 const selectedIdTramite = ref(null)
 const cruceCalles = ref([])
 const showViewModal = ref(false)
 const showCruceModal = ref(false)
+const hasSearched = ref(false)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const totalRecords = computed(() => tramites.value.length)
+const totalPages = computed(() => Math.ceil(totalRecords.value / itemsPerPage.value))
+
+const paginatedTramites = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return tramites.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+  selectedRow.value = null
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('es-MX').format(number)
+}
 
 // Filtros
 const filters = ref({
@@ -478,7 +620,10 @@ const loadTramitesByFecha = async () => {
     return
   }
 
-  setLoading(true, 'Cargando trámites...')
+  showLoading('Cargando trámites...', 'Consultando base de datos')
+  hasSearched.value = true
+  currentPage.value = 1
+  selectedRow.value = null
 
   try {
     const startTime = performance.now()
@@ -496,7 +641,6 @@ const loadTramitesByFecha = async () => {
 
     if (response && response.result) {
       tramites.value = response.result
-      toast.value.message = `Se encontraron ${tramites.value.length} trámites`
       toast.value.duration = durationText
       showToast('success', `Se encontraron ${tramites.value.length} trámites`)
     } else {
@@ -507,7 +651,7 @@ const loadTramitesByFecha = async () => {
     handleApiError(error)
     tramites.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -517,7 +661,10 @@ const loadTramiteById = async () => {
     return
   }
 
-  setLoading(true, 'Buscando trámite...')
+  showLoading('Buscando trámite...', 'Consultando base de datos')
+  hasSearched.value = true
+  currentPage.value = 1
+  selectedRow.value = null
 
   try {
     const startTime = performance.now()
@@ -535,7 +682,6 @@ const loadTramiteById = async () => {
 
     if (response && response.result && response.result.length > 0) {
       tramites.value = response.result
-      toast.value.message = 'Trámite encontrado'
       toast.value.duration = durationText
       showToast('success', 'Trámite encontrado')
     } else {
@@ -546,7 +692,7 @@ const loadTramiteById = async () => {
     handleApiError(error)
     tramites.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -570,6 +716,9 @@ const clearFilters = () => {
     id_tramite: null
   }
   tramites.value = []
+  hasSearched.value = false
+  currentPage.value = 1
+  selectedRow.value = null
 }
 
 const viewTramite = (tramite) => {
@@ -579,10 +728,9 @@ const viewTramite = (tramite) => {
 
 const verCruceCalles = async (id_tramite) => {
   selectedIdTramite.value = id_tramite
-  setLoading(true, 'Cargando cruce de calles...')
+  showLoading('Cargando cruce de calles...', 'Por favor espere')
 
   try {
-    const startTime = performance.now()
     const response = await execute(
       'sp_get_cruce_calles_by_tramite',
       'padron_licencias',
@@ -591,9 +739,6 @@ const verCruceCalles = async (id_tramite) => {
       ],
       'guadalajara'
     )
-    const endTime = performance.now()
-    const duration = ((endTime - startTime) / 1000).toFixed(2)
-    const durationText = duration < 1 ? `${((endTime - startTime)).toFixed(0)}ms` : `${duration}s`
 
     if (response && response.result) {
       cruceCalles.value = response.result
@@ -606,7 +751,7 @@ const verCruceCalles = async (id_tramite) => {
     handleApiError(error)
     cruceCalles.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 

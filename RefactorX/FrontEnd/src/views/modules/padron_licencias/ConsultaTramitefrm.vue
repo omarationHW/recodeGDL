@@ -49,10 +49,11 @@
           <font-awesome-icon icon="plus" />
           Nuevo Trámite
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -90,7 +91,7 @@
 
       <!-- Filtros de búsqueda -->
       <div class="municipal-card">
-        <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;">
+        <div class="municipal-card-header header-clickable" @click="toggleFilters">
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Búsqueda
@@ -242,12 +243,12 @@
 
       <!-- Tabla de resultados -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
-          <div class="header-with-badge">
-            <h5>
-              <font-awesome-icon icon="list" />
-              Resultados de Búsqueda
-            </h5>
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Resultados de Búsqueda
+          </h5>
+          <div class="header-right">
             <span class="badge-purple" v-if="totalResultados > 0">
               {{ formatNumber(totalResultados) }} registros totales
             </span>
@@ -273,25 +274,35 @@
               </thead>
               <tbody>
                 <tr v-if="tramites.length === 0 && !primeraBusqueda">
-                  <td colspan="10" class="text-center text-muted">
-                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                    <p>Utiliza los filtros de búsqueda para encontrar trámites</p>
+                  <td colspan="10">
+                    <div class="empty-state">
+                      <div class="empty-state-icon">
+                        <font-awesome-icon icon="search" size="3x" />
+                      </div>
+                      <h4>Consulta de Trámites</h4>
+                      <p>Utiliza los filtros de búsqueda para encontrar trámites</p>
+                    </div>
                   </td>
                 </tr>
                 <tr v-else-if="tramites.length === 0">
-                  <td colspan="10" class="text-center text-muted">
-                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                    <p>No se encontraron trámites con los filtros especificados</p>
+                  <td colspan="10">
+                    <div class="empty-state">
+                      <div class="empty-state-icon">
+                        <font-awesome-icon icon="inbox" size="3x" />
+                      </div>
+                      <h4>Sin resultados</h4>
+                      <p>No se encontraron trámites con los filtros especificados</p>
+                    </div>
                   </td>
                 </tr>
                 <tr
                   v-else
                   v-for="tramite in tramites"
                   :key="tramite.id_tramite"
-                  @click="tramiteSeleccionado = tramite"
+                  @click="selectedRow = tramite"
                   @dblclick="verDetalle(tramite)"
-                  :class="{ 'row-hover': true, 'selected-row': tramiteSeleccionado?.id_tramite === tramite.id_tramite }"
-                  style="cursor: pointer;"
+                  :class="{ 'table-row-selected': selectedRow?.id_tramite === tramite.id_tramite }"
+                  class="row-hover"
                 >
                   <td><strong class="text-primary">{{ tramite.id_tramite }}</strong></td>
                   <td>
@@ -375,9 +386,8 @@
             <label class="municipal-form-label me-2">Registros por página:</label>
             <select
               class="municipal-form-control form-control-sm"
-              v-model="itemsPerPage"
-              @change="changePageSize"
-              style="width: auto; display: inline-block;"
+              :value="itemsPerPage"
+              @change="changePageSize($event.target.value)"
             >
               <option :value="10">10</option>
               <option :value="20">20</option>
@@ -435,6 +445,28 @@
           </div>
         </div>
       </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'ConsultaTramitefrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Consulta de Trámites'"
+        @close="showDocModal = false"
+      />
     </div>
 
     <!-- Modal de Detalle -->
@@ -639,24 +671,7 @@
         </button>
       </div>
     </Modal>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
-
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'ConsultaTramitefrm'"
-    :moduleName="'padron_licencias'"
-    @close="closeDocumentation"
-  />
 </template>
 
 <script setup>
@@ -671,10 +686,19 @@ import { useExcelExport } from '@/composables/useExcelExport'
 import { usePdfExport } from '@/composables/usePdfExport'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const nuevoTramite = () => {
   router.push('/padron-licencias/registro-solicitud')
@@ -723,6 +747,8 @@ const tramiteSeleccionado = ref({})
 const historialTramiteId = ref(null)
 const loadingHistorial = ref(false)
 const loadingEstadisticas = ref(true)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Filtros
 const filtros = ref({
@@ -839,6 +865,8 @@ const limpiarBusqueda = () => {
   totalResultados.value = 0
   currentPage.value = 1
   primeraBusqueda.value = false
+  hasSearched.value = false
+  selectedRow.value = null
 
   // Establecer fechas por defecto
   establecerFechasPorDefecto()
@@ -852,6 +880,8 @@ const buscarTramites = async () => {
 
   showLoading('Buscando trámites...', 'Consultando base de datos')
   primeraBusqueda.value = true
+  hasSearched.value = true
+  selectedRow.value = null
   showFilters.value = false  // Contraer acordeón al buscar
 
   try {
@@ -949,7 +979,7 @@ const buscarTramites = async () => {
       params,
       'padron_licencias',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -990,7 +1020,7 @@ const cargarEstadisticas = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -1010,17 +1040,22 @@ const limpiarFiltros = () => {
   totalResultados.value = 0
   currentPage.value = 1
   primeraBusqueda.value = false
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    selectedRow.value = null
     buscarTramites()
   }
 }
 
-const changePageSize = () => {
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
   currentPage.value = 1
+  selectedRow.value = null
   buscarTramites()
 }
 

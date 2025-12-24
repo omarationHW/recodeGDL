@@ -1,163 +1,198 @@
 <template>
-  <div class="container mt-4">
-    <nav aria-label="breadcrumb" class="mb-3">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Mantenimiento a Secciones</li>
-      </ol>
-    </nav>
-    <div class="card">
-      <div class="card-header">
-        <h4>Mantenimiento a Secciones</h4>
+  <div class="module-view module-layout">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="th-list" />
       </div>
-      <div class="card-body">
-        <form @submit.prevent="onSubmit">
-          <div class="row mb-3">
-            <div class="col-md-2">
-              <label for="seccion" class="form-label">Sección</label>
-              <input v-model="form.seccion" id="seccion" maxlength="2" class="form-control" :disabled="mode==='edit'" required />
-            </div>
-            <div class="col-md-8">
-              <label for="descripcion" class="form-label">Descripción</label>
-              <input v-model="form.descripcion" id="descripcion" maxlength="30" class="form-control" required />
-            </div>
-          </div>
-          <div class="mb-3">
-            <button type="submit" class="btn btn-primary me-2">{{ mode==='edit' ? 'Actualizar' : 'Agregar' }}</button>
-            <button type="button" class="btn btn-secondary" @click="resetForm">Cancelar</button>
-          </div>
-        </form>
-        <hr />
-        <h5>Listado de Secciones</h5>
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Sección</th>
-              <th>Descripción</th>
-              <th style="width:120px">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in secciones" :key="item.seccion">
-              <td>{{ item.seccion }}</td>
-              <td>{{ item.descripcion }}</td>
-              <td>
-                <button class="btn btn-sm btn-info me-1" @click="editSeccion(item)">Editar</button>
-              </td>
-            </tr>
-            <tr v-if="secciones.length===0">
-              <td colspan="3" class="text-center">No hay secciones registradas.</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="module-view-info">
+        <h1>Mantenimiento de Secciones</h1>
+        <p>Administración de secciones del sistema</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
       </div>
     </div>
+
+    <div class="module-view-content">
+      <div class="municipal-card mb-4">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="edit" /> Formulario de Secciones</h5>
+        </div>
+        <div class="municipal-card-body">
+          <form @submit.prevent="onSubmit">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="municipal-form-label">Sección <span class="required">*</span></label>
+                <input v-model="form.seccion" maxlength="2" class="municipal-form-control" :disabled="mode==='edit'" required />
+              </div>
+              <div class="form-group" style="flex: 3">
+                <label class="municipal-form-label">Descripción <span class="required">*</span></label>
+                <input v-model="form.descripcion" maxlength="30" class="municipal-form-control" required />
+              </div>
+            </div>
+            <div class="button-group">
+              <button type="submit" class="btn-municipal-primary" :disabled="loading">
+                <font-awesome-icon :icon="mode==='edit' ? 'save' : 'plus'" />
+                {{ mode==='edit' ? 'Actualizar' : 'Agregar' }}
+              </button>
+              <button type="button" class="btn-municipal-secondary" @click="resetForm">
+                <font-awesome-icon icon="times" /> Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="list" /> Listado de Secciones</h5>
+          <span class="badge-purple" v-if="secciones.length > 0">{{ secciones.length }} registros</span>
+        </div>
+        <div class="municipal-card-body table-container">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>#</th>
+                  <th>Sección</th>
+                  <th>Descripción</th>
+                  <th class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="secciones.length === 0">
+                  <td colspan="4" class="text-center text-muted">No hay secciones registradas.</td>
+                </tr>
+                <tr v-else v-for="(item, idx) in secciones" :key="item.seccion" class="row-hover">
+                  <td class="text-center">{{ idx + 1 }}</td>
+                  <td><code>{{ item.seccion }}</code></td>
+                  <td>{{ item.descripcion }}</td>
+                  <td class="text-center">
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-primary btn-sm" @click="editSeccion(item)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando...</p>
+      </div>
+    </div>
+
+    <DocumentationModal :show="showAyuda" :component-name="'SeccionesMntto'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mantenimiento de Secciones'" @close="showAyuda = false" />
+    <DocumentationModal :show="showDocumentacion" :component-name="'SeccionesMntto'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mantenimiento de Secciones'" @close="showDocumentacion = false" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
+import Swal from 'sweetalert2'
 
-// Composables
-const globalLoading = useGlobalLoading()
-const { showToast } = useToast()
-
-// Estado reactivo
-const secciones = ref([])
-const form = ref({
-  seccion: '',
-  descripcion: ''
-})
-const mode = ref('add') // 'add' or 'edit'
-
-/**
- * Carga todas las secciones desde el servidor
- */
-const loadSecciones = async () => {
-  await globalLoading.withLoading(async () => {
-    try {
-      const res = await fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getAllSecciones' })
-      })
-      const json = await res.json()
-
-      if (json.success) {
-        secciones.value = json.data
-      } else {
-        showToast(json.message || 'Error al cargar secciones', 'error')
-      }
-    } catch (e) {
-      showToast('Error de red al cargar secciones', 'error')
-      console.error('Error al cargar secciones:', e)
-    }
-  }, 'Cargando secciones...', 'Por favor espere')
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
 }
 
-/**
- * Maneja el envío del formulario (agregar o actualizar sección)
- */
-const onSubmit = async () => {
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import { ref, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
+const BASE_DB = 'mercados'
+const SCHEMA = 'publico'
+
+const { loading, execute } = useApi()
+
+const secciones = ref([])
+const form = ref({ seccion: '', descripcion: '' })
+const mode = ref('add')
+
+async function loadSecciones() {
+  try {
+    const response = await execute('sp_secciones_list', BASE_DB, [], '', null, SCHEMA)
+    const data = response?.result || response || []
+    secciones.value = Array.isArray(data) ? data : []
+  } catch (error) {
+    console.error('Error al cargar secciones:', error)
+    secciones.value = []
+  }
+}
+
+async function onSubmit() {
   if (!form.value.seccion || !form.value.descripcion) {
-    showToast('Todos los campos son obligatorios', 'warning')
+    alert('Todos los campos son obligatorios')
     return
   }
 
-  const action = mode.value === 'edit' ? 'updateSeccion' : 'insertSeccion'
-  const payload = {
-    action,
-    data: {
-      seccion: form.value.seccion.trim().toUpperCase(),
-      descripcion: form.value.descripcion.trim().toUpperCase()
-    }
+  try {
+    const sp = mode.value === 'edit' ? 'sp_secciones_update' : 'sp_secciones_create'
+    const params = [
+      { nombre: 'p_seccion', tipo: 'string', valor: form.value.seccion.trim().toUpperCase() },
+      { nombre: 'p_descripcion', tipo: 'string', valor: form.value.descripcion.trim().toUpperCase() }
+    ]
+
+    await execute(sp, BASE_DB, params, '', null, SCHEMA)
+    resetForm()
+    await loadSecciones()
+  } catch (error) {
+    console.error('Error en operación:', error)
+    alert('Error: ' + error.message)
   }
-
-  await globalLoading.withLoading(async () => {
-    try {
-      const res = await fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      const json = await res.json()
-
-      if (json.success) {
-        const successMessage = json.message || (mode.value === 'edit' ? 'Sección actualizada' : 'Sección agregada')
-        showToast(successMessage, 'success')
-        resetForm()
-        await loadSecciones()
-      } else {
-        showToast(json.message || 'Error en la operación', 'error')
-      }
-    } catch (e) {
-      showToast('Error de red en la operación', 'error')
-      console.error('Error en operación:', e)
-    }
-  }, mode.value === 'edit' ? 'Actualizando sección...' : 'Agregando sección...', 'Por favor espere')
 }
 
-/**
- * Prepara el formulario para editar una sección
- */
-const editSeccion = (item) => {
+function editSeccion(item) {
   form.value.seccion = item.seccion
   form.value.descripcion = item.descripcion
   mode.value = 'edit'
 }
 
-/**
- * Resetea el formulario a su estado inicial
- */
-const resetForm = () => {
+function resetForm() {
   form.value.seccion = ''
   form.value.descripcion = ''
   mode.value = 'add'
 }
 
-// Lifecycle hooks
 onMounted(() => {
   loadSecciones()
 })

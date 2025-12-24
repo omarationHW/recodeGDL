@@ -8,25 +8,6 @@
         <h1>Insertar Adeudos</h1>
         <p>Aseo Contratado - Inserción manual de adeudos</p>
       </div>
-      <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
-        </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
-      </div>
-    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -38,7 +19,7 @@
           <h5><font-awesome-icon icon="edit" /> Datos del Adeudo</h5>
         </div>
         <div class="municipal-card-body">
-          <div class="municipal-alert municipal-alert-info">
+          <div class="alert alert-info">
             <font-awesome-icon icon="info-circle" />
             Complete el formulario para insertar un adeudo manual. Los campos marcados con * son obligatorios.
           </div>
@@ -167,20 +148,10 @@
         <li>Se genera un folio automático para cada inserción</li>
       </ul>
     </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'Adeudos_Ins'"
-      :moduleName="'aseo_contratado'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
@@ -189,6 +160,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
+const loading = ref(false)
 const showDocumentation = ref(false)
 const contratoInfo = ref(null)
 const historial = ref([])
@@ -212,32 +184,31 @@ const isFormValid = computed(() => {
 const buscarContrato = async () => {
   if (!formData.value.num_contrato) return
 
-  showLoading()
+  loading.value = true
   try {
     const response = await execute('SP_ASEO_ADEUDOS_BUSCAR_CONTRATO', 'aseo_contratado', {
       p_num_contrato: formData.value.num_contrato,
       p_num_empresa: null,
       p_nombre_empresa: null
     })
-    if (response && response.length > 0) {
-      contratoInfo.value = response[0]
+    if (response && response.data && response.data.length > 0) {
+      contratoInfo.value = response.data[0]
     } else {
       showToast('Contrato no encontrado', 'warning')
       contratoInfo.value = null
     }
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
+    console.error('Error:', error)
     contratoInfo.value = null
   } finally {
-    hideLoading()
+    loading.value = false
   }
 }
 
 const insertarAdeudo = async () => {
   if (!isFormValid.value) return
 
-  showLoading()
+  loading.value = true
   try {
     // Convertir periodo a fecha (primer día del mes)
     const [year, month] = formData.value.periodo.split('-')
@@ -252,8 +223,8 @@ const insertarAdeudo = async () => {
       p_usuario_id: 1
     })
 
-    if (response && response[0]) {
-      const result = response[0]
+    if (response && response.data && response.data[0]) {
+      const result = response.data[0]
       if (result.success) {
         showToast('Adeudo insertado exitosamente', 'success')
 
@@ -273,11 +244,10 @@ const insertarAdeudo = async () => {
       }
     }
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
+    console.error('Error:', error)
     showToast('Error al insertar el adeudo', 'error')
   } finally {
-    hideLoading()
+    loading.value = false
   }
 }
 
@@ -287,8 +257,6 @@ const limpiarFormulario = () => {
     periodo: '',
     cve_operacion: '',
     importe: null,
-
-const { showLoading, hideLoading } = useGlobalLoading()
     exedencias: 0,
     observaciones: ''
   }

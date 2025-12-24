@@ -1,0 +1,204 @@
+{
+  "timestamp": "2025-12-20T03:34:28.487Z",
+  "summary": {
+    "errors": 0,
+    "warnings": 21,
+    "ok": 82
+  },
+  "filesWithErrors": [],
+  "filesWithWarnings": [
+    {
+      "file": "BloqueoMulta.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "CatastroDM.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "ConsReq400.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "Empresas.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "entregafrm.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "Exclusivos_Upd.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "FirmaElectronica.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "FolMulta.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Clase municipal-table en tabla"
+        },
+        {
+          "type": "warning",
+          "message": "Tabla sin: Clase municipal-table-header en thead"
+        }
+      ]
+    },
+    {
+      "file": "LicenciaMicrogeneradorEcologia.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "ListAna.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "MultasDM.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "multasfrmcalif.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "newsfrm.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "Otorgadescto.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "prepagofrm.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "pruebacalcas.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "reg.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "regHfrm.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "RegSecyMas.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "reimpfrm.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    },
+    {
+      "file": "relmes.vue",
+      "issues": [
+        {
+          "type": "warning",
+          "message": "Tabla sin: Implementación de paginación"
+        }
+      ]
+    }
+  ]
+}

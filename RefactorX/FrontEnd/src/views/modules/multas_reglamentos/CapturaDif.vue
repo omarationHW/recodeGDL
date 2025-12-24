@@ -8,6 +8,16 @@
         <h1>Captura de Diferencias Prediales</h1>
         <p>Registro de diferencias en formato JSON</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -77,23 +87,45 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'CapturaDif'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Captura de Diferencias Prediales'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'CapturaDif'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Captura de Diferencias Prediales'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_SAVE = 'RECAUDADORA_CAPTURA_DIF'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const jsonPayload = ref('')
 const resultado = ref(null)
@@ -103,8 +135,9 @@ async function guardar() {
     { nombre: 'p_datos', valor: jsonPayload.value, tipo: 'string' }
   ]
 
+  showLoading('Guardando diferencia...', 'Por favor espere')
   try {
-    const data = await execute(OP_SAVE, BASE_DB, params)
+    const data = await execute(OP_SAVE, BASE_DB, params, '', null, 'publico')
 
     // El SP devuelve un array con un solo registro
     const row = Array.isArray(data?.result) && data.result.length > 0
@@ -133,6 +166,8 @@ async function guardar() {
       success: false,
       message: e.message || 'Error al guardar la diferencia'
     }
+  } finally {
+    hideLoading()
   }
 }
 
@@ -141,48 +176,3 @@ function limpiar() {
   resultado.value = null
 }
 </script>
-
-<style scoped>
-.alert {
-  padding: 1rem;
-  border-radius: 4px;
-  margin-top: 1rem;
-}
-
-.alert-success {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
-}
-
-.alert-error {
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  color: #721c24;
-}
-
-.btn-municipal-secondary {
-  background-color: #6c757d;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  margin-left: 0.5rem;
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  background-color: #5a6268;
-}
-
-.btn-municipal-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-small {
-  font-weight: normal;
-}
-</style>
-

@@ -13,15 +13,15 @@
         <button
           class="btn-municipal-primary"
           @click="openCreateModal"
-          :disabled="loading"
         >
           <font-awesome-icon icon="plus" />
           Nueva Zona
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -57,7 +57,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchZonas"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -65,7 +64,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -73,7 +71,6 @@
           <button
             class="btn-municipal-secondary"
             @click="loadZonas"
-            :disabled="loading"
           >
             <font-awesome-icon icon="sync-alt" />
             Actualizar
@@ -91,14 +88,30 @@
         </h5>
         <div class="header-right">
           <span class="badge-purple" v-if="zonas.length > 0">{{ zonas.length }} registros</span>
-          <div v-if="loading" class="spinner-border spinner-sm" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="zonas.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="map-marked-alt" size="3x" />
+          </div>
+          <h4>Zonas de Anuncios</h4>
+          <p>Utilice los filtros para buscar zonas de anuncios o haga clic en "Buscar" para ver todas las zonas</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="zonas.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron zonas de anuncios con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla con resultados -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -110,7 +123,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="zona in zonas" :key="zona.id" class="row-hover">
+              <tr
+                v-for="zona in zonas"
+                :key="zona.id"
+                @click="selectedRow = zona"
+                :class="{ 'table-row-selected': selectedRow === zona }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary">{{ zona.id }}</strong></td>
                 <td><code class="text-muted">{{ zona.clave?.trim() || 'N/A' }}</code></td>
                 <td>{{ zona.descripcion?.trim() || 'N/A' }}</td>
@@ -124,21 +143,21 @@
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="viewZona(zona)"
+                      @click.stop="viewZona(zona)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
                     </button>
                     <button
                       class="btn-municipal-primary btn-sm"
-                      @click="editZona(zona)"
+                      @click.stop="editZona(zona)"
                       title="Editar"
                     >
                       <font-awesome-icon icon="edit" />
                     </button>
                     <button
                       class="btn-municipal-danger btn-sm"
-                      @click="confirmDeleteZona(zona)"
+                      @click.stop="confirmDeleteZona(zona)"
                       title="Eliminar"
                     >
                       <font-awesome-icon icon="trash" />
@@ -146,23 +165,9 @@
                   </div>
                 </td>
               </tr>
-              <tr v-if="zonas.length === 0 && !loading">
-                <td colspan="5" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron zonas de anuncios</p>
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading && zonas.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando zonas de anuncios...</p>
       </div>
     </div>
 
@@ -325,24 +330,29 @@
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'ZonaAnuncio'"
+      :moduleName="'padron_licencias'"
+      :docType="docType"
+      :title="'Zonas de Anuncios'"
+      @close="showDocModal = false"
+    />
     </div>
     <!-- /module-view-content -->
   </div>
   <!-- /module-view -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'ZonaAnuncio'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
   </template>
 
 <script setup>
@@ -351,18 +361,26 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -370,9 +388,13 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const zonas = ref([])
 const selectedZona = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showViewModal = ref(false)
@@ -401,7 +423,9 @@ const editForm = ref({
 
 // Métodos
 const loadZonas = async () => {
-  setLoading(true, 'Cargando zonas de anuncios...')
+  showLoading('Cargando zonas de anuncios...')
+  hasSearched.value = true
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -434,7 +458,7 @@ const loadZonas = async () => {
     handleApiError(error)
     zonas.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -447,7 +471,9 @@ const clearFilters = () => {
     descripcion: '',
     vigente: ''
   }
-  loadZonas()
+  zonas.value = []
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const openCreateModal = () => {

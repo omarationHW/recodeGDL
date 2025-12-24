@@ -9,12 +9,19 @@
         <p>Inicio > Catálogos > Cuotas Energía Mntto</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="abrirModalNuevo" :disabled="loading">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="abrirModalNuevo" :disabled="loading">
           <font-awesome-icon icon="plus" /> Nuevo
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -122,12 +129,12 @@
               {{ Math.min(currentPage * itemsPerPage, cuotas.length) }} de {{ cuotas.length }} registros
             </div>
             <div class="pagination-controls">
-              <button class="btn-pagination" @click="previousPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+              <button class="btn-municipal-secondary btn-sm" @click="previousPage" :disabled="currentPage === 1">
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="pagination-current">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button class="btn-pagination" @click="nextPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+              <button class="btn-municipal-secondary btn-sm" @click="nextPage" :disabled="currentPage === totalPages">
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
             <div class="items-per-page">
@@ -237,12 +244,50 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'CuotasEnergiaMntto'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CuotasEnergiaMntto'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CuotasEnergiaMntto'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CuotasEnergiaMntto'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import Swal from 'sweetalert2'
+
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -270,7 +315,7 @@ const form = ref({
 
 // Paginación
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 
 const totalPages = computed(() => Math.ceil(cuotas.value.length / itemsPerPage.value))
 
@@ -315,19 +360,20 @@ const mostrarAyuda = () => {
 const cargarCuotas = async () => {
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_list_cuotas_energia',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_axo', Valor: filtros.value.axo || null },
-          { Nombre: 'p_periodo', Valor: filtros.value.periodo || null }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+          'sp_list_cuotas_energia',
+          'mercados',
+          [
+          { nombre: 'p_axo', valor: filtros.value.axo || null },
+          { nombre: 'p_periodo', valor: filtros.value.periodo || null }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      cuotas.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      cuotas.value = res.data.result || []
       currentPage.value = 1
       if (cuotas.value.length === 0) {
         showToast('info', 'No se encontraron cuotas con los criterios especificados')
@@ -335,7 +381,7 @@ const cargarCuotas = async () => {
         showToast('success', `Se encontraron ${cuotas.value.length} cuotas`)
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar cuotas')
+      showToast('error', res.message || 'Error al cargar cuotas')
     }
   } catch (err) {
     showToast('error', 'Error de conexión al cargar cuotas')
@@ -389,32 +435,26 @@ const guardarCuota = async () => {
   try {
     const operacion = isEdit.value ? 'sp_update_cuota_energia' : 'sp_insert_cuota_energia'
     const parametros = isEdit.value ? [
-      { Nombre: 'p_id_kilowhatts', Valor: parseInt(form.value.id_kilowhatts) },
-      { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },
-      { Nombre: 'p_periodo', Valor: parseInt(form.value.periodo) },
-      { Nombre: 'p_importe', Valor: parseFloat(form.value.importe) },
-      { Nombre: 'p_id_usuario', Valor: parseInt(form.value.id_usuario) }
+      { nombre: 'p_id_kilowhatts', valor: parseInt(form.value.id_kilowhatts) },
+      { nombre: 'p_axo', valor: parseInt(form.value.axo) },
+      { nombre: 'p_periodo', valor: parseInt(form.value.periodo) },
+      { nombre: 'p_importe', valor: parseFloat(form.value.importe) },
+      { nombre: 'p_id_usuario', valor: parseInt(form.value.id_usuario) }
     ] : [
-      { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },
-      { Nombre: 'p_periodo', Valor: parseInt(form.value.periodo) },
-      { Nombre: 'p_importe', Valor: parseFloat(form.value.importe) },
-      { Nombre: 'p_id_usuario', Valor: parseInt(form.value.id_usuario) }
+      { nombre: 'p_axo', valor: parseInt(form.value.axo) },
+      { nombre: 'p_periodo', valor: parseInt(form.value.periodo) },
+      { nombre: 'p_importe', valor: parseFloat(form.value.importe) },
+      { nombre: 'p_id_usuario', valor: parseInt(form.value.id_usuario) }
     ]
 
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: operacion,
-        Base: 'mercados',
-        Parametros: parametros
-      }
-    })
+    const res = await apiService.execute(operacion, 'mercados', parametros, '', null, 'publico')
 
-    if (res.data.eResponse.success) {
+    if (res.success) {
       showToast('success', isEdit.value ? 'Cuota actualizada exitosamente' : 'Cuota creada exitosamente')
       cerrarModal()
       cargarCuotas()
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al guardar cuota')
+      showToast('error', res.message || 'Error al guardar cuota')
     }
   } catch (err) {
     showToast('error', 'Error de conexión al guardar cuota')
@@ -444,22 +484,23 @@ const eliminarCuota = async () => {
 
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_delete_cuota_energia',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_kilowhatts', Valor: parseInt(cuotaAEliminar.value.id_kilowhatts) }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+          'sp_delete_cuota_energia',
+          'mercados',
+          [
+          { nombre: 'p_id_kilowhatts', valor: parseInt(cuotaAEliminar.value.id_kilowhatts) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
+    if (res.success) {
       showToast('success', 'Cuota eliminada exitosamente')
       cancelarEliminar()
       cargarCuotas()
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al eliminar cuota')
+      showToast('error', res.message || 'Error al eliminar cuota')
     }
   } catch (err) {
     showToast('error', 'Error de conexión al eliminar cuota')
@@ -491,47 +532,3 @@ onMounted(async () => {
   }
 })
 </script>
-
-<style scoped>
-.empty-icon {
-  color: #6c757d;
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
-
-.badge-primary {
-  background: var(--municipal-blue);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.btn-municipal-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.875rem;
-}
-
-.btn-municipal-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-  color: #000;
-  border: none;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-warning:hover {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
-}
-
-.required {
-  color: #dc3545;
-}
-
-.modal-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-</style>

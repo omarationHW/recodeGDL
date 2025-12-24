@@ -1,15 +1,26 @@
 <template>
   <div class="module-view">
     <div class="module-view-header">
-      <h1 class="module-view-info">
+      <div class="module-view-icon">
         <font-awesome-icon icon="file-contract" />
-        Generación de Títulos sin Número
-      </h1>
-      <DocumentationModal
-        title="Ayuda - Títulos sin Número"
-        :sections="helpSections"
-      />
+      </div>
+      <div class="module-view-info">
+        <h1>Generación de Títulos sin Número</h1>
+        <p>Cementerios - Generación automática de títulos de propiedad</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
+
+    <div class="module-view-content">
 
     <!-- Búsqueda de Folio -->
     <div class="municipal-card mb-3">
@@ -130,9 +141,16 @@
 
     <!-- Historial de Títulos Generados -->
     <div v-if="titulos.length > 0" class="municipal-card">
-      <div class="municipal-card-header">
-        <font-awesome-icon icon="history" />
-        Títulos Generados Recientemente
+      <div class="municipal-card-header header-with-badge">
+        <h5>
+          <font-awesome-icon icon="history" />
+          Títulos Generados Recientemente
+        </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="titulos.length > 0">
+            {{ titulos.length }} registros
+          </span>
+        </div>
       </div>
       <div class="municipal-card-body">
         <div class="table-responsive">
@@ -148,14 +166,20 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="titulo in titulos" :key="titulo.titulo">
+              <tr
+                v-for="titulo in titulos"
+                :key="titulo.titulo"
+                @click="selectedRow = titulo"
+                :class="{ 'table-row-selected': selectedRow === titulo }"
+                class="row-hover"
+              >
                 <td><strong>{{ titulo.titulo }}</strong></td>
                 <td>{{ titulo.control_rcm }}</td>
                 <td>{{ titulo.nombre }}</td>
                 <td>{{ formatearFecha(titulo.fecha) }}</td>
                 <td>${{ formatearMoneda(titulo.importe) }}</td>
                 <td>
-                  <button @click="imprimirTitulo(titulo.titulo)" class="btn-municipal-secondary btn-sm">
+                  <button @click.stop="imprimirTitulo(titulo.titulo)" class="btn-municipal-secondary btn-sm">
                     <font-awesome-icon icon="print" />
                   </button>
                 </td>
@@ -165,38 +189,110 @@
         </div>
       </div>
     </div>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
+
+    <!-- Empty State - Sin búsqueda -->
+    <div v-if="titulos.length === 0 && !hasSearched" class="empty-state">
+      <div class="empty-state-icon">
+        <font-awesome-icon icon="file-contract" size="3x" />
+      </div>
+      <h4>Generación de Títulos sin Número</h4>
+      <p>Ingrese el número de folio para buscar y generar el título correspondiente</p>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showDocModal"
       :componentName="'TitulosSin'"
       :moduleName="'cementerios'"
-      @close="closeTechDocs"
+      :docType="docType"
+      :title="'Generación de Títulos sin Número'"
+      @close="showDocModal = false"
     />
-
+    </div>
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive, onMounted } from 'vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const toast = useToast()
 
-// Modal de documentación
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Sistema de toast manual
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
 
+let toastTimeout = null
+
+const showToast = (type, message) => {
+  if (toastTimeout) {
+    clearTimeout(toastTimeout)
+  }
+
+  toast.value = {
+    show: true,
+    type,
+    message
+  }
+
+  toastTimeout = setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
+
+// Estado
 const folioABuscar = ref(null)
 const folio = ref(null)
 const titulos = ref([])
 const recaudaciones = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 const tituloData = reactive({
   fecha_emision: new Date().toISOString().split('T')[0],
@@ -205,65 +301,56 @@ const tituloData = reactive({
   observaciones: ''
 })
 
-const helpSections = [
-  {
-    title: 'Generación de Títulos sin Número',
-    content: `
-      <p>Permite generar títulos de propiedad sin asignar un número específico previamente.</p>
-      <h4>Proceso:</h4>
-      <ol>
-        <li>Buscar el folio para el cual se emitirá el título</li>
-        <li>Verificar la información del titular y ubicación</li>
-        <li>Ingresar los datos del título (fecha, importe, recaudación)</li>
-        <li>Generar el título automáticamente</li>
-        <li>El sistema asignará automáticamente el número de título</li>
-      </ol>
-      <h4>Nota:</h4>
-      <p>Los títulos generados quedan registrados en el historial y pueden imprimirse posteriormente.</p>
-    `
-  }
-]
-
 const buscarFolio = async () => {
   if (!folioABuscar.value) {
-    toast.warning('Ingrese un número de folio')
+    showToast('warning', 'Ingrese un número de folio')
     return
   }
+
+  showLoading('Buscando folio...', 'Por favor espere')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const params = [
       {
         nombre: 'p_control_rcm',
         valor: folioABuscar.value,
-        tipo: 'string'
+        tipo: 'integer'
       }
     ]
 
-    const response = await execute('sp_cem_consultar_folio', 'cementerios', params,
-      'cementerios',
+    const response = await execute(
+      'sp_cem_consultar_folio',
+      'cementerio',
+      params,
+      'cementerio',
       null,
       'public'
-    , '', null, 'comun')
+    )
 
     if (response.result && response.result.length > 0) {
       const result = response.result[0]
 
       if (result.resultado === 'N') {
         folio.value = null
-        toast.warning(result.mensaje)
+        showToast('warning', result.mensaje)
         return
       }
 
       folio.value = result
       await cargarTitulosRecientes()
-      toast.success('Folio encontrado')
+      showToast('success', 'Folio encontrado')
     } else {
       folio.value = null
-      toast.warning('No se encontró el folio')
+      showToast('warning', 'No se encontró el folio')
     }
   } catch (error) {
-    toast.error('Error al buscar folio')
+    console.error('Error al buscar folio:', error)
+    showToast('error', 'Error al buscar folio')
     folio.value = null
+  } finally {
+    hideLoading()
   }
 }
 
@@ -272,6 +359,7 @@ const cargarRecaudaciones = async () => {
     const response = await api.callStoredProcedure('sp_cem_listar_recaudaciones', {})
     recaudaciones.value = response.result || []
   } catch (error) {
+    console.error('Error al cargar recaudaciones:', error)
   }
 }
 
@@ -286,44 +374,51 @@ const cargarTitulosRecientes = async () => {
       {
         nombre: 'p_fecha_desde',
         valor: fechaDesde,
-        tipo: 'string'
+        tipo: 'date'
       },
       {
         nombre: 'p_fecha_hasta',
         valor: fechaHoy,
-        tipo: 'string'
+        tipo: 'date'
       },
       {
         nombre: 'p_cementerio',
         valor: null,
-        tipo: 'string'
+        tipo: 'varchar'
       }
     ]
 
-    const response = await execute('sp_cem_reporte_titulos', 'cementerios', params,
-      'cementerios',
+    const response = await execute(
+      'sp_cem_reporte_titulos',
+      'cementerio',
+      params,
+      'cementerio',
       null,
       'public'
-    , '', null, 'comun')
+    )
 
     titulos.value = response.result?.slice(0, 10) || []
   } catch (error) {
+    console.error('Error al cargar títulos recientes:', error)
     titulos.value = []
   }
 }
 
 const generarTitulo = async () => {
   if (!tituloData.fecha_emision || tituloData.importe <= 0) {
-    toast.warning('Complete los campos requeridos: Fecha de Emisión e Importe')
+    showToast('warning', 'Complete los campos requeridos: Fecha de Emisión e Importe')
     return
   }
+
+  showLoading('Generando título...', 'Por favor espere')
+  selectedRow.value = null
 
   try {
     const params = [
       {
         nombre: 'p_control_rcm',
         valor: folioABuscar.value,
-        tipo: 'string'
+        tipo: 'integer'
       },
       {
         nombre: 'p_fecha',
@@ -333,52 +428,65 @@ const generarTitulo = async () => {
       {
         nombre: 'p_importe',
         valor: tituloData.importe,
-        tipo: 'string'
+        tipo: 'numeric'
       },
       {
         nombre: 'p_recaudacion',
         valor: tituloData.recaudacion || 1,
-        tipo: 'string'
+        tipo: 'integer'
       },
       {
         nombre: 'p_observaciones',
         valor: tituloData.observaciones || '',
-        tipo: 'string'
+        tipo: 'varchar'
       },
       {
         nombre: 'p_usuario',
         valor: 1,
-        tipo: 'string'
+        tipo: 'integer'
       }
     ]
 
-    const response = await execute('sp_cem_generar_titulo', 'cementerios', params,
-      'cementerios',
+    const response = await execute(
+      'sp_cem_generar_titulo',
+      'cementerio',
+      params,
+      'cementerio',
       null,
       'public'
-    , '', null, 'comun')
+    )
 
-    if (response.result && response.result[0]?.resultado === 'S') {
-      const numeroTitulo = response.result[0].titulo
-      toast.success(`Título #${numeroTitulo} generado exitosamente`)
+    if (response.result && response.result.length > 0) {
+      const result = response.result[0]
 
-      // Limpiar formulario
-      tituloData.fecha_emision = new Date().toISOString().split('T')[0]
-      tituloData.importe = 0
-      tituloData.recaudacion = ''
-      tituloData.observaciones = ''
+      // Validar con ambas estructuras posibles
+      if (result.resultado === 'S' || result.success === true) {
+        const numeroTitulo = result.titulo || result.message
+        showToast('success', `Título #${numeroTitulo} generado exitosamente`)
 
-      await cargarTitulosRecientes()
+        // Limpiar formulario
+        tituloData.fecha_emision = new Date().toISOString().split('T')[0]
+        tituloData.importe = 0
+        tituloData.recaudacion = ''
+        tituloData.observaciones = ''
+
+        await cargarTitulosRecientes()
+      } else {
+        showToast('error', result.mensaje || result.message || 'Error al generar título')
+      }
     } else {
-      toast.error(response.result[0]?.mensaje || 'Error al generar título')
+      showToast('error', 'No se recibió respuesta del servidor')
     }
   } catch (error) {
-    toast.error('Error al generar título')
+    console.error('Error al generar título:', error)
+    showToast('error', 'Error al generar título')
+  } finally {
+    hideLoading()
   }
 }
 
 const imprimirTitulo = (numeroTitulo) => {
-  toast.info(`Impresión de título #${numeroTitulo} en desarrollo`)
+  showToast('info', `Impresión de título #${numeroTitulo} en desarrollo`)
   // TODO: Implementar impresión de título
 }
 
@@ -389,6 +497,8 @@ const limpiar = () => {
   tituloData.importe = 0
   tituloData.recaudacion = ''
   tituloData.observaciones = ''
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const formatearUbicacion = (folio) => {
@@ -424,63 +534,3 @@ onMounted(() => {
   cargarTitulosRecientes()
 })
 </script>
-
-<style scoped>
-/* Layout único de títulos y detalles - Justificado mantener scoped */
-.folio-details-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.detail-section {
-  padding: 1rem;
-  background-color: var(--color-bg-secondary);
-  border-radius: 0.375rem;
-  border-left: 4px solid var(--color-primary);
-}
-
-.detail-section h5 {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1rem;
-  margin-bottom: 1rem;
-  color: var(--color-primary);
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.detail-item:last-child {
-  border-bottom: none;
-}
-
-.detail-item label {
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
-
-.detail-item span {
-  color: var(--color-text-primary);
-  font-weight: 600;
-}
-
-.titulo-form-section {
-  padding-top: 1.5rem;
-  border-top: 2px solid var(--color-border);
-}
-
-.titulo-form-section h5 {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  color: var(--color-primary);
-}
-</style>

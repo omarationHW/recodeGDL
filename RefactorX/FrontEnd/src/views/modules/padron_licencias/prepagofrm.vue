@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Prepago de Licencias</h1>
-        <p>Padrón de Licencias - Sistema de Prepago con Cálculo de Descuentos por Pronto Pago</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Sistema de Prepago con Cálculo de Descuentos por Pronto Pago</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -45,7 +48,7 @@
           <button
             class="btn-municipal-primary"
             @click="searchCuenta"
-            :disabled="loading || !searchForm.cvecuenta"
+            :disabled="!searchForm.cvecuenta"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -53,7 +56,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearSearch"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -118,7 +120,6 @@
         <button
           class="btn-municipal-success btn-sm"
           @click="recalcularDescuentos"
-          :disabled="loading"
         >
           <font-awesome-icon icon="sync-alt" />
           Recalcular Descuentos
@@ -159,7 +160,6 @@
           <button
             class="btn-municipal-primary"
             @click="calcularDescuentos"
-            :disabled="loading"
           >
             <font-awesome-icon icon="calculator" />
             Calcular Descuentos
@@ -170,14 +170,18 @@
 
     <!-- Tabla de Descuentos -->
     <div class="municipal-card" v-if="descuentos.length > 0">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="list-alt" />
           Descuentos Calculados
-          <span class="badge-purple">{{ descuentos.length }} registros</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="descuentos.length > 0">
+            {{ descuentos.length }} registros
+          </span>
+        </div>
       </div>
-      <div class="municipal-card-body table-container" v-if="!loading">
+      <div class="municipal-card-body table-container">
         <div class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
@@ -191,7 +195,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(desc, index) in descuentos" :key="index" class="clickable-row">
+              <tr
+                v-for="(desc, index) in descuentos"
+                :key="index"
+                @click="selectedRow = desc"
+                :class="{ 'table-row-selected': selectedRow === desc }"
+                class="row-hover"
+              >
                 <td>{{ desc.periodo || 'N/A' }}</td>
                 <td>{{ desc.concepto || 'N/A' }}</td>
                 <td class="text-end">${{ formatCurrency(desc.base) }}</td>
@@ -251,7 +261,7 @@
           <button
             class="btn-municipal-success"
             @click="procesarLiquidacion"
-            :disabled="loading || !liquidacionForm.monto || !liquidacionForm.forma_pago"
+            :disabled="!liquidacionForm.monto || !liquidacionForm.forma_pago"
           >
             <font-awesome-icon icon="check-circle" />
             Procesar Liquidación
@@ -259,7 +269,6 @@
           <button
             class="btn-municipal-danger"
             @click="eliminarDescuentos"
-            :disabled="loading"
           >
             <font-awesome-icon icon="trash" />
             Eliminar Descuentos
@@ -298,35 +307,33 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando información...</p>
-      </div>
-    </div>
-
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'prepagofrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Prepago de Licencias'"
+      @close="showDocModal = false"
     />
+
+    </div>
+    <!-- /module-view-content -->
+
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -335,23 +342,33 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const searchForm = ref({
@@ -361,6 +378,8 @@ const searchForm = ref({
 const cuentaData = ref(null)
 const descuentos = ref([])
 const ultimoRequerimiento = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 const descuentosForm = ref({
   periodo_desde: null,
@@ -396,7 +415,9 @@ const searchCuenta = async () => {
     return
   }
 
-  setLoading(true, 'Buscando cuenta...')
+  showLoading('Buscando cuenta...')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     const response = await execute(
@@ -429,7 +450,7 @@ const searchCuenta = async () => {
     descuentos.value = []
     ultimoRequerimiento.value = null
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -455,7 +476,8 @@ const loadUltimoRequerimiento = async () => {
 }
 
 const calcularDescuentos = async () => {
-  setLoading(true, 'Calculando descuentos...')
+  showLoading('Calculando descuentos...')
+  selectedRow.value = null
 
   try {
     const response = await execute(
@@ -481,7 +503,7 @@ const calcularDescuentos = async () => {
     handleApiError(error)
     descuentos.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -498,7 +520,8 @@ const recalcularDescuentos = async () => {
   })
 
   if (result.isConfirmed) {
-    setLoading(true, 'Recalculando descuentos...')
+    showLoading('Recalculando descuentos...')
+    selectedRow.value = null
 
     try {
       const response = await execute(
@@ -524,7 +547,7 @@ const recalcularDescuentos = async () => {
     } catch (error) {
       handleApiError(error)
     } finally {
-      setLoading(false)
+      hideLoading()
     }
   }
 }
@@ -550,7 +573,8 @@ const procesarLiquidacion = async () => {
   })
 
   if (result.isConfirmed) {
-    setLoading(true, 'Procesando liquidación...')
+    showLoading('Procesando liquidación...')
+    selectedRow.value = null
 
     try {
       const response = await execute(
@@ -585,7 +609,7 @@ const procesarLiquidacion = async () => {
     } catch (error) {
       handleApiError(error)
     } finally {
-      setLoading(false)
+      hideLoading()
     }
   }
 }
@@ -603,7 +627,8 @@ const eliminarDescuentos = async () => {
   })
 
   if (result.isConfirmed) {
-    setLoading(true, 'Eliminando descuentos...')
+    showLoading('Eliminando descuentos...')
+    selectedRow.value = null
 
     try {
       const response = await execute(
@@ -629,7 +654,7 @@ const eliminarDescuentos = async () => {
     } catch (error) {
       handleApiError(error)
     } finally {
-      setLoading(false)
+      hideLoading()
     }
   }
 }
@@ -641,6 +666,8 @@ const clearSearch = () => {
   cuentaData.value = null
   descuentos.value = []
   ultimoRequerimiento.value = null
+  hasSearched.value = false
+  selectedRow.value = null
   descuentosForm.value = {
     periodo_desde: null,
     periodo_hasta: null,

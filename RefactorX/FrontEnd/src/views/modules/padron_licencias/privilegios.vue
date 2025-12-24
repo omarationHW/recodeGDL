@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Privilegios de Usuarios</h1>
-        <p>Padrón de Licencias - Consulta de Permisos y Auditoría de Usuarios</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Consulta de Permisos y Auditoría de Usuarios</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -44,7 +47,7 @@
             <button
               class="btn-municipal-primary"
               @click="buscarPrivilegios"
-              :disabled="loading || !searchUsuario"
+              :disabled="!searchUsuario"
               style="margin-top: 24px;"
             >
               <font-awesome-icon icon="search" />
@@ -87,12 +90,16 @@
 
     <!-- Permisos del Usuario -->
     <div v-if="permisos.length > 0" class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="shield-alt" />
           Permisos del Usuario
-          <span class="badge-purple">{{ permisos.length }} permisos</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="permisos.length > 0">
+            {{ permisos.length }} permisos
+          </span>
+        </div>
       </div>
       <div class="municipal-card-body">
         <div class="table-responsive">
@@ -106,7 +113,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="permiso in permisos" :key="permiso.id" class="clickable-row">
+              <tr
+                v-for="permiso in permisos"
+                :key="permiso.id"
+                @click="selectedRow = permiso"
+                :class="{ 'table-row-selected': selectedRow === permiso }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary">{{ permiso.modulo || 'N/A' }}</strong></td>
                 <td>{{ permiso.permiso || 'N/A' }}</td>
                 <td>{{ permiso.descripcion || 'N/A' }}</td>
@@ -129,12 +142,16 @@
 
     <!-- Departamentos Asignados -->
     <div v-if="departamentos.length > 0" class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="building" />
           Departamentos Asignados
-          <span class="badge-purple">{{ departamentos.length }} departamentos</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="departamentos.length > 0">
+            {{ departamentos.length }} departamentos
+          </span>
+        </div>
       </div>
       <div class="municipal-card-body">
         <div class="table-responsive">
@@ -147,7 +164,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="depto in departamentos" :key="depto.clave" class="clickable-row">
+              <tr
+                v-for="depto in departamentos"
+                :key="depto.clave"
+                @click="selectedRow = depto"
+                :class="{ 'table-row-selected': selectedRow === depto }"
+                class="row-hover"
+              >
                 <td><strong class="text-primary">{{ depto.clave }}</strong></td>
                 <td>{{ depto.nombre || 'N/A' }}</td>
                 <td>{{ depto.descripcion || 'N/A' }}</td>
@@ -220,12 +243,16 @@
 
     <!-- Auditoría del Usuario -->
     <div v-if="auditoria.length > 0" class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="history" />
           Auditoría del Usuario
-          <span class="badge-purple">{{ auditoria.length }} registros</span>
         </h5>
+        <div class="header-right">
+          <span class="badge-purple" v-if="auditoria.length > 0">
+            {{ auditoria.length }} registros
+          </span>
+        </div>
       </div>
       <div class="municipal-card-body">
         <div class="table-responsive">
@@ -240,7 +267,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="audit in auditoria" :key="audit.id" class="clickable-row">
+              <tr
+                v-for="audit in auditoria"
+                :key="audit.id"
+                @click="selectedRow = audit"
+                :class="{ 'table-row-selected': selectedRow === audit }"
+                class="row-hover"
+              >
                 <td>
                   <small class="text-muted">
                     <font-awesome-icon icon="calendar" />
@@ -260,69 +293,84 @@
       </div>
     </div>
 
-    <!-- Estado vacío -->
-    <div v-if="!usuarioEncontrado && !loading" class="municipal-card">
-      <div class="municipal-card-body text-center">
-        <font-awesome-icon icon="search" size="3x" class="empty-icon" />
-        <p>Busque un usuario para ver sus privilegios y auditoría</p>
+    <!-- Estado vacío - Sin búsqueda -->
+    <div v-if="!usuarioEncontrado && !hasSearched" class="empty-state">
+      <div class="empty-state-icon">
+        <font-awesome-icon icon="user-shield" size="3x" />
       </div>
+      <h4>Privilegios de Usuarios</h4>
+      <p>Ingrese un nombre de usuario para consultar sus permisos, departamentos y auditoría</p>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Cargando información del usuario...</p>
+    <!-- Estado vacío - Sin resultados -->
+    <div v-else-if="!usuarioEncontrado && hasSearched" class="empty-state">
+      <div class="empty-state-icon">
+        <font-awesome-icon icon="inbox" size="3x" />
       </div>
+      <h4>Sin resultados</h4>
+      <p>No se encontró información para el usuario especificado</p>
     </div>
-
-    </div>
-    <!-- /module-view-content -->
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'privilegios'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Privilegios de Usuarios'"
+      @close="showDocModal = false"
     />
+
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
 import { ref } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
-
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const searchUsuario = ref('')
@@ -333,6 +381,8 @@ const movLicencias = ref([])
 const movTramites = ref([])
 const revisiones = ref([])
 const auditoria = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Métodos
 const buscarPrivilegios = async () => {
@@ -346,7 +396,9 @@ const buscarPrivilegios = async () => {
     return
   }
 
-  setLoading(true, 'Buscando información del usuario...')
+  showLoading('Buscando información del usuario...', 'Consultando permisos y auditoría')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     // Cargar todos los datos en paralelo
@@ -435,7 +487,7 @@ const buscarPrivilegios = async () => {
     handleApiError(error)
     limpiarDatos()
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -447,6 +499,8 @@ const limpiarDatos = () => {
   movTramites.value = []
   revisiones.value = []
   auditoria.value = []
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const formatDateTime = (dateString) => {
@@ -533,10 +587,5 @@ const formatDateTime = (dateString) => {
   font-size: 11px;
   color: #666;
   line-height: 1.4;
-}
-
-.empty-icon {
-  color: #ddd;
-  margin-bottom: 20px;
 }
 </style>

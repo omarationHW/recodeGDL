@@ -8,6 +8,16 @@
         <h1>Empresas</h1>
         <p>Consulta de empresas registradas</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -73,42 +83,38 @@
           </div>
 
           <!-- Pagination Controls -->
-          <div v-if="total > 0" class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid #dee2e6;">
+          <div v-if="total > 0" class="pagination-controls">
             <div class="pagination-info">
               <span class="text-muted">
                 Mostrando {{ startIndex }} - {{ endIndex }} de {{ total }} registros
               </span>
             </div>
-            <div class="pagination-controls" style="display: flex; gap: 0.5rem; align-items: center;">
+            <div class="pagination-buttons">
               <button
                 class="btn-municipal-secondary"
                 :disabled="page === 1"
-                @click="goToPage(1)"
-                style="padding: 0.5rem 0.75rem;">
+                @click="goToPage(1)">
                 <font-awesome-icon icon="angles-left" />
               </button>
               <button
                 class="btn-municipal-secondary"
                 :disabled="page === 1"
-                @click="goToPage(page - 1)"
-                style="padding: 0.5rem 0.75rem;">
+                @click="goToPage(page - 1)">
                 <font-awesome-icon icon="chevron-left" />
               </button>
-              <span style="display: flex; align-items: center; padding: 0 1rem; font-weight: 500;">
+              <span class="pagination-page-indicator">
                 Página {{ page }} de {{ totalPages }}
               </span>
               <button
                 class="btn-municipal-secondary"
                 :disabled="page === totalPages"
-                @click="goToPage(page + 1)"
-                style="padding: 0.5rem 0.75rem;">
+                @click="goToPage(page + 1)">
                 <font-awesome-icon icon="chevron-right" />
               </button>
               <button
                 class="btn-municipal-secondary"
                 :disabled="page === totalPages"
-                @click="goToPage(totalPages)"
-                style="padding: 0.5rem 0.75rem;">
+                @click="goToPage(totalPages)">
                 <font-awesome-icon icon="angles-right" />
               </button>
             </div>
@@ -117,24 +123,45 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'Empresas'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Empresas'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'Empresas'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Empresas'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_EMPRESAS'
-const SCHEMA = 'multas_reglamentos'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({ q: '' })
 const page = ref(1)
@@ -168,6 +195,7 @@ async function reload() {
   ]
 
   try {
+    showLoading('Consultando...', 'Por favor espere')
     const data = await execute(OP_LIST, BASE_DB, params, '', null, SCHEMA)
 
     // La API puede retornar data.result, data.rows, o data directamente
@@ -193,6 +221,8 @@ async function reload() {
     rows.value = []
     total.value = 0
     console.error('Error al cargar empresas:', e)
+  } finally {
+    hideLoading()
   }
 }
 

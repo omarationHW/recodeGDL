@@ -78,15 +78,55 @@
       <div v-if="mensaje" class="alert alert-info" role="alert">{{ mensaje }}</div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'CargaTCultural'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CargaTCultural'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CargaTCultural'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CargaTCultural'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import Swal from 'sweetalert2'
+
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
 import { ref, reactive } from 'vue'
-import axios from 'axios'
+import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
+const BASE_DB = 'mercados'
+const SCHEMA = 'publico'
 
 // Composables
+const { execute } = useApi()
 const globalLoading = useGlobalLoading()
 const { showToast } = useToast()
 
@@ -114,13 +154,17 @@ const buscarAdeudos = async () => {
 
   await globalLoading.withLoading(async () => {
     try {
-      const { data } = await axios.post('/api/execute', {
-        eRequest: 'getAdeudosTCultural',
-        payload: form
-      })
+      const parametros = [
+        { nombre: 'p_local_desde', tipo: 'integer', valor: parseInt(form.local_desde) },
+        { nombre: 'p_local_hasta', tipo: 'integer', valor: parseInt(form.local_hasta) },
+        { nombre: 'p_periodo', tipo: 'integer', valor: parseInt(form.periodo) },
+        { nombre: 'p_axo', tipo: 'integer', valor: parseInt(form.axo) }
+      ]
+      const response = await execute('sp_get_adeudos_tcultural', BASE_DB, parametros, '', null, SCHEMA)
+      const data = response?.result || response || []
 
-      if (data.eResponse.success) {
-        adeudos.value = data.eResponse.data
+      if (Array.isArray(data) && data.length > 0) {
+        adeudos.value = data
         // Map to pagos editable
         pagos.value = adeudos.value.map(row => ({
           id_local: row.id_local,
@@ -138,7 +182,7 @@ const buscarAdeudos = async () => {
         }))
         showToast(`Se encontraron ${adeudos.value.length} adeudos`, 'success')
       } else {
-        const msg = data.eResponse.message || 'No se encontraron adeudos.'
+        const msg = 'No se encontraron adeudos.'
         mensaje.value = msg
         showToast(msg, 'warning')
       }
@@ -157,24 +201,22 @@ const validarPagos = async () => {
 
   await globalLoading.withLoading(async () => {
     try {
-      const { data } = await axios.post('/api/execute', {
-        eRequest: 'validatePagosTCultural',
-        payload: { pagos: pagos.value }
-      })
+      const parametros = [
+        { nombre: 'p_pagos_json', tipo: 'text', valor: JSON.stringify(pagos.value) }
+      ]
+      const response = await execute('sp_validate_pagos_tcultural', BASE_DB, parametros, '', null, SCHEMA)
+      const data = response?.result || response || {}
 
-      if (data.eResponse.success) {
-        foliosErroneos.value = data.eResponse.data.foliosErroneos || []
-        if (foliosErroneos.value.length === 0) {
-          mensaje.value = 'Todos los folios son válidos. Puede guardar.'
-          puedeGuardar.value = true
-          showToast('Validación exitosa. Todos los folios son válidos', 'success')
-        } else {
-          mensaje.value = 'Existen folios erróneos.'
-          showToast(`Se encontraron ${foliosErroneos.value.length} folios erróneos`, 'warning')
-        }
+      const foliosErr = data.foliosErroneos || data.folios_erroneos || []
+      foliosErroneos.value = Array.isArray(foliosErr) ? foliosErr : []
+
+      if (foliosErroneos.value.length === 0) {
+        mensaje.value = 'Todos los folios son válidos. Puede guardar.'
+        puedeGuardar.value = true
+        showToast('Validación exitosa. Todos los folios son válidos', 'success')
       } else {
-        mensaje.value = data.eResponse.message
-        showToast(data.eResponse.message, 'error')
+        mensaje.value = 'Existen folios erróneos.'
+        showToast(`Se encontraron ${foliosErroneos.value.length} folios erróneos`, 'warning')
       }
     } catch (e) {
       const errorMsg = 'Error al validar folios: ' + e
@@ -189,18 +231,21 @@ const guardarPagos = async () => {
 
   await globalLoading.withLoading(async () => {
     try {
-      const { data } = await axios.post('/api/execute', {
-        eRequest: 'savePagosTCultural',
-        payload: { pagos: pagos.value }
-      })
+      const parametros = [
+        { nombre: 'p_pagos_json', tipo: 'text', valor: JSON.stringify(pagos.value) }
+      ]
+      const response = await execute('sp_save_pagos_tcultural', BASE_DB, parametros, '', null, SCHEMA)
+      const data = response?.result || response || {}
+      const success = data.success !== false
 
-      if (data.eResponse.success) {
+      if (success) {
         mensaje.value = 'Pagos cargados correctamente.'
         showToast('Pagos guardados exitosamente', 'success')
         buscarAdeudos()
       } else {
-        mensaje.value = data.eResponse.message
-        showToast(data.eResponse.message, 'error')
+        const msg = data.message || 'Error al guardar pagos'
+        mensaje.value = msg
+        showToast(msg, 'error')
       }
     } catch (e) {
       const errorMsg = 'Error al guardar pagos: ' + e

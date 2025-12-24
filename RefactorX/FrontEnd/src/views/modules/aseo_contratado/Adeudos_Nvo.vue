@@ -8,25 +8,6 @@
         <h1>Generar Adeudos</h1>
         <p>Aseo Contratado - Consulta y generación de nuevos adeudos</p>
       </div>
-      <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
-        </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
-      </div>
-    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -211,20 +192,10 @@
         <li>Los adeudos se generan mensualmente según las unidades contratadas</li>
       </ul>
     </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'Adeudos_Nvo'"
-      :moduleName="'aseo_contratado'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
@@ -234,6 +205,7 @@ import Swal from 'sweetalert2'
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
+const loading = ref(false)
 const showDocumentation = ref(false)
 const searchParams = ref({ num_contrato: null, num_empresa: null, nombre_empresa: '' })
 const contratos = ref([])
@@ -250,48 +222,24 @@ const buscarContrato = async () => {
     return
   }
 
-  showLoading()
+  loading.value = true
   try {
-    // Usar el SP correcto para búsqueda de contratos (equivalente a BuscaCont línea 571-577 Delphi)
-    const response = await execute('sp_aseo_contratos_buscar', 'aseo_contratado', {
+    const response = await execute('SP_ASEO_ADEUDOS_BUSCAR_CONTRATO', 'aseo_contratado', {
       p_num_contrato: searchParams.value.num_contrato || null,
       p_num_empresa: searchParams.value.num_empresa || null,
-      p_nombre_empresa: searchParams.value.nombre_empresa || null,
-      p_ctrol_aseo: null // Si se requiere filtro por tipo
+      p_nombre_empresa: searchParams.value.nombre_empresa || null
     })
-
-    if (response) {
-      contratos.value = response
-
+    if (response && response.data) {
+      contratos.value = response.data
       if (contratos.value.length === 0) {
         showToast('No se encontraron contratos', 'info')
-      } else {
-        // Validar status de cada contrato y convenios (Delphi líneas 445-458)
-        contratos.value = await Promise.all(contratos.value.map(async (c) => {
-          if (c.status_vigencia === 'N') {
-            // Buscar convenio para contratos con status 'N' (Nuevo/Conveniado)
-            try {
-              const convResp = await execute('sp_aseo_buscar_convenio', 'aseo_contratado', {
-                p_control_contrato: c.control_contrato
-              })
-              if (convResp && convResp.length > 0) {
-                c.tiene_convenio = true
-                c.num_convenio = convResp[0].convenio
-              }
-            } catch (err) {
-            hideLoading()
-            }
-          }
-          return c
-        }))
       }
     }
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
+    console.error('Error:', error)
     showToast('Error al buscar contratos', 'error')
   } finally {
-    hideLoading()
+    loading.value = false
   }
 }
 
@@ -310,50 +258,24 @@ const seleccionarContrato = (contrato) => {
 const verEstadoCuenta = async () => {
   if (!contratoSeleccionado.value) return
 
-  showLoading()
+  loading.value = true
   try {
-    // Usar SPs correctos según Delphi (líneas 548-569)
-    // Delphi usa 3 SPs diferentes: Spcon16_detade_01, Spcon16_detade_02, sp16_Adeudos_F02
-
-    const fechaActual = new Date()
-    const año = fechaActual.getFullYear()
-    const mes = String(fechaActual.getMonth() + 1).padStart(2, '0')
-    const fechaRef = `${año}-${mes}`
-
-    // Llamar al SP de detalle de adeudos formato 02 (más completo)
-    const response = await execute('sp16_Adeudos_F02', 'aseo_contratado', {
-      p_tipo: contratoSeleccionado.value.tipo_aseo || 'D', // Tipo de aseo
-      p_numero: contratoSeleccionado.value.num_contrato,
-      p_rep: 'A', // 'V' = Solo vencidos, 'A' = Todos
-      pref: fechaRef
+    const response = await execute('SP_ASEO_ADEUDOS_ESTADO_CUENTA', 'aseo_contratado', {
+      p_control_contrato: contratoSeleccionado.value.control_contrato,
+      p_status_vigencia: 'D',
+      p_fecha_hasta: null
     })
-
-    if (response) {
-      estadoCuenta.value = response.map(row => ({
-        periodo: row.periodo,
-        concepto: row.concepto,
-        cant_recolec: row.cant_recolec || 0,
-        importe_adeudo: row.importe_adeudos || 0,
-        importe_recargo: row.importe_recargos || 0,
-        importe_multa: row.importe_multa || 0,
-        importe_gastos: row.importe_gastos || 0,
-        importe_actualizacion: row.actualizacion || 0,
-        total_periodo: (row.importe_adeudos || 0) + (row.importe_recargos || 0) +
-                       (row.importe_multa || 0) + (row.importe_gastos || 0) + (row.actualizacion || 0)
-
-const { showLoading, hideLoading } = useGlobalLoading()
-      }))
-
+    if (response && response.data) {
+      estadoCuenta.value = response.data
       if (estadoCuenta.value.length === 0) {
         showToast('No hay adeudos pendientes para este contrato', 'info')
       }
     }
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
+    console.error('Error:', error)
     showToast('Error al cargar estado de cuenta', 'error')
   } finally {
-    hideLoading()
+    loading.value = false
   }
 }
 

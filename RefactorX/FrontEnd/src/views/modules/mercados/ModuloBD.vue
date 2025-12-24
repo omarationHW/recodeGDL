@@ -1,173 +1,185 @@
 <template>
-  <div class="modulo-bd-page">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><router-link to="/">Inicio</router-link></li>
-        <li class="breadcrumb-item active" aria-current="page">Catálogo de Categorías</li>
-      </ol>
-    </nav>
-    <h1>Catálogo de Categorías</h1>
-    <div class="actions mb-3">
-      <button class="btn btn-primary" @click="showAddModal = true">Agregar Categoría</button>
+  <div class="module-view module-layout">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="database" />
+      </div>
+      <div class="module-view-info">
+        <h1>Catálogo de Categorías</h1>
+        <p>Administración de categorías del sistema</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+      </div>
     </div>
-    <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Descripción</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="cat in categorias" :key="cat.categoria">
-          <td>{{ cat.categoria }}</td>
-          <td>{{ cat.descripcion }}</td>
-          <td>
-            <button class="btn btn-sm btn-warning" @click="editCategoria(cat)">Editar</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <!-- Modal Agregar -->
-    <div v-if="showAddModal" class="modal-mask">
-      <div class="modal-wrapper">
-        <div class="modal-container">
-          <h3>Agregar Categoría</h3>
-          <form @submit.prevent="addCategoria">
-            <div class="form-group">
-              <label>Descripción</label>
-              <input v-model="newCategoria.descripcion" class="form-control" required />
-            </div>
-            <div class="modal-footer">
-              <button class="btn btn-secondary" @click="showAddModal = false">Cancelar</button>
-              <button class="btn btn-primary" type="submit">Guardar</button>
-            </div>
-          </form>
+
+    <div class="module-view-content">
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="list" /> Categorías</h5>
+          <button class="btn-municipal-primary" @click="openAddModal">
+            <font-awesome-icon icon="plus" /> Agregar
+          </button>
+        </div>
+        <div class="municipal-card-body table-container">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>ID</th>
+                  <th>Descripción</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="cat in categorias" :key="cat.categoria" class="row-hover">
+                  <td><code>{{ cat.categoria }}</code></td>
+                  <td>{{ cat.descripcion }}</td>
+                  <td>
+                    <div class="button-group button-group-sm">
+                      <button class="btn-municipal-primary btn-sm" @click="editCategoria(cat)" title="Editar">
+                        <font-awesome-icon icon="edit" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-if="categorias.length === 0">
+                  <td colspan="3" class="text-center text-muted">Sin registros</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-    <!-- Modal Editar -->
-    <div v-if="showEditModal" class="modal-mask">
-      <div class="modal-wrapper">
-        <div class="modal-container">
-          <h3>Editar Categoría</h3>
-          <form @submit.prevent="updateCategoria">
-            <div class="form-group">
-              <label>Descripción</label>
-              <input v-model="editCategoriaData.descripcion" class="form-control" required />
-            </div>
-            <div class="modal-footer">
-              <button class="btn btn-secondary" @click="showEditModal = false">Cancelar</button>
-              <button class="btn btn-primary" type="submit">Actualizar</button>
-            </div>
-          </form>
+
+    <Modal :show="showModal" :title="modalTitle" @close="closeModal" :showDefaultFooter="true" @confirm="saveCategoria">
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label class="municipal-form-label">Descripción</label>
+          <input v-model="form.descripcion" class="municipal-form-control" required />
         </div>
       </div>
+    </Modal>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Procesando...</p>
+      </div>
     </div>
+
+    <DocumentationModal :show="showAyuda" :component-name="'ModuloBD'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Catálogo de Categorías'" @close="showAyuda = false" />
+    <DocumentationModal :show="showDocumentacion" :component-name="'ModuloBD'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Catálogo de Categorías'" @close="showDocumentacion = false" />
   </div>
 </template>
 
-<script>
-export default {
-  name: 'CategoriasPage',
-  data() {
-    return {
-      categorias: [],
-      showAddModal: false,
-      showEditModal: false,
-      newCategoria: {
-        descripcion: ''
-      },
-      editCategoriaData: {
-        categoria: null,
-        descripcion: ''
-      }
-    }
-  },
-  mounted() {
-    this.fetchCategorias();
-  },
-  methods: {
-    async fetchCategorias() {
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'mercados.getCategorias',
-          payload: {}
-        });
-        if (res.data.status === 'success') {
-          this.categorias = res.data.data;
-        }
-      } catch (error) {
-        console.error('Error fetching categorias:', error);
-      }
-    },
-    async addCategoria() {
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'mercados.addCategoria',
-          payload: this.newCategoria
-        });
-        if (res.data.status === 'success') {
-          this.showAddModal = false;
-          this.newCategoria.descripcion = '';
-          this.fetchCategorias();
-        } else {
-          alert(res.data.message || 'Error al agregar');
-        }
-      } catch (error) {
-        alert('Error al agregar categoria');
-      }
-    },
-    editCategoria(cat) {
-      this.editCategoriaData = { ...cat };
-      this.showEditModal = true;
-    },
-    async updateCategoria() {
-      try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'mercados.updateCategoria',
-          payload: this.editCategoriaData
-        });
-        if (res.data.status === 'success') {
-          this.showEditModal = false;
-          this.fetchCategorias();
-        } else {
-          alert(res.data.message || 'Error al actualizar');
-        }
-      } catch (error) {
-        alert('Error al actualizar categoria');
-      }
-    }
+<script setup>
+import Swal from 'sweetalert2'
+
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import { ref, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import Modal from '@/components/common/Modal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
+const BASE_DB = 'mercados'
+const SCHEMA = 'publico'
+
+const { loading, execute } = useApi()
+
+const categorias = ref([])
+const showModal = ref(false)
+const modalTitle = ref('Agregar Categoría')
+const form = ref({ categoria: null, descripcion: '' })
+const isEditing = ref(false)
+
+async function fetchCategorias() {
+  try {
+    const response = await execute('sp_categoria_list', BASE_DB, [], '', null, SCHEMA)
+    const data = response?.result || response || []
+    categorias.value = Array.isArray(data) ? data : []
+  } catch (error) {
+    console.error('Error al cargar categorías:', error)
+    categorias.value = []
   }
 }
-</script>
 
-<style scoped>
-.modulo-bd-page {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 2rem;
+function openAddModal() {
+  isEditing.value = false
+  modalTitle.value = 'Agregar Categoría'
+  form.value = { categoria: null, descripcion: '' }
+  showModal.value = true
 }
-.breadcrumb {
-  background: #f8f9fa;
-  padding: 0.5rem 1rem;
-  margin-bottom: 1rem;
+
+function editCategoria(cat) {
+  isEditing.value = true
+  modalTitle.value = 'Editar Categoría'
+  form.value = { ...cat }
+  showModal.value = true
 }
-.modal-mask {
-  position: fixed;
-  z-index: 9998;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+function closeModal() {
+  showModal.value = false
 }
-.modal-wrapper {
-  width: 400px;
+
+async function saveCategoria() {
+  try {
+    const sp = isEditing.value ? 'sp_categoria_update' : 'sp_categoria_create'
+    const params = [
+      { nombre: 'p_descripcion', tipo: 'string', valor: form.value.descripcion }
+    ]
+    if (isEditing.value) {
+      params.unshift({ nombre: 'p_categoria', tipo: 'integer', valor: form.value.categoria })
+    }
+
+    await execute(sp, BASE_DB, params, '', null, SCHEMA)
+    closeModal()
+    await fetchCategorias()
+  } catch (error) {
+    console.error('Error al guardar:', error)
+    alert('Error al guardar: ' + error.message)
+  }
 }
-.modal-container {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 8px;
-}
-</style>
+
+onMounted(() => {
+  fetchCategorias()
+})
+</script>

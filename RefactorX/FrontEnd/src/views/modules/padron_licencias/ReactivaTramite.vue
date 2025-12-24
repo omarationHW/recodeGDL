@@ -4,7 +4,7 @@
     <div class="navigation-header">
       <button
         type="button"
-        class="btn-nav-back"
+        class="btn-municipal-warning"
         @click="router.push({ name: 'ConsultaTramitefrm' })"
         title="Regresar a Consulta de Trámites"
       >
@@ -14,7 +14,16 @@
       <button
         type="button"
         class="btn-nav-help"
-        @click="openDocumentation"
+        @click="abrirDocumentacion"
+        title="Documentación"
+      >
+        <font-awesome-icon icon="book" />
+        <span>Documentación</span>
+      </button>
+      <button
+        type="button"
+        class="btn-nav-help"
+        @click="abrirAyuda"
         title="Ayuda"
       >
         <font-awesome-icon icon="question-circle" />
@@ -84,11 +93,11 @@
       </div>
 
       <!-- Empty State -->
-      <div v-if="!tramiteData" class="empty-state-card">
+      <div v-if="!tramiteData" class="empty-state">
         <div class="empty-state-icon">
-          <font-awesome-icon icon="search" />
+          <font-awesome-icon icon="search" size="3x" />
         </div>
-        <h3>Busque un trámite cancelado</h3>
+        <h4>Busque un trámite cancelado</h4>
         <p>Ingrese el ID del trámite que desea reactivar</p>
       </div>
 
@@ -256,15 +265,28 @@
           </div>
         </div>
       </div>
-    </div>
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'ReactivaTramite'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'ReactivaTramite'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Reactivar Trámite'"
+        @close="showDocModal = false"
+      />
+    </div>
   </div>
 </template>
 
@@ -280,14 +302,29 @@ import Swal from 'sweetalert2'
 // Router
 const router = useRouter()
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
 
 // UI State
 const searchPanelExpanded = ref(true)
@@ -329,7 +366,7 @@ const buscarTramite = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -377,7 +414,7 @@ const cargarGiroDescripcion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -415,14 +452,14 @@ const confirmarReactivacion = async () => {
     icon: 'question',
     title: '¿Reactivar trámite?',
     html: `
-      <div style="text-align: left;">
+      <div class="text-start">
         <p><strong>Trámite:</strong> #${tramiteData.value.id_tramite}</p>
         <p><strong>Folio:</strong> ${tramiteData.value.licencia || 'S/F'}</p>
         <p><strong>Estado actual:</strong> <span class="badge badge-danger">CANCELADO</span></p>
         <p><strong>Nuevo estado:</strong> <span class="badge badge-purple">EN PROCESO</span></p>
         <hr>
         <p><strong>Motivo de reactivación:</strong></p>
-        <p style="background: #f8f9fa; padding: 10px; border-left: 3px solid #ea8215;">${reactivacionForm.value.motivo}</p>
+        <p class="alert alert-info">${reactivacionForm.value.motivo}</p>
       </div>
     `,
     showCancelButton: true,
@@ -451,7 +488,7 @@ const confirmarReactivacion = async () => {
       ],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()

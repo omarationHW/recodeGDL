@@ -10,14 +10,20 @@
         <p>Mercados > Reporte de Ingresos Zonificados</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || ingresos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -135,24 +141,26 @@
         </div>
       </div>
     </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptZonificacion'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptZonificacion'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptZonificacion'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptZonificacion'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const loading = ref(false)
@@ -162,46 +170,14 @@ const fechaDesde = ref('')
 const fechaHasta = ref('')
 const ingresos = ref([])
 
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
-})
-
 // Computed
 const totalGeneral = computed(() => {
   return ingresos.value.reduce((sum, item) => sum + (parseFloat(item.pagado) || 0), 0)
 })
 
 // Métodos
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
-  }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
-}
-
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
-}
-
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione un rango de fechas para consultar los ingresos agrupados por zona geográfica')
+  showToast('Seleccione un rango de fechas para consultar los ingresos agrupados por zona geográfica', 'info')
 }
 
 const formatCurrency = (value) => {
@@ -219,13 +195,13 @@ const setFechasIniciales = () => {
 const consultar = async () => {
   if (!fechaDesde.value || !fechaHasta.value) {
     error.value = 'Debe seleccionar ambas fechas'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
   if (new Date(fechaDesde.value) > new Date(fechaHasta.value)) {
     error.value = 'La fecha desde no puede ser mayor que la fecha hasta'
-    showToast('warning', error.value)
+    showToast(error.value, 'warning')
     return
   }
 
@@ -236,32 +212,33 @@ const consultar = async () => {
   searchPerformed.value = true
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_ingreso_zonificado',
-        Base: 'mercados',
-        Parametros: [
+    const res = await apiService.execute(
+          'sp_ingreso_zonificado',
+          'mercados',
+          [
           { nombre: 'p_fecdesde', valor: fechaDesde.value, tipo: 'date' },
           { nombre: 'p_fechasta', valor: fechaHasta.value, tipo: 'date' }
-        ]
-      }
-    })
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      ingresos.value = res.data.eResponse.data.result || []
+    if (res.success) {
+      ingresos.value = res.data.result || []
       if (ingresos.value.length > 0) {
-        showToast('success', `Se encontraron ${ingresos.value.length} zonas con ingresos`)
+        showToast(`Se encontraron ${ingresos.value.length} zonas con ingresos`, 'success')
       } else {
-        showToast('info', 'No se encontraron ingresos en el rango de fechas especificado')
+        showToast('No se encontraron ingresos en el rango de fechas especificado', 'info')
       }
     } else {
-      error.value = res.data.eResponse.message || 'Error al consultar ingresos'
-      showToast('error', error.value)
+      error.value = res.message || 'Error al consultar ingresos'
+      showToast(error.value, 'error')
     }
   } catch (err) {
     error.value = 'Error de conexión al consultar ingresos'
     console.error('Error al consultar:', err)
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -273,12 +250,12 @@ const limpiarFiltros = () => {
   ingresos.value = []
   error.value = ''
   searchPerformed.value = false
-  showToast('info', 'Filtros limpiados')
+  showToast('Filtros limpiados', 'info')
 }
 
 const exportarExcel = () => {
   if (ingresos.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
 
@@ -307,10 +284,10 @@ const exportarExcel = () => {
     link.click()
     URL.revokeObjectURL(url)
 
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
     console.error('Error al exportar:', err)
-    showToast('error', 'Error al exportar el archivo')
+    showToast('Error al exportar el archivo', 'error')
   }
 }
 

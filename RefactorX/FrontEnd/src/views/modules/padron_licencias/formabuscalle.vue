@@ -19,10 +19,11 @@
           <font-awesome-icon icon="eraser" />
           Limpiar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -57,7 +58,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchCalles"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -65,7 +65,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -73,7 +72,6 @@
           <button
             class="btn-municipal-secondary"
             @click="loadCalles"
-            :disabled="loading"
           >
             <font-awesome-icon icon="sync-alt" />
             Listar Todas
@@ -93,14 +91,30 @@
           <span class="badge-purple" v-if="calles.length > 0">
             {{ calles.length }} calles
           </span>
-          <div v-if="loading" class="spinner-border spinner-sm" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="calles.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="road" size="3x" />
+          </div>
+          <h4>Búsqueda de Calles</h4>
+          <p>Ingrese un nombre para buscar calles específicas o cargue el catálogo completo</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="calles.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron calles con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla con resultados -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -112,7 +126,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="calle in calles" :key="calle.cvecalle" class="clickable-row" @click="viewCalle(calle)">
+              <tr
+                v-for="calle in calles"
+                :key="calle.cvecalle"
+                @click="selectedRow = calle"
+                :class="{ 'table-row-selected': selectedRow === calle }"
+                class="row-hover"
+              >
                 <td>
                   <span class="badge-secondary">
                     {{ calle.cvecalle }}
@@ -149,23 +169,9 @@
                   </div>
                 </td>
               </tr>
-              <tr v-if="calles.length === 0 && !loading">
-                <td colspan="5" class="text-center text-muted empty-state">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>No se encontraron calles. Use los filtros para buscar o cargue el catálogo completo.</p>
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
       </div>
     </div>
 
@@ -248,18 +254,20 @@
         <font-awesome-icon icon="times" />
       </button>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'formabuscalle'"
+      :moduleName="'padron_licencias'"
+      :docType="docType"
+      :title="'Búsqueda de Calles'"
+      @close="showDocModal = false"
+    />
     </div>
     <!-- /module-view-content -->
   </div>
   <!-- /module-view -->
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'formabuscalle'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
   </template>
 
 <script setup>
@@ -268,25 +276,34 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
-  handleApiError,
-  loadingMessage
+  handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Emits para cuando se usa como componente auxiliar
 const emit = defineEmits(['calleSelected'])
@@ -294,6 +311,8 @@ const emit = defineEmits(['calleSelected'])
 // Estado
 const calles = ref([])
 const selectedCalle = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const showViewModal = ref(false)
 const showFilters = ref(true)
 
@@ -308,7 +327,9 @@ const toggleFilters = () => {
 }
 
 const loadCalles = async () => {
-  setLoading(true, 'Cargando catálogo de calles...')
+  showLoading('Cargando catálogo de calles...')
+  hasSearched.value = true
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -340,7 +361,7 @@ const loadCalles = async () => {
     handleApiError(error)
     calles.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -355,7 +376,9 @@ const searchCalles = async () => {
     return
   }
 
-  setLoading(true, 'Buscando calles...')
+  showLoading('Buscando calles...')
+  hasSearched.value = true
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -393,7 +416,7 @@ const searchCalles = async () => {
     handleApiError(error)
     calles.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -402,6 +425,8 @@ const clearFilters = () => {
     nombre: ''
   }
   calles.value = []
+  hasSearched.value = false
+  selectedRow.value = null
   showToast('info', 'Filtros limpiados')
 }
 

@@ -10,6 +10,14 @@
         <p>Gestión y consulta de expedientes de cobranza coactiva - ta_15_apremios</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
         <button class="btn-municipal-secondary" @click="toggleFilters">
           <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'filter'" />
           Filtros
@@ -113,7 +121,7 @@
             </div>
           </div>
           <div class="button-group">
-            <button class="btn-municipal-primary" @click="buscar" :disabled="loading">
+            <button class="btn-municipal-primary" @click="buscar">
               <font-awesome-icon icon="search" />
               Buscar
             </button>
@@ -127,28 +135,34 @@
 
       <!-- ========== TABLA DE RESULTADOS ========== -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
-          <div class="header-with-badge">
-            <h5><font-awesome-icon icon="list" /> Expedientes de Apremios</h5>
-            <span class="badge-purple" v-if="totalResultados > 0">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Expedientes de Apremios
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple" v-if="rows.length > 0">
               {{ formatNumber(totalResultados) }} registros
             </span>
-          </div>
-          <div v-if="loading" class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
           </div>
         </div>
 
         <div class="municipal-card-body table-container">
-          <!-- Estado vacío inicial -->
-          <div v-if="rows.length === 0 && !searched" class="empty-state">
-            <font-awesome-icon icon="folder-open" size="3x" class="empty-icon" />
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="rows.length === 0 && !hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="folder-open" size="3x" />
+            </div>
+            <h4>Expedientes de Apremios</h4>
             <p>Utiliza los filtros o haz clic en Actualizar para cargar expedientes</p>
           </div>
 
-          <!-- Sin resultados -->
-          <div v-else-if="rows.length === 0 && searched" class="empty-state">
-            <font-awesome-icon icon="inbox" size="3x" class="empty-icon" />
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="rows.length === 0 && hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
+            </div>
+            <h4>Sin resultados</h4>
             <p>No se encontraron expedientes con los criterios especificados</p>
           </div>
 
@@ -171,7 +185,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(r, idx) in paginatedRows" :key="idx" class="clickable-row">
+                <tr
+                  v-for="(r, idx) in paginatedRows"
+                  :key="idx"
+                  @click="selectedRow = r"
+                  :class="{ 'table-row-selected': selectedRow === r }"
+                  class="row-hover"
+                >
                   <td><strong>{{ r.expediente }}</strong></td>
                   <td><code>{{ r.folio }}</code></td>
                   <td>{{ r.zona }}</td>
@@ -190,10 +210,10 @@
                   <td>{{ r.ejecutor_nombre || '-' }}</td>
                   <td class="text-center">
                     <div class="button-group button-group-sm">
-                      <button class="btn-municipal-info btn-sm" @click="verDetalle(r)" title="Ver detalle">
+                      <button class="btn-municipal-info btn-sm" @click.stop="verDetalle(r)" title="Ver detalle">
                         <font-awesome-icon icon="eye" />
                       </button>
-                      <button class="btn-municipal-warning btn-sm" @click="verHistorial(r)" title="Historial">
+                      <button class="btn-municipal-warning btn-sm" @click.stop="verHistorial(r)" title="Historial">
                         <font-awesome-icon icon="history" />
                       </button>
                     </div>
@@ -218,16 +238,22 @@
               <span class="text-muted">
                 Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
                 a {{ Math.min(currentPage * itemsPerPage, totalResultados) }}
-                de {{ totalResultados }} registros
+                de {{ formatNumber(totalResultados) }} registros
               </span>
             </div>
             <div class="pagination-size">
-              <label class="municipal-form-label me-2">Por página:</label>
-              <select class="municipal-form-control form-control-sm" v-model="itemsPerPage" @change="currentPage = 1">
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
               </select>
             </div>
             <div class="pagination-buttons">
@@ -559,17 +585,42 @@
           </div>
         </div>
       </Modal>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'ApremiosSvnExpedientes'"
+        :moduleName="'estacionamiento_exclusivo'"
+        :docType="docType"
+        :title="'Expedientes de Apremios'"
+        @close="showDocModal = false"
+      />
     </div>
+    <!-- /module-view-content -->
   </div>
+  <!-- /module-view -->
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useApi } from '@/composables/useApi'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Modal from '@/components/common/Modal.vue'
+import { useApi } from '@/composables/useApi'
+import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 // ========== CONSTANTES ==========
 const BASE_DB = 'estacionamiento_exclusivo'
@@ -589,9 +640,16 @@ const MODULOS = {
 
 // ========== COMPOSABLES ==========
 const router = useRouter()
-const { loading, execute } = useApi()
+const { execute } = useApi()
+const {
+  toast,
+  showToast,
+  hideToast,
+  getToastIcon,
+  handleApiError
+} = useLicenciasErrorHandler()
+
 const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
 
 // ========== ESTADO - FILTROS ==========
 const showFilters = ref(true)
@@ -607,6 +665,8 @@ const filters = ref({
 // ========== ESTADO - DATOS ==========
 const rows = ref([])
 const searched = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const totalResultados = computed(() => rows.value.length)
 
 // ========== ESTADO - ESTADÍSTICAS ==========
@@ -626,9 +686,15 @@ const paginatedRows = computed(() => {
 
 const visiblePages = computed(() => {
   const pages = []
-  const start = Math.max(1, currentPage.value - 2)
-  const end = Math.min(totalPages.value, currentPage.value + 2)
-  for (let i = start; i <= end; i++) pages.push(i)
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
   return pages
 })
 
@@ -661,6 +727,8 @@ const cargarEstadisticas = async () => {
 const buscar = async () => {
   showLoading('Buscando expedientes...', 'Consultando ta_15_apremios')
   searched.value = true
+  hasSearched.value = true
+  selectedRow.value = null
   currentPage.value = 1
   const startTime = performance.now()
 
@@ -679,7 +747,9 @@ const buscar = async () => {
 
     const duration = performance.now() - startTime
     const durationText = duration < 1000 ? `${Math.round(duration)}ms` : `${(duration / 1000).toFixed(2)}s`
-    showToast('success', `Se encontraron ${rows.value.length} expediente(s) en ${durationText}`)
+
+    toast.value.duration = durationText
+    showToast('success', `Se encontraron ${rows.value.length} expediente(s)`)
   } catch (error) {
     rows.value = []
     handleApiError(error)
@@ -697,7 +767,10 @@ const limpiarFiltros = () => {
     fechaHasta: '',
     ejecutor: null
   }
+  rows.value = []
+  hasSearched.value = false
   currentPage.value = 1
+  selectedRow.value = null
 }
 
 const filtrarPorCategoria = (categoria) => {
@@ -721,7 +794,14 @@ const filtrarPorCategoria = (categoria) => {
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    selectedRow.value = null
   }
+}
+
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
+  currentPage.value = 1
+  selectedRow.value = null
 }
 
 const toggleFilters = () => {
@@ -751,6 +831,10 @@ const verHistorial = async (row) => {
     historial.value = Array.isArray(data) ? data : (data ? [data] : [])
 
     if (historial.value.length > 0) {
+      const endTime = performance.now()
+      const duration = ((endTime - performance.now()) / 1000).toFixed(2)
+      const durationText = duration < 1 ? `${(performance.now()).toFixed(0)}ms` : `${duration}s`
+      toast.value.duration = durationText
       showToast('success', `${historial.value.length} movimiento(s) encontrado(s)`)
     }
   } catch (error) {
@@ -1022,6 +1106,20 @@ onMounted(() => {
   cargarEstadisticas()
   buscar()
 })
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <!-- Sin estilos scoped - Todo desde municipal-theme.css -->

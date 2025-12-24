@@ -24,8 +24,8 @@
               <label class="form-label">Recaudadora <span class="text-danger">*</span></label>
               <select v-model="filters.oficina" class="form-select" @change="onOficinaChange" required>
                 <option value="">Seleccione...</option>
-                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                <option v-for="rec in recaudadoras" :key="rec.id_recaudadora" :value="rec.id_recaudadora">
+                  {{ rec.id_recaudadora }} - {{ rec.descripcion }}
                 </option>
               </select>
             </div>
@@ -153,11 +153,19 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'_RptFacturaEmision'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - _RptFacturaEmision'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'_RptFacturaEmision'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - _RptFacturaEmision'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const filters = ref({
   oficina: '',
@@ -200,11 +208,16 @@ const totalImporte = computed(() => resultados.value.reduce((sum, r) => sum + (p
 
 const fetchRecaudadoras = async () => {
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'mercados', Parametros: [] }
-    });
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      recaudadoras.value = response.data.eResponse.data.result;
+    const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success && response?.data?.result) {
+      recaudadoras.value = response.data.result;
     }
   } catch (error) {
     alert('Error al cargar recaudadoras');
@@ -216,15 +229,16 @@ const onOficinaChange = async () => {
   mercados.value = [];
   if (!filters.value.oficina) return;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_mercados_by_recaudadora',
-        Base: 'mercados',
-        Parametros: [{ Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) }]
-      }
-    });
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      mercados.value = response.data.eResponse.data.result;
+    const response = await apiService.execute(
+          'sp_get_mercados_by_recaudadora',
+          'mercados',
+          [{ nombre: 'p_oficina', valor: parseInt(filters.value.oficina) }],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success && response?.data?.result) {
+      mercados.value = response.data.result;
     }
   } catch (error) {
     alert('Error al cargar mercados');
@@ -235,21 +249,22 @@ const consultar = async () => {
   loading.value = true;
   busquedaRealizada.value = false;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_rpt_factura_emision',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
-          { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
-          { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) },
-          { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) },
-          { Nombre: 'p_opc', Valor: parseInt(filters.value.opc) }
-        ]
-      }
-    });
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      resultados.value = response.data.eResponse.data.result;
+    const response = await apiService.execute(
+          'sp_rpt_factura_emision',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(filters.value.oficina) },
+          { nombre: 'p_axo', valor: parseInt(filters.value.axo) },
+          { nombre: 'p_periodo', valor: parseInt(filters.value.periodo) },
+          { nombre: 'p_mercado', valor: parseInt(filters.value.mercado) },
+          { nombre: 'p_opc', valor: parseInt(filters.value.opc) }
+        ],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success && response?.data?.result) {
+      resultados.value = response.data.result;
       busquedaRealizada.value = true;
       currentPage.value = 1;
     } else {
@@ -306,17 +321,3 @@ onMounted(() => {
   fetchRecaudadoras();
 });
 </script>
-
-<style scoped>
-.sticky-top {
-  position: sticky;
-  top: 0;
-  background-color: #f8f9fa;
-  z-index: 10;
-}
-
-@media print {
-  .card-header, .card-footer, .breadcrumb, button { display: none !important; }
-  table { font-size: 10px; }
-}
-</style>

@@ -8,6 +8,16 @@
         <h1>Consulta de Prepagos</h1>
         <p>Búsqueda de pagos por cuenta, folio o clave de pago</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -120,22 +130,44 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'prepagofrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Consulta de Prepagos'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'prepagofrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Consulta de Prepagos'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_SEARCH = 'RECAUDADORA_PREPAGOFRM'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const busqueda = ref('')
 const pagos = ref([])
@@ -159,7 +191,8 @@ async function consultar() {
   ]
 
   try {
-    const data = await execute(OP_SEARCH, BASE_DB, params)
+    showLoading('Consultando...', 'Por favor espere')
+    const data = await execute(OP_SEARCH, BASE_DB, params, '', null, SCHEMA)
 
     // Extraer los datos de la respuesta
     let rows = []
@@ -177,6 +210,8 @@ async function consultar() {
     console.error('Error al consultar pagos:', e)
     pagos.value = []
     searched.value = true
+  } finally {
+    hideLoading()
   }
 }
 
@@ -205,134 +240,3 @@ function formatDate(value) {
 }
 </script>
 
-<style scoped>
-.text-center {
-  text-align: center;
-}
-
-.text-right {
-  text-align: right;
-}
-
-.text-muted {
-  color: #6c757d;
-}
-
-.font-weight-bold {
-  font-weight: 600;
-}
-
-.mb-3 {
-  margin-bottom: 1rem;
-}
-
-/* Badges */
-.badge {
-  display: inline-block;
-  padding: 0.25em 0.6em;
-  font-size: 0.875em;
-  font-weight: 600;
-  line-height: 1;
-  color: #fff;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: baseline;
-  border-radius: 0.25rem;
-}
-
-.badge-success {
-  background-color: #28a745;
-}
-
-.badge-danger {
-  background-color: #dc3545;
-}
-
-.badge-warning {
-  background-color: #ffc107;
-  color: #212529;
-}
-
-/* Footer de tabla */
-.municipal-table-footer tr {
-  background-color: #f8f9fa;
-  font-weight: 600;
-  border-top: 2px solid #dee2e6;
-}
-
-/* Botón secundario */
-.btn-municipal-secondary {
-  padding: 0.5rem 1rem;
-  border: 1px solid #6c757d;
-  background-color: #fff;
-  color: #6c757d;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  background-color: #6c757d;
-  color: #fff;
-}
-
-.btn-municipal-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.table-responsive {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-}
-
-/* Resumen de información */
-.info-summary {
-  display: flex;
-  gap: 2rem;
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 0.25rem;
-  border: 1px solid #dee2e6;
-}
-
-.info-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Responsive para móviles */
-@media (max-width: 768px) {
-  .municipal-table {
-    font-size: 0.875rem;
-  }
-
-  .municipal-table th,
-  .municipal-table td {
-    padding: 0.5rem;
-  }
-
-  .info-summary {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .button-group {
-    flex-direction: column;
-  }
-
-  .button-group button {
-    width: 100%;
-  }
-}
-</style>

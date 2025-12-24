@@ -10,6 +10,15 @@
         <p>Inicio > Consultas > General</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="locales.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar
@@ -18,10 +27,7 @@
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -45,7 +51,7 @@
                 <select v-model="form.oficina" class="municipal-form-control" required @change="cargarMercados">
                   <option value="">Seleccione...</option>
                   <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                    {{ rec.id_rec }} - {{ rec.recaudadora }}
+                   {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
@@ -459,7 +465,10 @@
             </div>
           </div>
         </div>
-      </template>
+      
+  <DocumentationModal :show="showAyuda" :component-name="'ConsultaGeneral'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - ConsultaGeneral'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'ConsultaGeneral'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - ConsultaGeneral'" @close="showDocumentacion = false" />
+</template>
 
       <template #footer>
         <button type="button" class="btn-municipal-secondary" @click="cerrarModal">
@@ -472,11 +481,17 @@
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, onMounted, computed, watch } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import Modal from '@/components/common/Modal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 // Composables
 const { withLoading } = useGlobalLoading()
@@ -626,21 +641,22 @@ const cargarRecaudadoras = async () => {
   await withLoading(async () => {
     errorLocales.value = ''
     try {
-      const res = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_recaudadoras',
-          Base: 'padron_licencias',
-          Parametros: []
-        }
-      })
+      const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-      if (res.data.eResponse.success === true) {
-        recaudadoras.value = res.data.eResponse.data.result || []
+      if (res.success) {
+        recaudadoras.value = res.data.result || []
         if (recaudadoras.value.length > 0) {
           showToast(`Se cargaron ${recaudadoras.value.length} oficinas recaudadoras`, 'success')
         }
       } else {
-        errorLocales.value = res.data.eResponse?.message || 'Error al cargar recaudadoras'
+        errorLocales.value = res.message || 'Error al cargar recaudadoras'
         showToast(errorLocales.value, 'error')
       }
     } catch (err) {
@@ -664,26 +680,27 @@ const cargarMercados = async () => {
       const nivelUsuario = 1 // TODO: Obtener del store de usuario
       const oficinaParam = form.value.oficina || null
 
-      const res = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_catalogo_mercados',
-          Base: 'padron_licencias',
-          Parametros: [
+      const res = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
             { nombre: 'p_oficina', tipo: 'integer', valor: oficinaParam },
             { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
-          ]
-        }
-      })
+          ],
+          '',
+          null,
+          'publico'
+        )
 
-      if (res.data.eResponse && res.data.eResponse.success === true) {
-        mercados.value = res.data.eResponse.data.result || []
+      if (res.success) {
+        mercados.value = res.data.result || []
         if (mercados.value.length > 0) {
           showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
         } else {
           showToast('No se encontraron mercados para esta oficina', 'info')
         }
       } else {
-        errorLocales.value = res.data.eResponse?.message || 'Error al cargar mercados'
+        errorLocales.value = res.message || 'Error al cargar mercados'
         showToast(errorLocales.value, 'error')
       }
     } catch (err) {
@@ -701,20 +718,21 @@ const cargarSecciones = async () => {
   await withLoading(async () => {
     errorLocales.value = ''
     try {
-      const res = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_secciones',
-          Base: 'padron_licencias',
-          Parametros: []
-        }
-      })
-      if (res.data.eResponse && res.data.eResponse.success === true) {
-        secciones.value = res.data.eResponse.data.result || []
+      const res = await apiService.execute(
+          'sp_get_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+      if (res.success) {
+        secciones.value = res.data.result || []
         if (secciones.value.length > 0) {
           showToast(`Se cargaron ${secciones.value.length} secciones`, 'success')
         }
       } else {
-        errorLocales.value = res.data.eResponse?.message || 'Error al cargar secciones'
+        errorLocales.value = res.message || 'Error al cargar secciones'
         showToast(errorLocales.value, 'error')
       }
     } catch (error) {
@@ -740,23 +758,24 @@ const buscarLocal = async () => {
     currentPage.value = 1
 
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_consulta_general_buscar',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-            { Nombre: 'p_num_mercado', Valor: parseInt(form.value.num_mercado) },
-            { Nombre: 'p_categoria', Valor: parseInt(form.value.categoria) || 1 },
-            { Nombre: 'p_seccion', Valor: form.value.seccion },
-            { Nombre: 'p_local', Valor: parseInt(form.value.local) },
-            { Nombre: 'p_letra_local', Valor: form.value.letra_local || null },
-            { Nombre: 'p_bloque', Valor: form.value.bloque || null }
-          ]
-        }
-      })
-      if (response.data.eResponse && response.data.eResponse.success === true) {
-        locales.value = response.data.eResponse.data.result || []
+      const response = await apiService.execute(
+          'sp_consulta_general_buscar',
+          'mercados',
+          [
+            { nombre: 'p_oficina', valor: parseInt(form.value.oficina) },
+            { nombre: 'p_num_mercado', valor: parseInt(form.value.num_mercado) },
+            { nombre: 'p_categoria', valor: parseInt(form.value.categoria) || 1 },
+            { nombre: 'p_seccion', valor: form.value.seccion },
+            { nombre: 'p_local', valor: parseInt(form.value.local) },
+            { nombre: 'p_letra_local', valor: form.value.letra_local || null },
+            { nombre: 'p_bloque', valor: form.value.bloque || null }
+          ],
+          '',
+          null,
+          'publico'
+        )
+      if (response && response.success === true) {
+        locales.value = response.data.result || []
         if (locales.value.length === 0) {
           showToast('No se encontraron locales con los criterios especificados', 'info')
         } else {
@@ -764,11 +783,11 @@ const buscarLocal = async () => {
           showFilters.value = false
         }
       } else {
-        errorLocales.value = response.data.eResponse?.message || 'Error en la búsqueda'
+        errorLocales.value = response?.message || 'Error en la búsqueda'
         showToast(errorLocales.value, 'error')
       }
     } catch (error) {
-      errorLocales.value = error.response?.data?.eResponse?.message || 'Error al buscar locales'
+      errorLocales.value = error.response?.message || 'Error al buscar locales'
       console.error('Error al buscar locales:', error)
       showToast(errorLocales.value, 'error')
     }
@@ -846,20 +865,21 @@ const cargarDetalleCompleto = async (idLocal) => {
     console.log('🟢 [B] cargarDetalleCompleto - Llamando sp_get_datos_individuales...')
 
     // Cargar detalle completo del local
-    const resDetalle = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_datos_individuales',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: idLocal }
-        ]
-      }
-    })
+    const resDetalle = await apiService.execute(
+          'sp_get_datos_individuales',
+          'mercados',
+          [
+          { nombre: 'p_id_local', valor: idLocal }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
     console.log('🟢 [C] cargarDetalleCompleto - Respuesta recibida:', resDetalle.data)
 
-    if (resDetalle.data.eResponse && resDetalle.data.eResponse.success === true) {
-      const result = resDetalle.data.eResponse.data.result
+    if (resDetalle.success) {
+      const result = resDetalle.data.result
       console.log('🟢 [D] cargarDetalleCompleto - Result:', result)
 
       if (result && result.length > 0) {
@@ -894,7 +914,7 @@ const cargarDetalleCompleto = async (idLocal) => {
         console.warn('⚠️ cargarDetalleCompleto - Result vacío o undefined')
       }
     } else {
-      console.error('❌ cargarDetalleCompleto - eResponse no exitoso:', resDetalle.data.eResponse)
+      console.error("Error en respuesta:", )
     }
 
     // Cargar datos de tabs
@@ -919,60 +939,63 @@ const cargarDatosDetalle = async (idLocal) => {
     console.log('🟡 [2] cargarDatosDetalle - Cargando adeudos...')
 
     // Cargar adeudos
-    const resAdeudos = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_consulta_general_adeudos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: idLocal }
-        ]
-      }
-    })
+    const resAdeudos = await apiService.execute(
+          'sp_consulta_general_adeudos',
+          'mercados',
+          [
+          { nombre: 'p_id_local', valor: idLocal }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
     console.log('🟡 [3] cargarDatosDetalle - Respuesta adeudos:', resAdeudos.data)
 
-    if (resAdeudos.data.eResponse && resAdeudos.data.eResponse.success === true) {
-      adeudos.value = resAdeudos.data.eResponse.data.result || []
+    if (resAdeudos.success) {
+      adeudos.value = resAdeudos.data.result || []
       console.log('🟡 [4] cargarDatosDetalle - Adeudos cargados:', adeudos.value.length)
     }
 
     console.log('🟡 [5] cargarDatosDetalle - Cargando pagos...')
 
     // Cargar pagos
-    const resPagos = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_consulta_general_pagos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: idLocal }
-        ]
-      }
-    })
+    const resPagos = await apiService.execute(
+          'sp_consulta_general_pagos',
+          'mercados',
+          [
+          { nombre: 'p_id_local', valor: idLocal }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
     console.log('🟡 [6] cargarDatosDetalle - Respuesta pagos:', resPagos.data)
 
-    if (resPagos.data.eResponse && resPagos.data.eResponse.success === true) {
-      pagos.value = resPagos.data.eResponse.data.result || []
+    if (resPagos.success) {
+      pagos.value = resPagos.data.result || []
       console.log('🟡 [7] cargarDatosDetalle - Pagos cargados:', pagos.value.length)
     }
 
     console.log('🟡 [8] cargarDatosDetalle - Cargando requerimientos...')
 
     // Cargar requerimientos
-    const resReq = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_consulta_general_requerimientos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: idLocal }
-        ]
-      }
-    })
+    const resReq = await apiService.execute(
+          'sp_consulta_general_requerimientos',
+          'mercados',
+          [
+          { nombre: 'p_id_local', valor: idLocal }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
     console.log('🟡 [9] cargarDatosDetalle - Respuesta requerimientos:', resReq.data)
 
-    if (resReq.data.eResponse && resReq.data.eResponse.success === true) {
-      requerimientos.value = resReq.data.eResponse.data.result || []
+    if (resReq.success) {
+      requerimientos.value = resReq.data.result || []
       console.log('🟡 [10] cargarDatosDetalle - Requerimientos cargados:', requerimientos.value.length)
     }
 
@@ -992,374 +1015,3 @@ const cerrarModal = () => {
   showModal.value = false
 }
 </script>
-
-<style scoped>
-/* ==================== TABS PERSONALIZADAS ==================== */
-.nav-tabs-custom {
-  display: flex;
-  gap: 0;
-  border-bottom: 2px solid #e9ecef;
-  padding: 0;
-  list-style: none;
-  margin: 0;
-}
-
-.nav-tabs-custom .nav-item {
-  flex: 1;
-}
-
-.nav-link-custom {
-  width: 100%;
-  background: #f8f9fa;
-  border: none;
-  border-bottom: 3px solid transparent;
-  padding: 1rem 1.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #6c757d;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.nav-link-custom:hover {
-  background: #e9ecef;
-  color: #495057;
-}
-
-.nav-link-custom.active {
-  background: white;
-  color: #2c3e50;
-  font-weight: 600;
-  border-bottom-color: currentColor;
-}
-
-/* Tab Adeudos */
-.tab-adeudos.active {
-  color: #dc3545;
-  border-bottom-color: #dc3545;
-}
-
-.tab-adeudos:hover {
-  color: #c82333;
-}
-
-/* Tab Pagos */
-.tab-pagos.active {
-  color: #28a745;
-  border-bottom-color: #28a745;
-}
-
-.tab-pagos:hover {
-  color: #218838;
-}
-
-/* Tab Requerimientos */
-.tab-requerimientos.active {
-  color: #ffc107;
-  border-bottom-color: #ffc107;
-}
-
-.tab-requerimientos:hover {
-  color: #e0a800;
-}
-
-/* Iconos de tabs */
-.tab-icon {
-  font-size: 1.2rem;
-}
-
-.tab-label {
-  font-size: 0.95rem;
-}
-
-/* Badges en tabs */
-.tab-badge {
-  padding: 0.25rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: white;
-}
-
-.badge-danger {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-}
-
-.badge-success {
-  background: linear-gradient(135deg, #28a745 0%, #218838 100%);
-}
-
-.badge-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-  color: #212529;
-}
-
-/* ==================== CONTENIDO DE TABS ==================== */
-.tab-content-custom {
-  background: white;
-  border: 2px solid #e9ecef;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
-  min-height: 300px;
-}
-
-.tab-pane-custom {
-  padding: 1.5rem;
-}
-
-.fade-in {
-  animation: fadeIn 0.3s ease-in;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ==================== TABLAS PERSONALIZADAS ==================== */
-.table-custom {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  font-size: 0.9rem;
-}
-
-.table-custom thead {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-.table-custom thead th {
-  padding: 0.75rem 1rem;
-  font-weight: 600;
-  color: #495057;
-  border-bottom: 2px solid #dee2e6;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 0.5px;
-}
-
-.table-custom tbody td {
-  padding: 0.9rem 1rem;
-  border-bottom: 1px solid #f1f3f5;
-  vertical-align: middle;
-}
-
-.table-row-hover {
-  transition: all 0.2s ease;
-}
-
-.table-row-hover:hover {
-  background-color: #f8f9fa;
-  transform: translateX(4px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-/* Estilos específicos por tipo de tabla */
-.table-adeudos tbody tr {
-  border-left: 3px solid transparent;
-}
-
-.table-adeudos tbody tr:hover {
-  border-left-color: #dc3545;
-}
-
-.table-pagos tbody tr {
-  border-left: 3px solid transparent;
-}
-
-.table-pagos tbody tr:hover {
-  border-left-color: #28a745;
-}
-
-.table-requerimientos tbody tr {
-  border-left: 3px solid transparent;
-}
-
-.table-requerimientos tbody tr:hover {
-  border-left-color: #ffc107;
-}
-
-/* ==================== BADGES Y ETIQUETAS ==================== */
-.badge-year {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  display: inline-block;
-}
-
-.badge-period {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.8rem;
-  display: inline-block;
-}
-
-.badge-vigencia {
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.8rem;
-  display: inline-block;
-}
-
-/* ==================== MONTOS ==================== */
-.amount-danger {
-  color: #dc3545;
-  font-weight: 700;
-  font-size: 1.05rem;
-  font-family: 'Courier New', monospace;
-}
-
-.amount-warning {
-  color: #ffc107;
-  font-weight: 700;
-  font-size: 1.05rem;
-  font-family: 'Courier New', monospace;
-}
-
-.amount-success {
-  color: #28a745;
-  font-weight: 700;
-  font-size: 1.05rem;
-  font-family: 'Courier New', monospace;
-}
-
-.amount-info {
-  color: #17a2b8;
-  font-weight: 700;
-  font-size: 1.05rem;
-  font-family: 'Courier New', monospace;
-}
-
-.amount-total {
-  color: #2c3e50;
-  font-weight: 800;
-  font-size: 1.1rem;
-  font-family: 'Courier New', monospace;
-  background: #f8f9fa;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  display: inline-block;
-}
-
-/* ==================== FOLIOS ==================== */
-.folio-badge {
-  background: #e3f2fd;
-  color: #1565c0;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.8rem;
-  font-family: 'Courier New', monospace;
-  display: inline-block;
-}
-
-.folio-badge-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  font-family: 'Courier New', monospace;
-  display: inline-block;
-}
-
-/* ==================== ICONOS ==================== */
-.icon-small {
-  font-size: 0.85rem;
-  margin-right: 0.35rem;
-}
-
-/* ==================== ESTADOS VACÍOS ==================== */
-.empty-state {
-  text-align: center;
-  padding: 3rem 2rem;
-}
-
-.empty-state h5 {
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-  color: #495057;
-  font-weight: 600;
-}
-
-.empty-state p {
-  color: #6c757d;
-  margin-bottom: 0;
-}
-
-.empty-icon-success {
-  color: #28a745;
-  opacity: 0.6;
-}
-
-.empty-icon-info {
-  color: #17a2b8;
-  opacity: 0.6;
-}
-
-/* Estados empty originales */
-.empty-icon {
-  color: #ccc;
-  margin-bottom: 1rem;
-}
-
-.text-end {
-  text-align: right;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
-}
-
-/* Filas de tabla */
-.table-row-selected {
-  background-color: #fff3cd !important;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-  cursor: pointer;
-}
-
-.required {
-  color: #dc3545;
-}
-
-/* Override para columnas numéricas */
-.municipal-table td.text-end,
-.municipal-table th.text-end {
-  text-align: right;
-}
-
-.municipal-table td.text-center,
-.municipal-table th.text-center {
-  text-align: center;
-}
-</style>

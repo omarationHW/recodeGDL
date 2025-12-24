@@ -12,6 +12,16 @@
         <h1>Actualizar Pagos — Estacionamientos Públicos</h1>
         <p>Actualiza fecha de baja/pago del folio</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -89,12 +99,23 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'UpPagosPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Actualizar Pagos — Estacionamientos Públicos'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { reactive, ref, nextTick } from 'vue'
 import Swal from 'sweetalert2'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
@@ -157,7 +178,7 @@ async function actualizar() {
       { nombre: 'p_fecbaj', valor: form.fecbaj, tipo: 'date' }
     ]
 
-    const resp = await execute('sp_up_pagos_update', BASE_DB, params, '', null, 'public')
+    const resp = await execute('sp_up_pagos_update', BASE_DB, params, '', null, 'publico')
     const data = resp?.result?.[0] || resp?.data?.result?.[0] || resp?.data?.[0] || {}
 
     hideLoading()
@@ -191,5 +212,19 @@ function limpiar() {
   form.alo = new Date().getFullYear()
   form.folio = null
   form.fecbaj = new Date().toISOString().split('T')[0]
+}
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
 }
 </script>

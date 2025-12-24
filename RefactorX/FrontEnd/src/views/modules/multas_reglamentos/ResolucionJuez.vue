@@ -6,6 +6,16 @@
         <h1>Resolución de Juez</h1>
         <p>Registro y consulta</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
     <div class="module-view-content">
       <!-- Filtros -->
@@ -109,23 +119,45 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'ResolucionJuez'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Resolución de Juez'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'ResolucionJuez'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Resolución de Juez'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_RESOLUCION_JUEZ'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const filters = ref({ cuenta: '', folio: null })
 const rows = ref([])
 const currentPage = ref(1)
@@ -145,6 +177,7 @@ async function reload() {
     { nombre: 'folio', tipo: 'I', valor: Number(filters.value.folio || 0) }
   ]
 
+  showLoading('Consultando...', 'Por favor espere')
   try {
     const response = await execute(OP_LIST, BASE_DB, params)
     console.log('Respuesta completa:', response)
@@ -171,6 +204,8 @@ async function reload() {
   } catch (e) {
     console.error('Error al cargar resoluciones:', e)
     rows.value = []
+  } finally {
+    hideLoading()
   }
 }
 
@@ -200,89 +235,3 @@ function getVigenciaClass(vigencia) {
 // reload()
 </script>
 
-<style scoped>
-.badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.badge-success {
-  background-color: #28a745;
-  color: #fff;
-}
-
-.badge-danger {
-  background-color: #dc3545;
-  color: #fff;
-}
-
-.badge-primary {
-  background-color: #007bff;
-  color: #fff;
-}
-
-.badge-info {
-  background-color: #17a2b8;
-  color: #fff;
-}
-
-.badge-secondary {
-  background-color: #6c757d;
-  color: #fff;
-}
-
-.observaciones-cell {
-  max-width: 300px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: help;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding: 15px;
-  border-top: 1px solid #dee2e6;
-}
-
-.pagination-info {
-  color: #6c757d;
-  font-size: 14px;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.pagination-page {
-  color: #495057;
-  font-weight: 500;
-}
-
-.btn-pagination {
-  padding: 8px 16px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  background-color: #fff;
-  color: #495057;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-pagination:hover:not(:disabled) {
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-}
-
-.btn-pagination:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-</style>

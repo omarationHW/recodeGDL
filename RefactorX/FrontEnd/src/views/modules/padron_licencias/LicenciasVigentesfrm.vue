@@ -42,10 +42,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -210,8 +211,27 @@
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div class="table-responsive">
+      <div class="municipal-card-body">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="licencias.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="clipboard-check" size="3x" />
+          </div>
+          <h4>Reporte de Licencias Vigentes</h4>
+          <p>Presione el botón "Actualizar" para cargar las licencias vigentes</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="licencias.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron licencias vigentes con los criterios especificados</p>
+        </div>
+
+        <!-- Tabla de resultados -->
+        <div v-else class="table-responsive">
           <table class="municipal-table">
             <thead class="municipal-table-header">
               <tr>
@@ -234,12 +254,18 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="licencia in licencias" :key="licencia.numero" class="row-hover" :class="{ 'row-selected': isSelected(licencia) }">
+              <tr
+                v-for="licencia in licencias"
+                :key="licencia.numero"
+                @click="selectedRow = licencia"
+                :class="{ 'table-row-selected': selectedRow === licencia, 'row-selected': isSelected(licencia) }"
+                class="row-hover"
+              >
                 <td class="td-checkbox">
                   <input
                     type="checkbox"
                     :checked="isSelected(licencia)"
-                    @change="toggleSelection(licencia)"
+                    @change.stop="toggleSelection(licencia)"
                   >
                 </td>
                 <td><strong class="text-primary">{{ licencia.numero || 'N/A' }}</strong></td>
@@ -275,20 +301,11 @@
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-info btn-sm"
-                      @click="verDetalle(licencia)"
+                      @click.stop="verDetalle(licencia)"
                       title="Ver detalles"
                     >
                       <font-awesome-icon icon="eye" />
                     </button>
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="licencias.length === 0">
-                <td colspan="9" class="empty-state">
-                  <div class="empty-state-content">
-                    <font-awesome-icon icon="inbox" class="empty-state-icon" />
-                    <p class="empty-state-text">No se encontraron licencias vigentes</p>
-                    <p class="empty-state-hint">Intenta ajustar los filtros de búsqueda</p>
                   </div>
                 </td>
               </tr>
@@ -298,63 +315,78 @@
       </div>
 
       <!-- Paginación -->
-      <div class="pagination-container" v-if="totalRecords > 0 && !loading">
+      <div v-if="licencias.length > 0" class="pagination-controls">
         <div class="pagination-info">
-          <font-awesome-icon icon="info-circle" />
-          Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-          a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
-          de {{ totalRecords }} registros
+          <span class="text-muted">
+            Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+            a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+            de {{ formatNumber(totalRecords) }} registros
+          </span>
         </div>
 
-        <div class="pagination-controls">
-          <div class="page-size-selector">
-            <label>Mostrar:</label>
-            <select v-model="itemsPerPage" @change="changePageSize">
-              <option :value="10">10</option>
-              <option :value="25">25</option>
-              <option :value="50">50</option>
-              <option :value="100">100</option>
-            </select>
-          </div>
+        <div class="pagination-size">
+          <label class="municipal-form-label me-2">Registros por página:</label>
+          <select
+            class="municipal-form-control form-control-sm"
+            :value="itemsPerPage"
+            @change="changePageSize"
+            style="width: auto; display: inline-block;"
+          >
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
 
-          <div class="pagination-nav">
-            <button
-              class="pagination-button"
-              @click="goToPage(currentPage - 1)"
-              :disabled="currentPage === 1"
-            >
-              <font-awesome-icon icon="chevron-left" />
-            </button>
-
-            <button
-              v-for="page in visiblePages"
-              :key="page"
-              class="pagination-button"
-              :class="{ active: page === currentPage }"
-              @click="goToPage(page)"
-            >
-              {{ page }}
-            </button>
-
-            <button
-              class="pagination-button"
-              @click="goToPage(currentPage + 1)"
-              :disabled="currentPage === totalPages"
-            >
-              <font-awesome-icon icon="chevron-right" />
-            </button>
-          </div>
+        <div class="pagination-buttons">
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+            <font-awesome-icon icon="angle-double-left" />
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+            <font-awesome-icon icon="angle-left" />
+          </button>
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            class="btn-sm"
+            :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+            @click="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+            <font-awesome-icon icon="angle-right" />
+          </button>
+          <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+            <font-awesome-icon icon="angle-double-right" />
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading && licencias.length === 0" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
       </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'LicenciasVigentesfrm'"
+      :moduleName="'padron_licencias'"
+      :docType="docType"
+      :title="'Reporte de Licencias Vigentes'"
+      @close="showDocModal = false"
+    />
 
     </div>
     <!-- /module-view-content -->
@@ -494,23 +526,6 @@
       </div>
     </Modal>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <div class="toast-content">
-        <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" class="toast-duration-icon" />
-          {{ toast.duration }}
-        </span>
-      </div>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
-  </div>
-  <!-- /module-view -->
-
     <!-- Modal de Baja Masiva -->
     <Modal
       :show="showBajaMasivaModal"
@@ -577,31 +592,34 @@
         </div>
       </div>
     </Modal>
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'LicenciasVigentesfrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
-  </template>
+  </div>
+  <!-- /module-view -->
+</template>
 
 <script setup>
-import DocumentationModal from '@/components/common/DocumentationModal.vue'
-
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useExcelExport } from '@/composables/useExcelExport'
 import { usePdfExport } from '@/composables/usePdfExport'
 import Modal from '@/components/common/Modal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
@@ -611,12 +629,9 @@ const {
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { exportToExcel } = useExcelExport()
 const { exportToPdf } = usePdfExport()
-
-// Importar useGlobalLoading para el loading estándar
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const licencias = ref([])
@@ -627,7 +642,8 @@ const selectedLicencia = ref(null)
 const showDetailModal = ref(false)
 const loadingStats = ref(false)
 const showFilters = ref(false)
-const loading = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Estado para selección múltiple y baja masiva
 const selectedItems = ref([])
@@ -748,6 +764,8 @@ const calculateStats = () => {
 // Métodos
 const loadLicencias = async () => {
   showLoading('Cargando licencias vigentes...')
+  hasSearched.value = true
+  selectedRow.value = null
   showFilters.value = false
 
   // Timer para medir el tiempo de consulta
@@ -818,8 +836,10 @@ const limpiarFiltros = () => {
     fechaHasta: getToday(),
     propietario: null
   }
+  licencias.value = []
+  hasSearched.value = false
   currentPage.value = 1
-  loadLicencias()
+  selectedRow.value = null
 }
 
 const toggleFilters = () => {
@@ -829,12 +849,14 @@ const toggleFilters = () => {
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    selectedRow.value = null
     loadLicencias()
   }
 }
 
 const changePageSize = () => {
   currentPage.value = 1
+  selectedRow.value = null
   loadLicencias()
 }
 

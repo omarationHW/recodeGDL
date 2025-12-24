@@ -7,17 +7,17 @@
       </div>
       <div class="module-view-info">
         <h1>Catálogo de Tipos de Aseo</h1>
-        <p>Aseo Contratado - Tipos de Servicio</p>
+        <p>Aseo Contratado - Administración de tipos de servicio</p>
       </div>
+      <button
+        type="button"
+        class="btn-help-icon"
+        @click="openDocumentation"
+        title="Ayuda"
+      >
+        <font-awesome-icon icon="question-circle" />
+      </button>
       <div class="module-view-actions">
-        <button
-          class="btn-municipal-secondary"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
         <button
           class="btn-municipal-primary"
           @click="openCreateModal"
@@ -39,16 +39,16 @@
               <input
                 type="text"
                 class="municipal-form-control"
-                v-model="filters.search"
-                placeholder="Descripción, tipo o control..."
-                @keyup.enter="searchTipos"
+                v-model="searchQuery"
+                placeholder="Descripción, control o tipo..."
+                @keyup.enter="handleSearch"
               />
             </div>
           </div>
           <div class="button-group">
             <button
               class="btn-municipal-primary"
-              @click="searchTipos"
+              @click="handleSearch"
               :disabled="loading"
             >
               <font-awesome-icon icon="search" />
@@ -56,7 +56,7 @@
             </button>
             <button
               class="btn-municipal-secondary"
-              @click="clearFilters"
+              @click="clearSearch"
               :disabled="loading"
             >
               <font-awesome-icon icon="times" />
@@ -72,8 +72,8 @@
             </button>
             <button
               class="btn-municipal-primary"
-              @click="exportarCSV"
-              :disabled="loading || tiposFiltrados.length === 0"
+              @click="exportToExcel"
+              :disabled="loading || tipos.length === 0"
             >
               <font-awesome-icon icon="file-excel" />
               Exportar
@@ -88,7 +88,7 @@
           <h5>
             <font-awesome-icon icon="list" />
             Tipos de Aseo Registrados
-            <span class="badge-info" v-if="tiposFiltrados.length > 0">{{ tiposFiltrados.length }} registros</span>
+            <span class="badge-info" v-if="totalRecords > 0">{{ totalRecords }} registros</span>
           </h5>
         </div>
 
@@ -105,16 +105,18 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="tiposPaginados.length === 0">
+                <tr v-if="tipos.length === 0">
                   <td colspan="5" class="text-center text-muted">
-                    <font-awesome-icon icon="list-check" size="2x" class="empty-icon" />
-                    <p>No se encontraron tipos de aseo registrados</p>
+                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                    <p>No se encontraron tipos de aseo</p>
                   </td>
                 </tr>
-                <tr v-else v-for="tipo in tiposPaginados" :key="tipo.ctrol_aseo" class="row-hover">
-                  <td><strong class="text-primary">{{ String(tipo.ctrol_aseo).padStart(3, '0') }}</strong></td>
+                <tr v-else v-for="tipo in tipos" :key="tipo.ctrol_aseo" class="row-hover">
                   <td>
-                    <span class="badge-secondary">{{ tipo.tipo_aseo || 'N/A' }}</span>
+                    <span class="badge-control">{{ String(tipo.ctrol_aseo).padStart(3, '0') }}</span>
+                  </td>
+                  <td>
+                    <span class="badge-secondary">{{ tipo.tipo_aseo }}</span>
                   </td>
                   <td>{{ tipo.descripcion }}</td>
                   <td class="text-center">
@@ -124,15 +126,22 @@
                   <td>
                     <div class="button-group button-group-sm">
                       <button
+                        class="btn-municipal-info btn-sm"
+                        @click="openViewModal(tipo)"
+                        title="Ver detalles"
+                      >
+                        <font-awesome-icon icon="eye" />
+                      </button>
+                      <button
                         class="btn-municipal-primary btn-sm"
-                        @click="editTipo(tipo)"
+                        @click="openEditModal(tipo)"
                         title="Editar"
                       >
                         <font-awesome-icon icon="edit" />
                       </button>
                       <button
-                        class="btn-municipal-danger btn-sm"
-                        @click="confirmDeleteTipo(tipo)"
+                        class="btn-municipal-secondary btn-sm"
+                        @click="confirmDelete(tipo)"
                         title="Eliminar"
                       >
                         <font-awesome-icon icon="trash" />
@@ -143,60 +152,53 @@
               </tbody>
             </table>
           </div>
-        </div>
 
-        <!-- Paginación -->
-        <div class="pagination-container" v-if="tiposFiltrados.length > 0 && !loading">
-          <div class="pagination-info">
-            <font-awesome-icon icon="info-circle" />
-            Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-            a {{ Math.min(currentPage * itemsPerPage, tiposFiltrados.length) }}
-            de {{ tiposFiltrados.length }} registros
-          </div>
-
-          <div class="pagination-controls">
-            <div class="page-size-selector">
-              <label>Mostrar:</label>
-              <select v-model="itemsPerPage" @change="currentPage = 1">
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
-              </select>
+          <!-- Paginación -->
+          <div class="pagination-container" v-if="totalPages > 1">
+            <div class="pagination-info">
+              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }} a {{ Math.min(currentPage * itemsPerPage, totalRecords) }} de {{ totalRecords }} registros
             </div>
-
-            <div class="pagination-nav">
+            <div class="pagination">
               <button
-                class="pagination-button"
-                @click="currentPage = 1"
+                @click="goToPage(1)"
                 :disabled="currentPage === 1"
+                class="pagination-btn"
                 title="Primera página"
               >
                 <font-awesome-icon icon="angle-double-left" />
               </button>
               <button
-                class="pagination-button"
-                @click="currentPage--"
+                @click="goToPage(currentPage - 1)"
                 :disabled="currentPage === 1"
+                class="pagination-btn"
+                title="Página anterior"
               >
-                <font-awesome-icon icon="chevron-left" />
+                <font-awesome-icon icon="angle-left" />
               </button>
 
-              <span class="pagination-current">
-                Página {{ currentPage }} de {{ totalPages }}
-              </span>
+              <template v-for="page in paginationRange" :key="page">
+                <button
+                  v-if="page !== '...'"
+                  @click="goToPage(page)"
+                  :class="['pagination-btn', { active: currentPage === page }]"
+                >
+                  {{ page }}
+                </button>
+                <span v-else class="pagination-ellipsis">...</span>
+              </template>
 
               <button
-                class="pagination-button"
-                @click="currentPage++"
-                :disabled="currentPage >= totalPages"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                class="pagination-btn"
+                title="Página siguiente"
               >
-                <font-awesome-icon icon="chevron-right" />
+                <font-awesome-icon icon="angle-right" />
               </button>
               <button
-                class="pagination-button"
-                @click="currentPage = totalPages"
-                :disabled="currentPage >= totalPages"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                class="pagination-btn"
                 title="Última página"
               >
                 <font-awesome-icon icon="angle-double-right" />
@@ -204,175 +206,257 @@
             </div>
           </div>
         </div>
-      </div>
 
+        <div class="municipal-card-body" v-else>
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando tipos de aseo...</p>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Modal de creación -->
+    <!-- Modal Crear -->
     <Modal
       :show="showCreateModal"
-      title="Nuevo Tipo de Aseo"
-      size="md"
       @close="closeCreateModal"
+      title="Nuevo Tipo de Aseo"
+      size="medium"
     >
-      <form @submit.prevent="createTipo">
-        <div class="form-row">
+      <template #body>
+        <form @submit.prevent="createTipo" class="modal-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="tipo_aseo" class="municipal-form-label required">Tipo</label>
+              <input
+                type="text"
+                id="tipo_aseo"
+                v-model="formData.tipo_aseo"
+                class="municipal-form-control"
+                maxlength="1"
+                placeholder="Ej: A, B, C..."
+                required
+              />
+              <small class="form-text">Un solo carácter</small>
+            </div>
+
+            <div class="form-group">
+              <label for="cta_aplicacion" class="municipal-form-label">Cuenta Aplicación</label>
+              <input
+                type="number"
+                id="cta_aplicacion"
+                v-model="formData.cta_aplicacion"
+                class="municipal-form-control"
+                placeholder="Número de cuenta"
+              />
+            </div>
+          </div>
+
           <div class="form-group">
-            <label class="municipal-form-label">Tipo: <span class="required">*</span></label>
+            <label for="descripcion" class="municipal-form-label required">Descripción</label>
             <input
               type="text"
+              id="descripcion"
+              v-model="formData.descripcion"
               class="municipal-form-control"
-              v-model="formData.tipo_aseo"
-              maxlength="1"
+              maxlength="80"
+              placeholder="Descripción del tipo de aseo"
               required
-              placeholder="Ej: A, B, C..."
-              style="text-transform: uppercase;"
-            />
-            <small class="form-hint">Un solo carácter</small>
-          </div>
-          <div class="form-group">
-            <label class="municipal-form-label">Cta. Aplicación:</label>
-            <input
-              type="number"
-              class="municipal-form-control"
-              v-model="formData.cta_aplicacion"
-              placeholder="Número de cuenta"
             />
           </div>
-        </div>
-        <div class="form-group">
-          <label class="municipal-form-label">Descripción: <span class="required">*</span></label>
-          <input
-            type="text"
-            class="municipal-form-control"
-            v-model="formData.descripcion"
-            maxlength="80"
-            required
-            placeholder="Descripción del tipo de aseo"
-          />
-        </div>
-      </form>
+        </form>
+      </template>
       <template #footer>
-        <button class="btn-municipal-secondary" @click="closeCreateModal" :disabled="guardando">
-          <font-awesome-icon icon="times" />
+        <button type="button" @click="closeCreateModal" class="btn-secondary">
           Cancelar
         </button>
-        <button class="btn-municipal-primary" @click="createTipo" :disabled="guardando">
-          <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />
-          {{ guardando ? 'Guardando...' : 'Crear Tipo' }}
+        <button type="button" @click="createTipo" class="btn-primary" :disabled="loading">
+          <font-awesome-icon v-if="loading" icon="spinner" spin />
+          Crear Tipo
         </button>
       </template>
     </Modal>
 
-    <!-- Modal de edición -->
+    <!-- Modal Editar -->
     <Modal
       :show="showEditModal"
-      :title="`Editar Tipo: ${selectedTipo?.descripcion || ''}`"
-      size="md"
       @close="closeEditModal"
+      title="Editar Tipo de Aseo"
+      size="medium"
     >
-      <form @submit.prevent="updateTipo">
-        <div class="form-group">
-          <label class="municipal-form-label">Control:</label>
-          <input
-            type="text"
-            class="municipal-form-control"
-            :value="String(formData.ctrol_aseo).padStart(3, '0')"
-            disabled
-          />
-        </div>
-        <div class="form-row">
+      <template #body>
+        <form @submit.prevent="updateTipo" class="modal-form">
           <div class="form-group">
-            <label class="municipal-form-label">Tipo: <span class="required">*</span></label>
+            <label class="municipal-form-label">Control</label>
             <input
               type="text"
+              :value="String(formData.ctrol_aseo).padStart(3, '0')"
               class="municipal-form-control"
-              v-model="formData.tipo_aseo"
-              maxlength="1"
-              required
-              style="text-transform: uppercase;"
+              disabled
             />
           </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit_tipo_aseo" class="municipal-form-label required">Tipo</label>
+              <input
+                type="text"
+                id="edit_tipo_aseo"
+                v-model="formData.tipo_aseo"
+                class="municipal-form-control"
+                maxlength="1"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="edit_cta_aplicacion" class="municipal-form-label">Cuenta Aplicación</label>
+              <input
+                type="number"
+                id="edit_cta_aplicacion"
+                v-model="formData.cta_aplicacion"
+                class="municipal-form-control"
+              />
+            </div>
+          </div>
+
           <div class="form-group">
-            <label class="municipal-form-label">Cta. Aplicación:</label>
+            <label for="edit_descripcion" class="municipal-form-label required">Descripción</label>
             <input
-              type="number"
+              type="text"
+              id="edit_descripcion"
+              v-model="formData.descripcion"
               class="municipal-form-control"
-              v-model="formData.cta_aplicacion"
+              maxlength="80"
+              required
             />
           </div>
-        </div>
-        <div class="form-group">
-          <label class="municipal-form-label">Descripción: <span class="required">*</span></label>
-          <input
-            type="text"
-            class="municipal-form-control"
-            v-model="formData.descripcion"
-            maxlength="80"
-            required
-          />
-        </div>
-      </form>
+        </form>
+      </template>
       <template #footer>
-        <button class="btn-municipal-secondary" @click="closeEditModal" :disabled="guardando">
-          <font-awesome-icon icon="times" />
+        <button type="button" @click="closeEditModal" class="btn-secondary">
           Cancelar
         </button>
-        <button class="btn-municipal-primary" @click="updateTipo" :disabled="guardando">
-          <font-awesome-icon :icon="guardando ? 'spinner' : 'save'" :spin="guardando" />
-          {{ guardando ? 'Guardando...' : 'Guardar Cambios' }}
+        <button type="button" @click="updateTipo" class="btn-primary" :disabled="loading">
+          <font-awesome-icon v-if="loading" icon="spinner" spin />
+          Guardar Cambios
         </button>
       </template>
     </Modal>
-  </div>
 
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'ABC_Tipos_Aseo'"
-    :moduleName="'aseo_contratado'"
-    @close="closeDocumentation"
-  />
+    <!-- Modal Ver -->
+    <Modal
+      :show="showViewModal"
+      @close="closeViewModal"
+      title="Detalle del Tipo de Aseo"
+      size="medium"
+    >
+      <template #body>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label class="detail-label">Control</label>
+            <p class="detail-value">
+              <span class="badge-control">{{ String(viewData.ctrol_aseo).padStart(3, '0') }}</span>
+            </p>
+          </div>
+
+          <div class="detail-item">
+            <label class="detail-label">Tipo</label>
+            <p class="detail-value">
+              <span class="badge-secondary">{{ viewData.tipo_aseo }}</span>
+            </p>
+          </div>
+
+          <div class="detail-item full-width">
+            <label class="detail-label">Descripción</label>
+            <p class="detail-value">{{ viewData.descripcion }}</p>
+          </div>
+
+          <div class="detail-item">
+            <label class="detail-label">Cuenta Aplicación</label>
+            <p class="detail-value">
+              {{ viewData.cta_aplicacion || 'No especificada' }}
+            </p>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <button type="button" @click="closeViewModal" class="btn-secondary">
+          Cerrar
+        </button>
+        <button type="button" @click="editFromView" class="btn-primary">
+          <font-awesome-icon icon="edit" />
+          Editar
+        </button>
+      </template>
+    </Modal>
+
+    <!-- Modal Documentación -->
+    <DocumentationModal
+      :show="showDocumentation"
+      @close="showDocumentation = false"
+      title="Ayuda - Catálogo de Tipos de Aseo"
+    >
+      <h3>Catálogo de Tipos de Aseo</h3>
+      <p>
+        Este módulo permite administrar los diferentes tipos de servicio de aseo contratado
+        que ofrece el municipio.
+      </p>
+
+      <h4>Funcionalidades Principales:</h4>
+      <ul>
+        <li><strong>Crear:</strong> Agregar nuevos tipos de aseo al catálogo</li>
+        <li><strong>Editar:</strong> Modificar información de tipos existentes</li>
+        <li><strong>Eliminar:</strong> Dar de baja tipos que no estén en uso</li>
+        <li><strong>Buscar:</strong> Filtrar tipos por descripción, control o tipo</li>
+        <li><strong>Exportar:</strong> Generar archivo Excel con el catálogo</li>
+      </ul>
+
+      <h4>Campos:</h4>
+      <ul>
+        <li><strong>Control:</strong> Número de control asignado automáticamente</li>
+        <li><strong>Tipo:</strong> Código de un carácter que identifica el tipo (A, B, C, etc.)</li>
+        <li><strong>Descripción:</strong> Nombre descriptivo del tipo de aseo (obligatorio)</li>
+        <li><strong>Cuenta Aplicación:</strong> Número de cuenta contable asociada</li>
+      </ul>
+
+      <h4>Notas Importantes:</h4>
+      <ul>
+        <li>El número de control se asigna automáticamente al crear un tipo</li>
+        <li>No se puede eliminar un tipo que esté en uso en contratos activos</li>
+        <li>La descripción debe ser única en el catálogo</li>
+        <li>El campo Tipo es de un solo carácter</li>
+      </ul>
+    </DocumentationModal>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
-import Modal from '@/components/common/Modal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Constantes
-const BASE_DB = 'aseo_contratado'
-const SCHEMA = 'public'
-
-// Composables
 const { execute } = useApi()
-const { isLoading: loading, showLoading, hideLoading } = useGlobalLoading()
-const { showToast, handleApiError } = useLicenciasErrorHandler()
+const { showToast } = useLicenciasErrorHandler()
 
-// Documentación
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
-// Estado
+// Data
 const tipos = ref([])
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
-const selectedTipo = ref(null)
+const totalRecords = ref(0)
+const searchQuery = ref('')
+const loading = ref(false)
+const showDocumentation = ref(false)
+
+// Modales
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
-const guardando = ref(false)
+const showViewModal = ref(false)
 
-// Filtros
-const filters = ref({
-  search: ''
-})
-
-// Formulario
+// Form Data
 const formData = ref({
   ctrol_aseo: null,
   tipo_aseo: '',
@@ -380,64 +464,94 @@ const formData = ref({
   cta_aplicacion: null
 })
 
+const viewData = ref({})
+
 // Computed
-const tiposFiltrados = computed(() => {
-  let result = [...tipos.value]
-
-  if (filters.value.search) {
-    const search = filters.value.search.toLowerCase()
-    result = result.filter(t =>
-      t.descripcion?.toLowerCase().includes(search) ||
-      t.tipo_aseo?.toLowerCase().includes(search) ||
-      String(t.ctrol_aseo).includes(search)
-    )
-  }
-
-  return result
-})
-
 const totalPages = computed(() => {
-  return Math.ceil(tiposFiltrados.value.length / itemsPerPage.value) || 1
+  return Math.ceil(totalRecords.value / itemsPerPage.value)
 })
 
-const tiposPaginados = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return tiposFiltrados.value.slice(start, end)
+const paginationRange = computed(() => {
+  const range = []
+  const delta = 2
+
+  for (let i = Math.max(2, currentPage.value - delta); i <= Math.min(totalPages.value - 1, currentPage.value + delta); i++) {
+    range.push(i)
+  }
+
+  if (currentPage.value - delta > 2) {
+    range.unshift('...')
+  }
+  if (currentPage.value + delta < totalPages.value - 1) {
+    range.push('...')
+  }
+
+  range.unshift(1)
+  if (totalPages.value > 1) {
+    range.push(totalPages.value)
+  }
+
+  return range
 })
 
-// Métodos
-async function loadTipos() {
-  showLoading('Cargando tipos de aseo...')
+// Methods
+const loadTipos = async () => {
+  loading.value = true
   try {
-    const response = await execute('sp_tipos_aseo_list', BASE_DB, [], '', null, SCHEMA)
+    const response = await execute(
+      'SP_ASEO_TIPOS_LIST',
+      'aseo_contratado',
+      {
+        p_page: currentPage.value,
+        p_limit: itemsPerPage.value,
+        p_search: searchQuery.value || null
+      }
+    )
 
-    if (response?.result) {
-      tipos.value = response.result
-    } else {
-      tipos.value = []
+    if (response && response.data) {
+      tipos.value = response.data
+      if (response.data.length > 0) {
+        totalRecords.value = response.data[0].total_records || 0
+      } else {
+        totalRecords.value = 0
+      }
     }
-  } catch (e) {
-    hideLoading()
-    handleApiError(e)
-    tipos.value = []
+  } catch (error) {
+    console.error('Error al cargar tipos:', error)
+    showToast('Error al cargar los tipos de aseo', 'error')
   } finally {
-    hideLoading()
+    loading.value = false
   }
 }
 
-function searchTipos() {
+const handleSearch = () => {
   currentPage.value = 1
+  loadTipos()
 }
 
-function clearFilters() {
-  filters.value = {
-    search: ''
+const clearSearch = () => {
+  searchQuery.value = ''
+  handleSearch()
+}
+
+const handleItemsPerPageChange = () => {
+  currentPage.value = 1
+  loadTipos()
+}
+
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    loadTipos()
   }
-  currentPage.value = 1
 }
 
-function openCreateModal() {
+const openDocumentation = () => {
+  showDocumentation.value = true
+}
+
+// Create
+const openCreateModal = () => {
   formData.value = {
     ctrol_aseo: null,
     tipo_aseo: '',
@@ -447,67 +561,48 @@ function openCreateModal() {
   showCreateModal.value = true
 }
 
-function closeCreateModal() {
+const closeCreateModal = () => {
   showCreateModal.value = false
 }
 
-async function createTipo() {
-  // Validación
-  if (!formData.value.tipo_aseo?.trim()) {
-    showToast('Ingrese el tipo de aseo', 'warning')
-    return
-  }
+const createTipo = async () => {
   if (!formData.value.descripcion?.trim()) {
-    showToast('Ingrese la descripción', 'warning')
+    showToast('La descripción es requerida', 'warning')
     return
   }
 
-  // 1. SweetAlert2 confirmación
-  const confirmResult = await Swal.fire({
-    title: 'Crear Tipo de Aseo',
-    html: `<p>¿Desea crear el tipo <strong>${formData.value.tipo_aseo.toUpperCase()}</strong> - ${formData.value.descripcion}?</p>`,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, crear',
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#667eea',
-    cancelButtonColor: '#6c757d'
-  })
-
-  if (!confirmResult.isConfirmed) return
-
-  // 2. Loading
-  showLoading('Creando tipo de aseo...', 'Guardando datos')
-  guardando.value = true
-
+  loading.value = true
   try {
-    const params = [
-      { nombre: 'p_tipo_aseo', valor: formData.value.tipo_aseo.trim().toUpperCase(), tipo: 'string' },
-      { nombre: 'p_descripcion', valor: formData.value.descripcion.trim(), tipo: 'string' },
-      { nombre: 'p_cta_aplicacion', valor: formData.value.cta_aplicacion || null, tipo: 'integer' },
-      { nombre: 'p_usuario', valor: 0, tipo: 'integer' }
-    ]
+    const response = await execute(
+      'SP_ASEO_TIPOS_CREATE',
+      'aseo_contratado',
+      {
+        p_tipo_aseo: formData.value.tipo_aseo?.trim() || null,
+        p_descripcion: formData.value.descripcion.trim(),
+        p_cta_aplicacion: formData.value.cta_aplicacion || null
+      }
+    )
 
-    const response = await execute('sp_tipos_aseo_create', BASE_DB, params, '', null, SCHEMA)
-
-    if (response?.result?.[0]?.success === false) {
-      showToast(response.result[0].msg, 'warning')
-    } else {
-      showToast('Tipo de aseo creado correctamente', 'success')
-      closeCreateModal()
-      await loadTipos()
+    if (response && response.data && response.data[0]) {
+      const result = response.data[0]
+      if (result.success) {
+        showToast(result.message || 'Tipo creado exitosamente', 'success')
+        closeCreateModal()
+        loadTipos()
+      } else {
+        showToast(result.message || 'Error al crear el tipo', 'error')
+      }
     }
-  } catch (e) {
-    hideLoading()
-    handleApiError(e)
+  } catch (error) {
+    console.error('Error al crear tipo:', error)
+    showToast('Error al crear el tipo de aseo', 'error')
   } finally {
-    hideLoading()
-    guardando.value = false
+    loading.value = false
   }
 }
 
-function editTipo(tipo) {
-  selectedTipo.value = tipo
+// Edit
+const openEditModal = (tipo) => {
   formData.value = {
     ctrol_aseo: tipo.ctrol_aseo,
     tipo_aseo: tipo.tipo_aseo || '',
@@ -517,138 +612,115 @@ function editTipo(tipo) {
   showEditModal.value = true
 }
 
-function closeEditModal() {
+const closeEditModal = () => {
   showEditModal.value = false
-  selectedTipo.value = null
 }
 
-async function updateTipo() {
-  // Validación
-  if (!formData.value.tipo_aseo?.trim()) {
-    showToast('Ingrese el tipo de aseo', 'warning')
-    return
-  }
+const updateTipo = async () => {
   if (!formData.value.descripcion?.trim()) {
-    showToast('Ingrese la descripción', 'warning')
+    showToast('La descripción es requerida', 'warning')
     return
   }
 
-  // 1. SweetAlert2 confirmación
-  const confirmResult = await Swal.fire({
-    title: 'Actualizar Tipo de Aseo',
-    html: `<p>¿Desea actualizar el tipo <strong>${formData.value.tipo_aseo.toUpperCase()}</strong>?</p>`,
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Sí, actualizar',
-    cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#667eea',
-    cancelButtonColor: '#6c757d'
-  })
-
-  if (!confirmResult.isConfirmed) return
-
-  // 2. Loading
-  showLoading('Actualizando tipo de aseo...', 'Guardando cambios')
-  guardando.value = true
-
+  loading.value = true
   try {
-    const params = [
-      { nombre: 'p_ctrol_aseo', valor: formData.value.ctrol_aseo, tipo: 'integer' },
-      { nombre: 'p_tipo_aseo', valor: formData.value.tipo_aseo.trim().toUpperCase(), tipo: 'string' },
-      { nombre: 'p_descripcion', valor: formData.value.descripcion.trim(), tipo: 'string' },
-      { nombre: 'p_cta_aplicacion', valor: formData.value.cta_aplicacion || null, tipo: 'integer' },
-      { nombre: 'p_usuario', valor: 0, tipo: 'integer' }
-    ]
+    const response = await execute(
+      'SP_ASEO_TIPOS_UPDATE',
+      'aseo_contratado',
+      {
+        p_ctrol_aseo: formData.value.ctrol_aseo,
+        p_tipo_aseo: formData.value.tipo_aseo?.trim() || null,
+        p_descripcion: formData.value.descripcion.trim(),
+        p_cta_aplicacion: formData.value.cta_aplicacion || null
+      }
+    )
 
-    const response = await execute('sp_tipos_aseo_update', BASE_DB, params, '', null, SCHEMA)
-
-    if (response?.result?.[0]?.success === false) {
-      showToast(response.result[0].msg, 'warning')
-    } else {
-      showToast('Tipo de aseo actualizado correctamente', 'success')
-      closeEditModal()
-      await loadTipos()
+    if (response && response.data && response.data[0]) {
+      const result = response.data[0]
+      if (result.success) {
+        showToast(result.message || 'Tipo actualizado exitosamente', 'success')
+        closeEditModal()
+        loadTipos()
+      } else {
+        showToast(result.message || 'Error al actualizar el tipo', 'error')
+      }
     }
-  } catch (e) {
-    hideLoading()
-    handleApiError(e)
+  } catch (error) {
+    console.error('Error al actualizar tipo:', error)
+    showToast('Error al actualizar el tipo de aseo', 'error')
   } finally {
-    hideLoading()
-    guardando.value = false
+    loading.value = false
   }
 }
 
-async function confirmDeleteTipo(tipo) {
-  // 1. SweetAlert2 confirmación
-  const confirmResult = await Swal.fire({
-    title: 'Eliminar Tipo de Aseo',
+// View
+const openViewModal = (tipo) => {
+  viewData.value = { ...tipo }
+  showViewModal.value = true
+}
+
+const closeViewModal = () => {
+  showViewModal.value = false
+}
+
+const editFromView = () => {
+  closeViewModal()
+  openEditModal(viewData.value)
+}
+
+// Delete
+const confirmDelete = async (tipo) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar tipo de aseo?',
     html: `
-      <p>¿Está seguro de eliminar el tipo</p>
-      <p><strong>${tipo.tipo_aseo} - ${tipo.descripcion}</strong>?</p>
-      <p class="text-danger"><small>Esta acción no se puede deshacer</small></p>
+      <p>¿Está seguro de eliminar el tipo:</p>
+      <p><strong>${tipo.descripcion}</strong>?</p>
+      <p class="text-danger">Esta acción no se puede deshacer.</p>
     `,
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar',
     confirmButtonColor: '#dc3545',
-    cancelButtonColor: '#6c757d'
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
   })
 
-  if (!confirmResult.isConfirmed) return
-
-  // 2. Loading
-  showLoading('Eliminando tipo de aseo...', 'Procesando')
-
-  try {
-    const params = [
-      { nombre: 'p_ctrol_aseo', valor: tipo.ctrol_aseo, tipo: 'integer' },
-      { nombre: 'p_usuario', valor: 0, tipo: 'integer' }
-    ]
-
-    const response = await execute('sp_tipos_aseo_delete', BASE_DB, params, '', null, SCHEMA)
-
-    if (response?.result?.[0]?.success === false) {
-      showToast(response.result[0].msg, 'warning')
-    } else {
-      showToast('Tipo de aseo eliminado correctamente', 'success')
-      await loadTipos()
-    }
-  } catch (e) {
-    hideLoading()
-    handleApiError(e)
-  } finally {
-    hideLoading()
+  if (result.isConfirmed) {
+    await deleteTipo(tipo.ctrol_aseo)
   }
 }
 
-function exportarCSV() {
-  if (tiposFiltrados.value.length === 0) {
-    showToast('No hay datos para exportar', 'warning')
-    return
+const deleteTipo = async (ctrol_aseo) => {
+  loading.value = true
+  try {
+    const response = await execute(
+      'SP_ASEO_TIPOS_DELETE',
+      'aseo_contratado',
+      {
+        p_ctrol_aseo: ctrol_aseo
+      }
+    )
+
+    if (response && response.data && response.data[0]) {
+      const result = response.data[0]
+      if (result.success) {
+        showToast(result.message || 'Tipo eliminado exitosamente', 'success')
+        loadTipos()
+      } else {
+        showToast(result.message || 'Error al eliminar el tipo', 'error')
+      }
+    }
+  } catch (error) {
+    console.error('Error al eliminar tipo:', error)
+    showToast('Error al eliminar el tipo de aseo', 'error')
+  } finally {
+    loading.value = false
   }
+}
 
-  const headers = ['Control', 'Tipo', 'Descripción', 'Cta. Aplicación']
-  const rows = tiposFiltrados.value.map(t => [
-    String(t.ctrol_aseo).padStart(3, '0'),
-    t.tipo_aseo || '',
-    t.descripcion || '',
-    t.cta_aplicacion || ''
-  ])
-
-  const csvContent = [
-    headers.join(','),
-    ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-  ].join('\n')
-
-  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = `tipos_aseo_${new Date().toISOString().split('T')[0]}.csv`
-  link.click()
-  URL.revokeObjectURL(link.href)
-
-  showToast(`${tiposFiltrados.value.length} registros exportados`, 'success')
+// Export
+const exportToExcel = () => {
+  showToast('Funcionalidad de exportación en desarrollo', 'info')
 }
 
 // Lifecycle

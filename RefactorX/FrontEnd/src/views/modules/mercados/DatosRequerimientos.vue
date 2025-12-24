@@ -10,10 +10,16 @@
         <p>Inicio > Mercados > Requerimientos</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
         </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        
       </div>
     </div>
 
@@ -135,7 +141,10 @@
             </div>
           </div>
         </div>
-      </template>
+      
+  <DocumentationModal :show="showAyuda" :component-name="'DatosRequerimientos'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - DatosRequerimientos'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'DatosRequerimientos'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - DatosRequerimientos'" @close="showDocumentacion = false" />
+</template>
 
       <!-- Datos del Requerimiento -->
       <div v-if="requerimiento" class="municipal-card">
@@ -319,9 +328,15 @@
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -398,7 +413,7 @@ const formatCurrency = (val) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Consulta de requerimientos de pago por folio')
+  showToast('Consulta de requerimientos de pago por folio', 'info')
 }
 
 const buscarRequerimiento = async () => {
@@ -413,76 +428,80 @@ const buscarRequerimiento = async () => {
 
   try {
     // 1. Obtener local
-    let res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_locales',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: form.value.id_local }
-        ]
-      }
-    })
+    let res = await apiService.execute(
+          'sp_get_locales',
+          'mercados',
+          [
+          { nombre: 'p_id_local', valor: form.value.id_local }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (!res.data?.eResponse?.success || !res.data.eResponse.data?.result?.length) {
+    if (!res.success || !res.data?.result?.length) {
       throw new Error('Local no encontrado')
     }
-    local.value = res.data.eResponse.data.result[0]
+    local.value = res.data.result[0]
 
     // 2. Obtener mercado
-    res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_mercado',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: local.value.oficina },
-          { Nombre: 'p_num_mercado', Valor: local.value.num_mercado }
-        ]
-      }
-    })
+    res = await apiService.execute(
+          'sp_get_mercado',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: local.value.oficina },
+          { nombre: 'p_num_mercado', valor: local.value.num_mercado }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (!res.data?.eResponse?.success || !res.data.eResponse.data?.result?.length) {
+    if (!res.success || !res.data?.result?.length) {
       throw new Error('Mercado no encontrado')
     }
-    mercado.value = res.data.eResponse.data.result[0]
+    mercado.value = res.data.result[0]
 
     // 3. Obtener requerimiento
-    res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_requerimientos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_modulo', Valor: form.value.modulo },
-          { Nombre: 'p_folio', Valor: form.value.folio },
-          { Nombre: 'p_control_otr', Valor: form.value.id_local }
-        ]
-      }
-    })
+    res = await apiService.execute(
+          'sp_get_requerimientos',
+          'mercados',
+          [
+          { nombre: 'p_modulo', valor: form.value.modulo },
+          { nombre: 'p_folio', valor: form.value.folio },
+          { nombre: 'p_control_otr', valor: form.value.id_local }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (!res.data?.eResponse?.success || !res.data.eResponse.data?.result?.length) {
+    if (!res.success || !res.data?.result?.length) {
       throw new Error('Requerimiento no encontrado')
     }
-    requerimiento.value = res.data.eResponse.data.result[0]
+    requerimiento.value = res.data.result[0]
 
     // 4. Obtener periodos
-    res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_periodos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_control_otr', Valor: form.value.id_local }
-        ]
-      }
-    })
-    periodos.value = res.data?.eResponse?.success ? res.data.eResponse.data?.result || [] : []
+    res = await apiService.execute(
+          'sp_get_periodos',
+          'mercados',
+          [
+          { nombre: 'p_control_otr', valor: form.value.id_local }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    periodos.value = res.success ? res.data?.result || [] : []
     currentPage.value = 1
 
     searched.value = true
-    showToast('success', 'Requerimiento encontrado')
+    showToast('Requerimiento encontrado', 'success')
 
   } catch (e) {
     error.value = e.message || 'Error al consultar datos'
     searched.value = true
-    showToast('error', error.value)
+    showToast(error.value, 'error')
   } finally {
     loading.value = false
     hideLoading()

@@ -10,7 +10,16 @@
         <p>Mercados - Administración y Mantenimiento de Categorías</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="showModal('create')">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="showModal('create')">
           <font-awesome-icon icon="plus" />
           Agregar
         </button>
@@ -18,10 +27,7 @@
           <font-awesome-icon icon="sync" />
           Refrescar
         </button>
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
-        </button>
+        
       </div>
     </div>
 
@@ -102,16 +108,20 @@
           <font-awesome-icon icon="times" />
           Cancelar
         </button>
-        <button type="button" class="btn-municipal-success" @click="submitForm">
+        <button type="button" class="btn-municipal-primary" @click="submitForm">
           <font-awesome-icon icon="save" />
           Guardar
         </button>
-      </template>
+      
+  <DocumentationModal :show="showAyuda" :component-name="'CategoriaMntto'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CategoriaMntto'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CategoriaMntto'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CategoriaMntto'" @close="showDocumentacion = false" />
+</template>
     </Modal>
   </div>
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
@@ -119,6 +129,11 @@ import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
 import { useToast } from '@/composables/useToast';
 import Modal from '@/components/common/Modal.vue';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const router = useRouter();
 const { showLoading, hideLoading } = useGlobalLoading();
@@ -132,33 +147,27 @@ const formMode = ref('create');
 const form = ref({
   categoria: '',
   descripcion: ''
-});
-
-// Cerrar
-const cerrar = () => {
-  router.push('/mercados');
-};
-
-// Cargar datos
+});// Cargar datos
 async function fetchData() {
   showLoading('Cargando categorías...', 'Por favor espere');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_categoria_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_categoria_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      rows.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      rows.value = response.data.result || [];
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al cargar datos');
+      showToast(response.message || 'Error al cargar datos', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al cargar categorías');
+    showToast('Error al cargar categorías', 'error');
   } finally {
     hideLoading();
   }
@@ -188,7 +197,7 @@ function closeModal() {
 // Guardar
 async function submitForm() {
   if (!form.value.categoria || !form.value.descripcion) {
-    showToast('warning', 'Complete los campos requeridos');
+    showToast('Complete los campos requeridos', 'warning');
     return;
   }
 
@@ -196,33 +205,34 @@ async function submitForm() {
   try {
     const sp = formMode.value === 'create' ? 'sp_categoria_create' : 'sp_categoria_update';
     const params = [
-      { Nombre: 'p_categoria', Valor: form.value.categoria, tipo: 'integer' },
-      { Nombre: 'p_descripcion', Valor: form.value.descripcion.toUpperCase() }
+      { nombre: 'p_categoria', valor: form.value.categoria, tipo: 'integer' },
+      { nombre: 'p_descripcion', valor: form.value.descripcion.toUpperCase() }
     ];
 
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: sp,
-        Base: 'mercados',
-        Parametros: params
-      }
-    });
+    const response = await apiService.execute(
+      sp,
+      'mercados',
+      params,
+      '',
+      null,
+      'publico'
+    );
 
-    if (response.data?.eResponse?.success) {
-      const result = response.data.eResponse.data.result?.[0];
+    if (response.success) {
+      const result = response.data.result?.[0];
       if (result?.success) {
-        showToast('success', result.message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'));
+        showToast(result.message || (formMode.value === 'create' ? 'Categoría creada' : 'Categoría actualizada'), 'success');
         closeModal();
         fetchData();
       } else {
-        showToast('error', result?.message || 'Error al guardar');
+        showToast(result?.message || 'Error al guardar', 'error');
       }
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al guardar');
+      showToast(response.message || 'Error al guardar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al guardar categoría');
+    showToast('Error al guardar categoría', 'error');
   } finally {
     hideLoading();
   }
@@ -245,33 +255,56 @@ async function deleteRow(row) {
 
   showLoading('Eliminando categoría...', 'Por favor espere');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_categoria_delete',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_categoria', Valor: row.categoria, tipo: 'integer' }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_categoria_delete',
+          'mercados',
+          [
+          { nombre: 'p_categoria', valor: row.categoria, tipo: 'integer' }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      const deleteResult = response.data.eResponse.data.result?.[0];
+    if (response.success) {
+      const deleteResult = response.data.result?.[0];
       if (deleteResult?.success) {
-        showToast('success', 'Categoría eliminada');
+        showToast('Categoría eliminada', 'success');
         fetchData();
       } else {
-        showToast('error', deleteResult?.message || 'Error al eliminar');
+        showToast(deleteResult?.message || 'Error al eliminar', 'error');
       }
     } else {
-      showToast('error', response.data?.eResponse?.message || 'Error al eliminar');
+      showToast(response.message || 'Error al eliminar', 'error');
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al eliminar categoría');
+    showToast('Error al eliminar categoría', 'error');
   } finally {
     hideLoading();
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Mantenimiento de CategorÃ­as',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite el mantenimiento de categorÃ­as de locales.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Use este mÃ³dulo para actualizar las categorÃ­as existentes
+          <li>Los cambios afectarÃ¡n a todos los locales asociados a la categorÃ­a
+          <li>Verifique los datos antes de guardar</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => {

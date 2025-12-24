@@ -13,7 +13,7 @@
               <select v-model="filters.oficina" class="municipal-form-control" @change="onRecChange">
                 <option value="">Seleccione</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -88,6 +88,15 @@
                     <td>{{ formatCurrency(adeudo.importe) }}</td>
                     <td>
                       <div class="button-group button-group-sm">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
                         <button class="btn-municipal-warning btn-sm" @click.stop="abrirCondonar(adeudo)" title="Condonar">
                           <font-awesome-icon icon="times-circle" />
                         </button>
@@ -222,12 +231,50 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'ConsCondonacion'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - ConsCondonacion'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'ConsCondonacion'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - ConsCondonacion'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
+import Swal from 'sweetalert2';
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -304,15 +351,16 @@ const formatCurrency = (value) => {
 const fetchRecaudadoras = async () => {
   showLoading('Cargando Consulta de Condonación', 'Preparando oficinas recaudadoras...');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    });
-    if (response.data.eResponse?.success) {
-      recaudadoras.value = response.data.eResponse.data.result || [];
+    const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success) {
+      recaudadoras.value = response.data.result || [];
     }
   } catch (error) {
     console.error('Error al cargar recaudadoras:', error);
@@ -327,17 +375,18 @@ const onRecChange = async () => {
   if (!filters.value.oficina) return;
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_consulta_locales_get_mercados',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) }
-        ]
-      }
-    });
-    if (response.data.eResponse?.success) {
-      mercados.value = response.data.eResponse.data.result || [];
+    const response = await apiService.execute(
+          'sp_consulta_locales_get_mercados',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(filters.value.oficina) }
+        ],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success) {
+      mercados.value = response.data.result || [];
     }
   } catch (error) {
     console.error('Error al cargar mercados:', error);
@@ -356,24 +405,25 @@ const buscarLocal = async () => {
   condonados.value = [];
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_condonacion_buscar_local',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
-          { Nombre: 'p_num_mercado', Valor: parseInt(filters.value.num_mercado) },
-          { Nombre: 'p_categoria', Valor: parseInt(filters.value.categoria) || 1 },
-          { Nombre: 'p_seccion', Valor: filters.value.seccion || '' },
-          { Nombre: 'p_local', Valor: parseInt(filters.value.local) },
-          { Nombre: 'p_letra_local', Valor: filters.value.letra_local || null },
-          { Nombre: 'p_bloque', Valor: filters.value.bloque || null }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_cons_condonacion_buscar_local',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(filters.value.oficina) },
+          { nombre: 'p_num_mercado', valor: parseInt(filters.value.num_mercado) },
+          { nombre: 'p_categoria', valor: parseInt(filters.value.categoria) || 1 },
+          { nombre: 'p_seccion', valor: filters.value.seccion || '' },
+          { nombre: 'p_local', valor: parseInt(filters.value.local) },
+          { nombre: 'p_letra_local', valor: filters.value.letra_local || null },
+          { nombre: 'p_bloque', valor: filters.value.bloque || null }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data.eResponse?.success) {
-      const result = response.data.eResponse.data.result || [];
+    if (response?.success) {
+      const result = response.data.result || [];
       if (result.length > 0) {
         localData.value = result[0];
         await cargarAdeudos();
@@ -392,17 +442,18 @@ const buscarLocal = async () => {
 
 const cargarAdeudos = async () => {
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_condonacion_listar_adeudos',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: localData.value.id_local }
-        ]
-      }
-    });
-    if (response.data.eResponse?.success) {
-      adeudos.value = response.data.eResponse.data.result || [];
+    const response = await apiService.execute(
+          'sp_cons_condonacion_listar_adeudos',
+          'mercados',
+          [
+          { nombre: 'p_id_local', valor: localData.value.id_local }
+        ],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success) {
+      adeudos.value = response.data.result || [];
     }
   } catch (error) {
     console.error('Error al cargar adeudos:', error);
@@ -411,17 +462,18 @@ const cargarAdeudos = async () => {
 
 const cargarCondonados = async () => {
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_condonacion_listar_condonados',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: localData.value.id_local }
-        ]
-      }
-    });
-    if (response.data.eResponse?.success) {
-      condonados.value = response.data.eResponse.data.result || [];
+    const response = await apiService.execute(
+          'sp_cons_condonacion_listar_condonados',
+          'mercados',
+          [
+          { nombre: 'p_id_local', valor: localData.value.id_local }
+        ],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success) {
+      condonados.value = response.data.result || [];
     }
   } catch (error) {
     console.error('Error al cargar condonados:', error);
@@ -442,24 +494,25 @@ const condonar = async () => {
 
   loading.value = true;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_condonacion_condonar',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: localData.value.id_local },
-          { Nombre: 'p_axo', Valor: selectedAdeudo.value.axo },
-          { Nombre: 'p_periodo', Valor: selectedAdeudo.value.periodo },
-          { Nombre: 'p_importe', Valor: selectedAdeudo.value.importe },
-          { Nombre: 'p_clave_canc', Valor: formCondonar.value.clave_canc },
-          { Nombre: 'p_observacion', Valor: formCondonar.value.observacion || '' },
-          { Nombre: 'p_id_usuario', Valor: 1 }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_cons_condonacion_condonar',
+          'mercados',
+          [
+          { nombre: 'p_id_local', valor: localData.value.id_local },
+          { nombre: 'p_axo', valor: selectedAdeudo.value.axo },
+          { nombre: 'p_periodo', valor: selectedAdeudo.value.periodo },
+          { nombre: 'p_importe', valor: selectedAdeudo.value.importe },
+          { nombre: 'p_clave_canc', valor: formCondonar.value.clave_canc },
+          { nombre: 'p_observacion', valor: formCondonar.value.observacion || '' },
+          { nombre: 'p_id_usuario', valor: 1 }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data.eResponse?.success) {
-      const result = response.data.eResponse.data.result?.[0];
+    if (response?.success) {
+      const result = response.data.result?.[0];
       if (result?.success) {
         showModal.value = false;
         await cargarAdeudos();
@@ -481,23 +534,24 @@ const deshacerCondonacion = (cond) => {
   mostrarConfirm('¿Está seguro de deshacer esta condonación?', async () => {
     loading.value = true;
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_cons_condonacion_deshacer',
-          Base: 'padron_licencias',
-          Parametros: [
-            { Nombre: 'p_id_local', Valor: localData.value.id_local },
-            { Nombre: 'p_axo', Valor: cond.axo },
-            { Nombre: 'p_periodo', Valor: cond.periodo },
-            { Nombre: 'p_importe', Valor: cond.importe },
-            { Nombre: 'p_id_usuario', Valor: 1 },
-            { Nombre: 'p_id_cancelacion', Valor: cond.id_cancelacion }
-          ]
-        }
-      });
+      const response = await apiService.execute(
+          'sp_cons_condonacion_deshacer',
+          'mercados',
+          [
+            { nombre: 'p_id_local', valor: localData.value.id_local },
+            { nombre: 'p_axo', valor: cond.axo },
+            { nombre: 'p_periodo', valor: cond.periodo },
+            { nombre: 'p_importe', valor: cond.importe },
+            { nombre: 'p_id_usuario', valor: 1 },
+            { nombre: 'p_id_cancelacion', valor: cond.id_cancelacion }
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data.eResponse?.success) {
-        const result = response.data.eResponse.data.result?.[0];
+      if (response?.success) {
+        const result = response.data.result?.[0];
         if (result?.success) {
           await cargarAdeudos();
           await cargarCondonados();
@@ -530,6 +584,28 @@ const limpiar = () => {
   condonados.value = [];
   mercados.value = [];
 };
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Consulta de Condonaciones',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite consultar el historial de condonaciones aplicadas.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Use los filtros para buscar condonaciones especÃ­ficas
+          <li>Puede ver el detalle completo de cada condonaciÃ³n
+          <li>El historial incluye fecha, usuario y justificaciÃ³n</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
 
 onMounted(() => {
   fetchRecaudadoras();

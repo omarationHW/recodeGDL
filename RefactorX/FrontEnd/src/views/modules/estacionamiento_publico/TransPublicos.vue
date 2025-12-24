@@ -7,18 +7,20 @@
       <button class="toast-close" @click="hideToast"><font-awesome-icon icon="times" /></button>
     </div>
 
-    <div class="module-view-header">
+    <div class="module-view-header header-with-badge">
       <div class="module-view-icon"><font-awesome-icon icon="upload" /></div>
       <div class="module-view-info">
         <h1>Transacciones</h1>
         <p>Carga masiva desde archivo de texto</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -51,7 +53,7 @@
               </div>
             </div>
             <div v-if="archivoNombre" class="file-info-box">
-              <font-awesome-icon icon="file-alt" class="file-icon" />
+              <font-awesome-icon icon="file-alt" class="file-icon empty-state-icon" />
               <div class="file-details">
                 <strong>{{ archivoNombre }}</strong>
                 <div class="file-stats">
@@ -70,7 +72,7 @@
 
       <!-- Seccion de Registros -->
       <div class="form-section" v-if="registros.length > 0">
-        <div class="section-header section-header-info">
+        <div class="section-header section-header-info header-with-badge">
           <div class="section-icon"><font-awesome-icon icon="table" /></div>
           <div class="section-title-group">
             <h3>Registros a Insertar</h3>
@@ -106,7 +108,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(r, idx) in registros" :key="idx" :class="getRowClass(r)">
+                <tr v-for="(r, idx) in registros" :key="idx" :class="getRowClass(r)" class="row-hover table-row-selected">
                   <td>{{ idx + 1 }}</td>
                   <td>{{ r.cve_sector }}</td>
                   <td>{{ r.cve_categ }}</td>
@@ -141,7 +143,7 @@
 
       <!-- Seccion de Resultado -->
       <div class="form-section" v-if="resultadoInsercion">
-        <div class="section-header" :class="resultadoInsercion.errores === 0 ? 'section-header-success' : 'section-header-warning'">
+        <div class="section-header header-with-badge" :class="resultadoInsercion.errores === 0 ? 'section-header-success' : 'section-header-warning'">
           <div class="section-icon"><font-awesome-icon icon="clipboard-check" /></div>
           <div class="section-title-group">
             <h3>Resultado de Insercion</h3>
@@ -151,21 +153,21 @@
         <div class="section-body">
           <div class="result-grid">
             <div class="result-card result-success">
-              <font-awesome-icon icon="check-circle" class="result-icon" />
+              <font-awesome-icon icon="check-circle" class="result-icon empty-state-icon" />
               <div class="result-content">
                 <span class="result-value">{{ resultadoInsercion.exitosos }}</span>
                 <span class="result-label">Insertados</span>
               </div>
             </div>
             <div class="result-card result-error">
-              <font-awesome-icon icon="times-circle" class="result-icon" />
+              <font-awesome-icon icon="times-circle" class="result-icon empty-state-icon" />
               <div class="result-content">
                 <span class="result-value">{{ resultadoInsercion.errores }}</span>
                 <span class="result-label">Errores</span>
               </div>
             </div>
             <div class="result-card result-total">
-              <font-awesome-icon icon="info-circle" class="result-icon" />
+              <font-awesome-icon icon="info-circle" class="result-icon empty-state-icon" />
               <div class="result-content">
                 <span class="result-value">{{ resultadoInsercion.total }}</span>
                 <span class="result-label">Total</span>
@@ -188,7 +190,7 @@
 
       <!-- Informacion de Formato -->
       <div class="form-section">
-        <div class="section-header section-header-help">
+        <div class="section-header section-header-help header-with-badge">
           <div class="section-icon"><font-awesome-icon icon="info-circle" /></div>
           <div class="section-title-group">
             <h3>Formato del Archivo</h3>
@@ -217,20 +219,15 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - TransPublicos">
-      <h3>Carga Masiva de Estacionamientos Publicos</h3>
-      <p>Este modulo permite cargar estacionamientos desde un archivo de texto con formato posicional fijo.</p>
-      <h4>Instrucciones:</h4>
-      <ol>
-        <li>Seleccione el archivo de texto con los datos</li>
-        <li>Verifique que los registros se cargaron correctamente</li>
-        <li>Presione "Insertar Todo" para procesar</li>
-      </ol>
-    </DocumentationModal>
-
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'TransPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'TransPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Transacciones'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
@@ -240,11 +237,10 @@ import Swal from 'sweetalert2'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
@@ -453,13 +449,19 @@ function limpiar() {
   }
 }
 
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>
@@ -770,5 +772,55 @@ const closeTechDocs = () => showTechDocs.value = false
 .btn-municipal-success:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Estilos municipales estandarizados */
+.header-with-badge {
+  position: relative;
+}
+
+.row-hover {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.row-hover:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.table-row-selected {
+  background-color: rgba(234, 130, 21, 0.1);
+}
+
+.empty-state-icon {
+  opacity: 0.85;
+}
+
+.municipal-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+  margin-bottom: 1rem;
+}
+
+.municipal-tab {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #6c757d;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.municipal-tab:hover {
+  color: #ea8215;
+  background-color: rgba(234, 130, 21, 0.05);
+}
+
+.municipal-tab.active {
+  color: #ea8215;
+  border-bottom-color: #ea8215;
 }
 </style>

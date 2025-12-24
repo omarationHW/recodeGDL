@@ -11,16 +11,17 @@
       </div>
       <div class="button-group ms-auto">
         <button
-          class="btn-municipal-secondary"
+          class="btn-municipal-warning"
           @click="regresarConsulta"
         >
           <font-awesome-icon icon="arrow-left" />
           Regresar a Consulta
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -381,43 +382,46 @@
         </div>
       </div>
 
-      <!-- Mensaje cuando no hay licencia buscada -->
-      <div class="municipal-card text-center" v-if="!licenciaData && !primeraBusqueda">
-        <div class="municipal-card-body py-5">
-          <font-awesome-icon icon="search" size="3x" class="text-muted mb-3" />
-          <h5 class="text-muted">Busque una licencia para dar de baja</h5>
-          <p class="text-muted">Ingrese el número de licencia en el panel de búsqueda.</p>
+      <!-- Empty State - Sin búsqueda -->
+      <div v-if="!licenciaData && !hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="ban" size="3x" />
         </div>
+        <h4>Baja de Licencias</h4>
+        <p>Ingrese el número de licencia en el panel de búsqueda para dar de baja una licencia comercial</p>
       </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
+      <!-- Empty State - Sin resultados -->
+      <div v-else-if="!licenciaData && hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="inbox" size="3x" />
+        </div>
+        <h4>Sin resultados</h4>
+        <p>No se encontró la licencia especificada</p>
       </div>
-    </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <div class="toast-content">
-        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-        <span class="toast-message">{{ toast.message }}</span>
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
       </div>
-      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'bajaLicenciafrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'bajaLicenciafrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Baja de Licencias'"
+        @close="showDocModal = false"
+      />
+    </div>
   </div>
 </template>
 
@@ -426,24 +430,37 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
 const router = useRouter()
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
-  handleApiError,
-  loadingMessage
+  handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
+
 // Estado
-const showDocumentation = ref(false)
 const showBusqueda = ref(true)
 const primeraBusqueda = ref(false)
 const searchLicencia = ref(null)
@@ -451,6 +468,7 @@ const licenciaData = ref(null)
 const anuncios = ref([])
 const adeudos = ref([])
 const totalAdeudos = ref(0)
+const hasSearched = ref(false)
 
 const bajaForm = ref({
   motivo: '',
@@ -460,9 +478,6 @@ const bajaForm = ref({
 })
 
 // Métodos
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-
 const regresarConsulta = () => {
   router.push('/padron-licencias/consulta-licencias')
 }
@@ -473,7 +488,8 @@ const buscarLicencia = async () => {
     return
   }
 
-  setLoading(true, 'Buscando licencia...')
+  showLoading('Buscando licencia...')
+  hasSearched.value = true
   primeraBusqueda.value = true
   showBusqueda.value = false
 
@@ -513,7 +529,7 @@ const buscarLicencia = async () => {
     licenciaData.value = null
     anuncios.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -801,7 +817,7 @@ const solicitarFirma = async () => {
 const ejecutarBaja = async () => {
   const usuario = localStorage.getItem('usuario') || 'sistema'
 
-  setLoading(true, 'Procesando baja de licencia...')
+  showLoading('Procesando baja de licencia...')
 
   const startTime = performance.now()
 
@@ -826,7 +842,7 @@ const ejecutarBaja = async () => {
       ? `${((endTime - startTime)).toFixed(0)}ms`
       : `${duration}s`
 
-    setLoading(false)
+    hideLoading()
 
     if (response && response.result && response.result.length > 0) {
       const resultado = response.result[0]
@@ -854,7 +870,7 @@ const ejecutarBaja = async () => {
       }
     }
   } catch (error) {
-    setLoading(false)
+    hideLoading()
     handleApiError(error)
   }
 }
@@ -866,6 +882,7 @@ const cancelar = () => {
   adeudos.value = []
   totalAdeudos.value = 0
   primeraBusqueda.value = false
+  hasSearched.value = false
   showBusqueda.value = true
   bajaForm.value = {
     motivo: '',

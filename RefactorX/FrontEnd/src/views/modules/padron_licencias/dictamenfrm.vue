@@ -11,17 +11,24 @@
       </div>
       <div class="button-group ms-auto">
         <button
+          class="btn-municipal-success"
+          @click="openCreateModal"
+        >
+          <font-awesome-icon icon="plus" />
+          Nuevo
+        </button>
+        <button
           class="btn-municipal-primary"
           @click="buscar"
-          :disabled="loading"
         >
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -141,14 +148,11 @@
             <div class="form-group">
               <label class="municipal-form-label">&nbsp;</label>
               <div class="btn-group-actions">
-                <button @click="buscar" class="btn-municipal-primary" :disabled="loading">
+                <button @click="buscar" class="btn-municipal-primary">
                   <font-awesome-icon icon="search" /> Buscar
                 </button>
-                <button @click="limpiarFiltros" class="btn-municipal-secondary" :disabled="loading">
+                <button @click="limpiarFiltros" class="btn-municipal-secondary">
                   <font-awesome-icon icon="eraser" /> Limpiar
-                </button>
-                <button @click="openCreateModal" class="btn-municipal-success" :disabled="loading">
-                  <font-awesome-icon icon="plus" /> Nuevo
                 </button>
               </div>
             </div>
@@ -163,12 +167,32 @@
             <font-awesome-icon icon="list" />
             Listado de Dictámenes
           </h5>
-          <span class="badge-purple" v-if="totalRecords > 0">
-            {{ totalRecords.toLocaleString() }} registros
-          </span>
+          <div class="header-right">
+            <span class="badge-purple" v-if="dictamenes.length > 0">
+              {{ dictamenes.length }} registros
+            </span>
+          </div>
         </div>
         <div class="municipal-card-body table-container">
-          <div class="table-responsive">
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="dictamenes.length === 0 && !hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="clipboard-check" size="3x" />
+            </div>
+            <h4>Gestión de Dictámenes</h4>
+            <p>Utiliza los filtros de búsqueda para consultar dictámenes de uso de suelo</p>
+          </div>
+
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="dictamenes.length === 0 && hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
+            </div>
+            <h4>Sin resultados</h4>
+            <p>No se encontraron registros con los criterios especificados</p>
+          </div>
+
+          <div v-else class="table-responsive">
             <table class="municipal-table">
               <thead class="municipal-table-header">
                 <tr>
@@ -215,16 +239,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="dictamenes.length === 0">
-                  <td colspan="10" class="empty-state">
-                    <div class="empty-state-content">
-                      <font-awesome-icon icon="inbox" class="empty-state-icon" />
-                      <p class="empty-state-text">No se encontraron dictámenes</p>
-                      <p class="empty-state-hint">Intenta ajustar los filtros de búsqueda o presiona "Actualizar"</p>
-                    </div>
-                  </td>
-                </tr>
-                <tr v-else v-for="dictamen in dictamenes" :key="dictamen.id_dictamen" class="row-hover">
+                <tr
+                  v-for="dictamen in dictamenes"
+                  :key="dictamen.id_dictamen"
+                  @click="selectedRow = dictamen"
+                  :class="{ 'table-row-selected': selectedRow === dictamen }"
+                  class="row-hover"
+                >
                   <td>
                     <span class="badge badge-light-info">{{ dictamen.id_dictamen }}</span>
                   </td>
@@ -273,50 +294,52 @@
         </div>
 
         <!-- Paginación -->
-        <div class="pagination-container" v-if="totalRecords > 0">
+        <div v-if="dictamenes.length > 0" class="pagination-controls">
           <div class="pagination-info">
-            <font-awesome-icon icon="info-circle" />
-            Mostrando {{ startRecord }} - {{ endRecord }} de {{ formatNumber(totalRecords) }} registros
+            <span class="text-muted">
+              Mostrando {{ ((currentPage - 1) * pageSize) + 1 }}
+              a {{ Math.min(currentPage * pageSize, totalRecords) }}
+              de {{ formatNumber(totalRecords) }} registros
+            </span>
           </div>
 
-          <div class="pagination-controls">
-            <div class="page-size-selector">
-              <label>Mostrar:</label>
-              <select v-model="pageSize" @change="changePageSize">
-                <option :value="10">10</option>
-                <option :value="20">20</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
-              </select>
-            </div>
+          <div class="pagination-size">
+            <label class="municipal-form-label me-2">Registros por página:</label>
+            <select
+              class="municipal-form-control form-control-sm"
+              :value="pageSize"
+              @change="changePageSize($event.target.value)"
+              style="width: auto; display: inline-block;"
+            >
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
 
-            <div class="pagination-nav">
-              <button
-                class="pagination-button"
-                @click="changePage(currentPage - 1)"
-                :disabled="currentPage === 1 || loading"
-              >
-                <font-awesome-icon icon="chevron-left" />
-              </button>
-
-              <button
-                v-for="page in visiblePages"
-                :key="page"
-                class="pagination-button"
-                :class="{ active: page === currentPage }"
-                @click="changePage(page)"
-              >
-                {{ page }}
-              </button>
-
-              <button
-                class="pagination-button"
-                @click="changePage(currentPage + 1)"
-                :disabled="currentPage === totalPages || loading"
-              >
-                <font-awesome-icon icon="chevron-right" />
-              </button>
-            </div>
+          <div class="pagination-buttons">
+            <button class="btn-municipal-secondary btn-sm" @click="changePage(1)" :disabled="currentPage === 1">
+              <font-awesome-icon icon="angle-double-left" />
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="changePage(currentPage - 1)" :disabled="currentPage === 1">
+              <font-awesome-icon icon="angle-left" />
+            </button>
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="btn-sm"
+              :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+              @click="changePage(page)"
+            >
+              {{ page }}
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="changePage(currentPage + 1)" :disabled="currentPage === totalPages">
+              <font-awesome-icon icon="angle-right" />
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="changePage(totalPages)" :disabled="currentPage === totalPages">
+              <font-awesome-icon icon="angle-double-right" />
+            </button>
           </div>
         </div>
       </div>
@@ -712,25 +735,24 @@
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
       <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
         <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" class="toast-duration-icon" />
-          {{ toast.duration }}
-        </span>
       </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda/Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'dictamenfrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Dictamen'"
+      @close="showDocModal = false"
     />
   </div>
 </template>
@@ -745,19 +767,34 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
 // Composables
-const { execute, loading } = useApi()
+const { execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Estado
 const dictamenes = ref([])
 const selectedDictamen = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const showDetailModal = ref(false)
 const showFormModal = ref(false)
 const isEditing = ref(false)
 const saving = ref(false)
-const showDocumentation = ref(false)
-const showFilters = ref(false) // CORREGIDO: Inicia cerrado
+const showFilters = ref(false)
 const loadingStats = ref(true)
 
 // Estadísticas
@@ -833,7 +870,7 @@ const cargarEstadisticas = async () => {
       'sp_dictamenes_estadisticas',
       'padron_licencias',
       [],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     const endTime = performance.now()
@@ -865,10 +902,14 @@ const limpiarFiltros = async () => {
   currentPage.value = 1
   dictamenes.value = []
   totalRecords.value = 0
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const loadDictamenes = async () => {
   showLoading('Cargando dictámenes...', 'Buscando registros en la base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
   try {
     const startTime = performance.now()
 
@@ -882,7 +923,7 @@ const loadDictamenes = async () => {
         { nombre: 'p_domicilio', valor: searchForm.value.domicilio || null, tipo: 'string' },
         { nombre: 'p_actividad', valor: searchForm.value.actividad || null, tipo: 'string' }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     const endTime = performance.now()
@@ -908,12 +949,15 @@ const loadDictamenes = async () => {
 const changePage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    selectedRow.value = null
     loadDictamenes()
   }
 }
 
-const changePageSize = () => {
+const changePageSize = (size) => {
+  pageSize.value = parseInt(size)
   currentPage.value = 1
+  selectedRow.value = null
   loadDictamenes()
 }
 
@@ -1017,7 +1061,7 @@ const createDictamen = async () => {
         { nombre: 'p_subzona', valor: formData.value.subzona || null, tipo: 'integer' },
         { nombre: 'p_dictamen', valor: formData.value.dictamen, tipo: 'string' }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -1086,7 +1130,7 @@ const updateDictamen = async () => {
         { nombre: 'p_subzona', valor: formData.value.subzona || null, tipo: 'string' },
         { nombre: 'p_dictamen', valor: formData.value.dictamen, tipo: 'string' }
       ],
-      '', null, 'comun'
+      '', null, 'publico'
     )
 
     if (response && response.result && response.result[0]?.success) {
@@ -1136,14 +1180,6 @@ const toggleFilters = () => {
   showFilters.value = !showFilters.value
 }
 
-const openDocumentation = () => {
-  showDocumentation.value = true
-}
-
-const closeDocumentation = () => {
-  showDocumentation.value = false
-}
-
 const formatDate = (date) => {
   if (!date) return 'N/A'
   return new Date(date).toLocaleDateString('es-MX')
@@ -1189,3 +1225,94 @@ const getDictamenBadgeClass = (valor) => {
   }
 }
 </script>
+
+<style scoped>
+/* ========================================
+   ESTILOS DE TABLA - COLUMNAS OPTIMIZADAS
+   ======================================== */
+
+/* Tabla con layout fijo para anchos controlados */
+.municipal-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* Anchos de columnas específicos */
+.municipal-table th.w-5,
+.municipal-table td:nth-child(1) { width: 60px; }
+
+.municipal-table th.w-20:nth-child(2),
+.municipal-table td:nth-child(2) { width: 150px; }
+
+.municipal-table th.w-20:nth-child(3),
+.municipal-table td:nth-child(3) { width: 150px; }
+
+.municipal-table th.w-20:nth-child(4),
+.municipal-table td:nth-child(4) { width: 140px; }
+
+.municipal-table th.w-8,
+.municipal-table td:nth-child(5) { width: 80px; }
+
+.municipal-table th:nth-child(6),
+.municipal-table td:nth-child(6) { width: 60px; }
+
+.municipal-table th.w-7:nth-child(7),
+.municipal-table td:nth-child(7) { width: 80px; }
+
+.municipal-table th:nth-child(8),
+.municipal-table td:nth-child(8) { width: 90px; }
+
+.municipal-table th:nth-child(9),
+.municipal-table td:nth-child(9) { width: 85px; }
+
+.municipal-table th.w-10,
+.municipal-table td:nth-child(10) { width: 90px; }
+
+/* Texto truncado con ellipsis */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: block;
+}
+
+/* Celdas de encabezado más compactas */
+.municipal-table-header th {
+  font-size: 0.8rem;
+  padding: 0.5rem 0.4rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Celdas de datos más compactas */
+.municipal-table tbody td {
+  font-size: 0.85rem;
+  padding: 0.4rem;
+  vertical-align: middle;
+}
+
+/* Badge más compacto */
+.badge {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Botones de acción más pequeños */
+.button-group-sm .btn-sm {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.75rem;
+}
+
+/* Container responsive */
+.table-container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+</style>

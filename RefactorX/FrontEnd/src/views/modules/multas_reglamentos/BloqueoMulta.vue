@@ -6,6 +6,16 @@
         <h1>Bloqueo de Multa</h1>
         <p>Administración de bloqueos a folios</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -113,7 +123,29 @@
         <template #footer>
           <div class="button-group">
             <button class="btn-municipal-primary" @click="showDetail=false">Aceptar</button>
-          </div>
+          
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'BloqueoMulta'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Bloqueo de Multa'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'BloqueoMulta'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Bloqueo de Multa'"
+      @close="showDocumentacion = false"
+    />
+
+  </div>
         </template>
       </Modal>
 
@@ -162,20 +194,20 @@
       </Modal>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
 import Modal from '@/components/common/Modal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_LIST = 'RECAUDADORA_BLOQUEO_MULTA'
@@ -183,6 +215,7 @@ const OP_BLOQUEAR = 'RECAUDADORA_BLOQUEAR_MULTA'
 const OP_DESBLOQUEAR = 'RECAUDADORA_DESBLOQUEAR_MULTA'
 
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { showSuccess, showError } = useToast()
 
 const filters = ref({ cuenta: '', ejercicio: new Date().getFullYear() })
@@ -213,6 +246,7 @@ async function reload() {
     { nombre: 'p_limit', valor: pageSize.value, tipo: 'int' }
   ]
 
+  showLoading('Consultando multas...', 'Por favor espere')
   try {
     console.log('🔍 Buscando multas con parámetros:', params)
     console.log('🔍 Cuenta vacía?', !filters.value.cuenta, 'Año:', filters.value.ejercicio)
@@ -289,6 +323,8 @@ async function reload() {
     rows.value = []
     total.value = 0
     showError('Error al cargar registros: ' + (e.message || 'Error desconocido'))
+  } finally {
+    hideLoading()
   }
 }
 
@@ -422,58 +458,4 @@ function formatNumber(value) {
 reload()
 </script>
 
-<style scoped>
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-.detail-item {
-  padding: 0.5rem;
-  border-bottom: 1px solid #eee;
-}
-
-.detail-item:last-child {
-  border-bottom: none;
-}
-
-.modal-form {
-  padding: 1rem 0;
-}
-
-.modal-form .form-group {
-  margin-bottom: 1rem;
-}
-
-.badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.badge-success {
-  background-color: #28a745;
-  color: white;
-}
-
-.badge-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-.btn-municipal-warning {
-  background-color: #ffc107;
-  color: #000;
-}
-
-.btn-municipal-warning:hover {
-  background-color: #e0a800;
-}
-
-.text-danger {
-  color: #dc3545;
-}
-</style>
 

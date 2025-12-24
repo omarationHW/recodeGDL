@@ -28,13 +28,17 @@
         </button>
         <button
           v-if="currentView === 'manage'"
-          class="btn-municipal-secondary"
+          class="btn-municipal-warning"
           @click="backToList"
         >
           <font-awesome-icon icon="arrow-left" />
           Volver a Lista
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -80,7 +84,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="grupo in paginatedGrupos" :key="grupo.id" class="row-hover">
+                <tr
+                  v-for="grupo in paginatedGrupos"
+                  :key="grupo.id"
+                  @click="selectedRow = grupo"
+                  :class="{ 'table-row-selected': selectedRow === grupo }"
+                  class="row-hover"
+                >
                   <td>
                     <strong class="text-primary">{{ grupo.id }}</strong>
                   </td>
@@ -94,7 +104,7 @@
                     <div class="button-group button-group-sm">
                       <button
                         class="btn-municipal-info btn-sm"
-                        @click="manageLicencias(grupo)"
+                        @click.stop="manageLicencias(grupo)"
                         title="Gestionar licencias"
                       >
                         <font-awesome-icon icon="cog" />
@@ -102,14 +112,14 @@
                       </button>
                       <button
                         class="btn-municipal-primary btn-sm"
-                        @click="editGrupo(grupo)"
+                        @click.stop="editGrupo(grupo)"
                         title="Editar"
                       >
                         <font-awesome-icon icon="edit" />
                       </button>
                       <button
                         class="btn-municipal-danger btn-sm"
-                        @click="confirmDeleteGrupo(grupo)"
+                        @click.stop="confirmDeleteGrupo(grupo)"
                         title="Eliminar"
                       >
                         <font-awesome-icon icon="trash" />
@@ -132,52 +142,53 @@
         </div>
 
         <!-- Paginación -->
-        <div class="pagination-container" v-if="totalRecords > 0">
+        <div v-if="grupos.length > 0" class="pagination-controls">
           <div class="pagination-info">
-            <font-awesome-icon icon="info-circle" />
-            Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
-            a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
-            de {{ totalRecords }} registros
+            <span class="text-muted">
+              Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+              a {{ Math.min(currentPage * itemsPerPage, totalRecords) }}
+              de {{ formatNumber(totalRecords) }} registros
+            </span>
           </div>
 
-          <div class="pagination-controls">
-            <div class="page-size-selector">
-              <label>Mostrar:</label>
-              <select v-model="itemsPerPage" @change="changePageSize">
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-                <option :value="100">100</option>
-              </select>
-            </div>
+          <div class="pagination-size">
+            <label class="municipal-form-label me-2">Registros por página:</label>
+            <select
+              class="municipal-form-control form-control-sm"
+              :value="itemsPerPage"
+              @change="changePageSize($event.target.value)"
+              style="width: auto; display: inline-block;"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
 
-            <div class="pagination-nav">
-              <button
-                class="pagination-button"
-                @click="goToPage(currentPage - 1)"
-                :disabled="currentPage === 1"
-              >
-                <font-awesome-icon icon="chevron-left" />
-              </button>
-
-              <button
-                v-for="page in visiblePages"
-                :key="page"
-                class="pagination-button"
-                :class="{ active: page === currentPage }"
-                @click="goToPage(page)"
-              >
-                {{ page }}
-              </button>
-
-              <button
-                class="pagination-button"
-                @click="goToPage(currentPage + 1)"
-                :disabled="currentPage === totalPages"
-              >
-                <font-awesome-icon icon="chevron-right" />
-              </button>
-            </div>
+          <div class="pagination-buttons">
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(1)" :disabled="currentPage === 1">
+              <font-awesome-icon icon="angle-double-left" />
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+              <font-awesome-icon icon="angle-left" />
+            </button>
+            <button
+              v-for="page in visiblePages"
+              :key="page"
+              class="btn-sm"
+              :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">
+              <font-awesome-icon icon="angle-right" />
+            </button>
+            <button class="btn-municipal-secondary btn-sm" @click="goToPage(totalPages)" :disabled="currentPage === totalPages">
+              <font-awesome-icon icon="angle-double-right" />
+            </button>
           </div>
         </div>
       </div>
@@ -367,26 +378,26 @@
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
       <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
         <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" class="toast-duration-icon" />
-          {{ toast.duration }}
-        </span>
       </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'gruposLicenciasfrm'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Grupos de Licencias'"
+      @close="showDocModal = false"
     />
+
   </div>
   <!-- /module-view -->
 </template>
@@ -401,10 +412,19 @@ import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
@@ -415,6 +435,10 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
+
+// Variables de estado
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Estado
 const currentView = ref('list') // 'list' | 'manage'
@@ -453,10 +477,13 @@ const totalPages = computed(() => {
 
 const visiblePages = computed(() => {
   const pages = []
-  const start = Math.max(1, currentPage.value - 2)
-  const end = Math.min(totalPages.value, currentPage.value + 2)
-
-  for (let i = start; i <= end; i++) {
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+  for (let i = startPage; i <= endPage; i++) {
     pages.push(i)
   }
   return pages
@@ -497,6 +524,8 @@ const filteredLicenciasGrupo = computed(() => {
 // Métodos
 const loadGrupos = async () => {
   showLoading('Cargando grupos...')
+  hasSearched.value = true
+  selectedRow.value = null
   const startTime = performance.now()
 
   try {
@@ -1021,15 +1050,15 @@ const backToList = () => {
 }
 
 const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-    // No hay paginación real en SPs, solo visual
-  }
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  selectedRow.value = null
 }
 
-const changePageSize = () => {
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
   currentPage.value = 1
-  // No hay paginación real en SPs, solo visual
+  selectedRow.value = null
 }
 
 // Utilidades

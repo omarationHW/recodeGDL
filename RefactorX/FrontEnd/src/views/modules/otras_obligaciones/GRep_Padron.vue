@@ -10,11 +10,11 @@
         <p>Otras Obligaciones - Generación de reporte de padrón con adeudos</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" />
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
           Documentacion
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -101,7 +101,7 @@
 
       <!-- Tabla de resultados -->
       <div class="municipal-card mt-3" v-if="padronData.length > 0">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header header-with-badge">
           <h5>
             <font-awesome-icon icon="list" />
             {{ nombreTabla }}
@@ -206,26 +206,19 @@
 
     </div>
 
-    <!-- Modal de documentación -->
+    <!-- Modal de Ayuda y Documentacion -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'GRep_Padron'"
       :moduleName="'otras_obligaciones'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Reporte de Padrón con Adeudos'"
+      @close="showDocModal = false"
     />
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'GRep_Padron'"
-      :moduleName="'otras_obligaciones'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '@/composables/useApi'
@@ -242,8 +235,20 @@ const { showToast, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
 const { exportToPdf } = usePdfExport()
 const loading = ref(false)
-const showDocumentation = ref(false)
-const showTechDocs = ref(false)
+
+// Documentacion y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 const dialogDetalle = ref(false)
 const padronData = ref([])
 const detalleAdeudos = ref([])
@@ -455,22 +460,6 @@ const handleExportar = () => {
   XLSX.utils.book_append_sheet(wb, ws, 'Padrón Adeudos')
   XLSX.writeFile(wb, `Padron_Adeudos_${Date.now()}.xlsx`)
   showToast('success', 'Exportación exitosa')
-}
-
-const openDocumentation = () => {
-  showDocumentation.value = true
-}
-
-const closeDocumentation = () => {
-  showDocumentation.value = false
-}
-
-const mostrarDocumentacion = () => {
-  showTechDocs.value = true
-}
-
-const closeTechDocs = () => {
-  showTechDocs.value = false
 }
 
 const handleImprimir = () => {

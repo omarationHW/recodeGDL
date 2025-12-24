@@ -8,6 +8,16 @@
         <h1>Registro Histórico</h1>
         <p>Consulta histórica de registros de multas y reglamentos</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -167,22 +177,44 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'regHfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Registro Histórico'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'regHfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Registro Histórico'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP = 'RECAUDADORA_REGHFRM'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filtros = ref({
   id_multa: null,
@@ -213,6 +245,7 @@ async function consultar() {
   resultado.value = null
 
   try {
+    showLoading('Consultando...', 'Por favor espere')
     console.log('🔍 Ejecutando consulta:', OP)
     console.log('🔍 Filtros:', filtros.value)
 
@@ -247,7 +280,7 @@ async function consultar() {
       }
     ]
 
-    const data = await execute(OP, BASE_DB, params)
+    const data = await execute(OP, BASE_DB, params, '', null, SCHEMA)
 
     console.log('✅ Resultado:', data)
 
@@ -272,6 +305,8 @@ async function consultar() {
   } catch (e) {
     error.value = e.message || 'Error al consultar registros históricos'
     console.error('❌ Error:', e)
+  } finally {
+    hideLoading()
   }
 }
 
@@ -316,143 +351,3 @@ function truncate(text, maxLength) {
 }
 </script>
 
-<style scoped>
-.municipal-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-}
-
-.municipal-card-header {
-  padding: 15px 20px;
-  border-bottom: 1px solid #e0e0e0;
-  background: linear-gradient(135deg, #ea8215 0%, #d67512 100%);
-  color: white;
-  font-weight: bold;
-  border-radius: 8px 8px 0 0;
-}
-
-.municipal-card-header h5 {
-  margin: 0;
-  color: white;
-}
-
-.municipal-card-body {
-  padding: 20px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
-  margin-bottom: 15px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.municipal-form-label {
-  font-weight: 600;
-  margin-bottom: 5px;
-  color: #333;
-  display: block;
-}
-
-.municipal-form-control {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.btn-municipal-secondary {
-  background: #6c757d;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  background: #5a6268;
-  transform: translateY(-1px);
-}
-
-.btn-municipal-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.municipal-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-}
-
-.municipal-table-header {
-  background: linear-gradient(135deg, #ea8215 0%, #d67512 100%);
-  color: white;
-}
-
-.municipal-table th,
-.municipal-table td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: left;
-}
-
-.municipal-table th {
-  font-weight: bold;
-  color: white;
-}
-
-.row-hover:hover {
-  background-color: #f9f9f9;
-}
-
-.table-responsive {
-  overflow-x: auto;
-}
-
-.summary-info {
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 2px solid #ea8215;
-}
-
-.summary-info p {
-  margin: 5px 0;
-  font-size: 1.1rem;
-}
-
-.alert {
-  padding: 12px 20px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-}
-
-.alert-success {
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
-}
-
-.alert-danger {
-  background-color: #f8d7da;
-  border: 1px solid #f5c2c7;
-  color: #842029;
-}
-</style>

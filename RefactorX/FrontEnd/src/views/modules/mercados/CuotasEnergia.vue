@@ -8,7 +8,18 @@
       <div class="module-view-info">
         <h1>Cuotas de Energía Eléctrica</h1>
         <p>Inicio > Mercados > Cuotas de Energía</p>
-      </div>
+      
+      <div class="header-actions">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        </div>
+</div>
     </div>
 
     <div class="module-view-content">
@@ -42,7 +53,7 @@
                 </div>
               </div>
               <div class="d-flex gap-2">
-                <button type="submit" class="btn-municipal-success" :disabled="loading">
+                <button type="submit" class="btn-municipal-primary" :disabled="loading">
                   <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
                   {{ editRow ? 'Guardar Cambios' : 'Agregar' }}
                 </button>
@@ -72,7 +83,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in cuotas" :key="row.id_kilowhatts">
+              <tr v-for="row in paginatedData" :key="row.id_kilowhatts">
                 <td>{{ row.id_kilowhatts }}</td>
                 <td>{{ row.axo }}</td>
                 <td>{{ row.periodo }}</td>
@@ -89,23 +100,140 @@
               </tr>
             </tbody>
           </table>
+
+          <!-- Controles de paginación -->
+          <div v-if="cuotas.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, cuotas.length) }}
+                de {{ cuotas.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'CuotasEnergia'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CuotasEnergia'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CuotasEnergia'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CuotasEnergia'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
-import { useToast } from 'vue-toastification'
+import Swal from 'sweetalert2'
 
-const toast = useToast()
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
+
+const { showToast } = useToast()
 const loading = ref(false)
 const cuotas = ref([])
 const showCreate = ref(false)
 const editRow = ref(null)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 const form = ref({
   axo: new Date().getFullYear(),
@@ -113,24 +241,66 @@ const form = ref({
   importe: null
 })
 
+// Computed para paginación
+const totalPages = computed(() => {
+  return Math.ceil(cuotas.value.length / itemsPerPage.value)
+})
+
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return cuotas.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
+}
+
 const fetchCuotas = async () => {
   loading.value = true
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cuotas_energia_list',
-        Base: 'mercados',
-        Parametros: []
-      }
-    })
+    const response = await apiService.execute(
+          'sp_cuotas_energia_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-      cuotas.value = response.data.eResponse.data.result
+    if (response.success && response.data?.result) {
+      cuotas.value = response.data.result
+      currentPage.value = 1
     } else {
       cuotas.value = []
     }
   } catch (error) {
-    toast.error('Error al cargar cuotas')
+    showToast('Error al cargar cuotas', 'error')
     console.error('Error:', error)
     cuotas.value = []
   } finally {
@@ -147,29 +317,30 @@ const openCreateForm = () => {
 const createCuota = async () => {
   loading.value = true
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cuotas_energia_create',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },
-          { Nombre: 'p_periodo', Valor: parseInt(form.value.periodo) },
-          { Nombre: 'p_importe', Valor: parseFloat(form.value.importe) },
-          { Nombre: 'p_id_usuario', Valor: 1 } // TODO: Obtener de sesión
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_cuotas_energia_create',
+          'mercados',
+          [
+          { nombre: 'p_axo', valor: parseInt(form.value.axo) },
+          { nombre: 'p_periodo', valor: parseInt(form.value.periodo) },
+          { nombre: 'p_importe', valor: parseFloat(form.value.importe) },
+          { nombre: 'p_id_usuario', valor: 1 } // TODO: Obtener de sesión
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data?.eResponse?.success) {
-      toast.success('Cuota agregada correctamente')
+    if (response.success) {
+      showToast('Cuota agregada correctamente', 'success')
       showCreate.value = false
       resetForm()
       await fetchCuotas()
     } else {
-      toast.error(response.data?.eResponse?.message || 'Error al agregar cuota')
+      showToast(response.message || 'Error al agregar cuota', 'error')
     }
   } catch (error) {
-    toast.error('Error al agregar cuota')
+    showToast('Error al agregar cuota', 'error')
     console.error('Error:', error)
   } finally {
     loading.value = false
@@ -190,30 +361,31 @@ const editCuota = (row) => {
 const updateCuota = async () => {
   loading.value = true
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cuotas_energia_update',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_kilowhatts', Valor: parseInt(form.value.id_kilowhatts) },
-          { Nombre: 'p_axo', Valor: parseInt(form.value.axo) },
-          { Nombre: 'p_periodo', Valor: parseInt(form.value.periodo) },
-          { Nombre: 'p_importe', Valor: parseFloat(form.value.importe) },
-          { Nombre: 'p_id_usuario', Valor: 1 } // TODO: Obtener de sesión
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_cuotas_energia_update',
+          'mercados',
+          [
+          { nombre: 'p_id_kilowhatts', valor: parseInt(form.value.id_kilowhatts) },
+          { nombre: 'p_axo', valor: parseInt(form.value.axo) },
+          { nombre: 'p_periodo', valor: parseInt(form.value.periodo) },
+          { nombre: 'p_importe', valor: parseFloat(form.value.importe) },
+          { nombre: 'p_id_usuario', valor: 1 } // TODO: Obtener de sesión
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data?.eResponse?.success) {
-      toast.success('Cuota modificada correctamente')
+    if (response.success) {
+      showToast('Cuota modificada correctamente', 'success')
       editRow.value = null
       resetForm()
       await fetchCuotas()
     } else {
-      toast.error(response.data?.eResponse?.message || 'Error al modificar cuota')
+      showToast(response.message || 'Error al modificar cuota', 'error')
     }
   } catch (error) {
-    toast.error('Error al modificar cuota')
+    showToast('Error al modificar cuota', 'error')
     console.error('Error:', error)
   } finally {
     loading.value = false
@@ -226,24 +398,25 @@ const deleteCuota = async (row) => {
 
   loading.value = true
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cuotas_energia_delete',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_kilowhatts', Valor: parseInt(row.id_kilowhatts) }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_cuotas_energia_delete',
+          'mercados',
+          [
+          { nombre: 'p_id_kilowhatts', valor: parseInt(row.id_kilowhatts) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data?.eResponse?.success) {
-      toast.success('Cuota eliminada correctamente')
+    if (response.success) {
+      showToast('Cuota eliminada correctamente', 'success')
       await fetchCuotas()
     } else {
-      toast.error(response.data?.eResponse?.message || 'Error al eliminar cuota')
+      showToast(response.message || 'Error al eliminar cuota', 'error')
     }
   } catch (error) {
-    toast.error('Error al eliminar cuota')
+    showToast('Error al eliminar cuota', 'error')
     console.error('Error:', error)
   } finally {
     loading.value = false
@@ -283,9 +456,3 @@ onMounted(() => {
   fetchCuotas()
 })
 </script>
-
-<style scoped>
-.gap-2 {
-  gap: 0.5rem;
-}
-</style>

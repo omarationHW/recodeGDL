@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Navegador Web</h1>
-        <p>Padrón de Licencias - Navegador Web Integrado</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Navegador Web Integrado</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button
           class="btn-municipal-primary"
@@ -176,7 +179,10 @@
     >
       <div class="bookmarks-list">
         <div v-if="bookmarks.length === 0" class="empty-state">
-          <font-awesome-icon icon="bookmark" size="2x" class="empty-icon" />
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="bookmark" size="3x" />
+          </div>
+          <h4>Sin Marcadores</h4>
           <p>No hay marcadores guardados</p>
         </div>
 
@@ -191,7 +197,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="bookmark in bookmarks" :key="bookmark.id" class="clickable-row">
+              <tr
+                v-for="bookmark in bookmarks"
+                :key="bookmark.id"
+                @click="selectedRow = bookmark"
+                :class="{ 'table-row-selected': selectedRow === bookmark }"
+                class="row-hover"
+              >
                 <td>
                   <font-awesome-icon icon="bookmark" class="text-primary" />
                   {{ bookmark.nombre }}
@@ -208,14 +220,14 @@
                   <div class="button-group button-group-sm">
                     <button
                       class="btn-municipal-primary btn-sm"
-                      @click="navigateToUrl(bookmark.url); showBookmarksModal = false"
+                      @click.stop="navigateToUrl(bookmark.url); showBookmarksModal = false"
                       title="Ir a este sitio"
                     >
                       <font-awesome-icon icon="arrow-right" />
                     </button>
                     <button
                       class="btn-municipal-danger btn-sm"
-                      @click="deleteBookmark(bookmark)"
+                      @click.stop="deleteBookmark(bookmark)"
                       title="Eliminar"
                     >
                       <font-awesome-icon icon="trash" />
@@ -236,28 +248,31 @@
       </div>
     </Modal>
 
-    <!-- Toast Notification -->
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'webBrowser'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Navegador Web'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -266,24 +281,34 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Estado
 const currentUrl = ref('')
@@ -293,6 +318,9 @@ const showBookmarksModal = ref(false)
 const showSecurityWarning = ref(true)
 const navigationHistory = ref([])
 const currentHistoryIndex = ref(-1)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
+const loading = ref(false)
 
 // Enlaces rápidos
 const quickLinks = ref([
@@ -353,7 +381,7 @@ const navigateTo = () => {
 }
 
 const navigateToUrl = (url) => {
-  setLoading(true)
+  loading.value = true
   loadedUrl.value = url
   currentUrl.value = url
 
@@ -383,7 +411,7 @@ const goForward = () => {
 
 const reload = () => {
   if (loadedUrl.value) {
-    setLoading(true)
+    loading.value = true
     const temp = loadedUrl.value
     loadedUrl.value = ''
     setTimeout(() => {
@@ -393,7 +421,7 @@ const reload = () => {
 }
 
 const onIframeLoad = () => {
-  setLoading(false)
+  loading.value = false
 }
 
 const addBookmark = async () => {
@@ -523,3 +551,198 @@ onBeforeUnmount(() => {
 })
 </script>
 
+<style scoped>
+.browser-toolbar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.url-bar {
+  flex: 1;
+}
+
+.url-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid #dee2e6;
+}
+
+.url-icon {
+  color: #6c757d;
+  margin-left: 0.25rem;
+}
+
+.url-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 0;
+}
+
+.go-button {
+  white-space: nowrap;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.security-warning {
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+}
+
+.warning-content {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.warning-icon {
+  color: #ffc107;
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.warning-text h6 {
+  margin: 0 0 0.5rem 0;
+  color: #856404;
+  font-weight: 600;
+}
+
+.warning-text p {
+  margin: 0;
+  color: #856404;
+}
+
+.warning-actions {
+  text-align: right;
+}
+
+.browser-container {
+  min-height: 600px;
+  height: calc(100vh - 400px);
+}
+
+.browser-card-body {
+  position: relative;
+  height: 100%;
+  padding: 0;
+}
+
+.browser-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 3rem;
+  text-align: center;
+  color: #6c757d;
+}
+
+.placeholder-icon {
+  color: #dee2e6;
+  margin-bottom: 1.5rem;
+}
+
+.browser-placeholder h3 {
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.quick-links {
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+.quick-links h6 {
+  margin-bottom: 1rem;
+  color: #495057;
+}
+
+.quick-link-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #ea8215;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.browser-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  min-height: 500px;
+}
+
+.bookmarks-list {
+  min-height: 300px;
+}
+
+.bookmark-url {
+  font-size: 0.875rem;
+  color: #6c757d;
+  background: #f8f9fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  display: inline-block;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-actions {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
+  text-align: right;
+}
+</style>

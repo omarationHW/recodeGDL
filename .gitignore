@@ -36,9 +36,24 @@ composer.lock
 # Temporary files
 *.tmp
 *.temp
+tmp/
 
-# Claude
+# Claude - Excluir completamente
 .claude/
+**/.claude/
 
 # Backups and temporary folders
 res/
+
+# Compressed files
+*.rar
+*.zip
+*.7z
+*.tar.gz
+
+# Base folder (Delphi legacy code - no subir)
+RefactorX/Base/
+
+# SQL folder (scripts locales)
+RefactorX/sql/
+*.bak

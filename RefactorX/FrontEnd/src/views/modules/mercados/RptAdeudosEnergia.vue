@@ -10,6 +10,15 @@
         <p>Inicio > Reportes > Adeudos de Energía Eléctrica</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel" :disabled="datos.length === 0">
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
@@ -18,10 +27,7 @@
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -33,7 +39,7 @@
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon :icon="showFilters ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+            <font-awesome-icon :icon="showFilters ? 'angle-up' : 'angle-down'" class="ms-2" />
           </h5>
         </div>
         <div v-show="showFilters" class="municipal-card-body">
@@ -140,7 +146,7 @@
 
             <div class="pagination-controls">
               <label>Registros por página:</label>
-              <select v-model.number="pageSize" class="form-select form-select-sm">
+              <select v-model.number="pageSize" class="municipal-form-control" style="width: auto;">
                 <option :value="10">10</option>
                 <option :value="25">25</option>
                 <option :value="50">50</option>
@@ -150,12 +156,12 @@
             </div>
 
             <div class="pagination-buttons">
-              <button @click="previousPage" :disabled="currentPage === 1">
-                <font-awesome-icon icon="chevron-left" />
+              <button @click="previousPage" :disabled="currentPage === 1" class="btn-municipal-secondary">
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span>Página {{ currentPage }} de {{ totalPages }}</span>
-              <button @click="nextPage" :disabled="currentPage === totalPages">
-                <font-awesome-icon icon="chevron-right" />
+              <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-municipal-secondary">
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>
@@ -163,13 +169,21 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptAdeudosEnergia'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptAdeudosEnergia'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptAdeudosEnergia'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptAdeudosEnergia'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
 import { useToast } from '@/composables/useToast';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 // Composables
 const { showLoading, hideLoading } = useGlobalLoading();
@@ -217,18 +231,18 @@ const consultar = async () => {
   currentPage.value = 1;
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'rpt_adeudos_energia',
-        Base: 'mercados',
-        Parametros: [{ Nombre: 'Axo', Valor: filters.value.axo },
-        { Nombre: 'Oficina', Valor: filters.value.oficina }]
-        // Parametros: [filters.value.axo, filters.value.oficina]
-      }
-    });
+    const response = await apiService.execute(
+          'rpt_adeudos_energia',
+          'mercados',
+          [{ nombre: 'Axo', valor: filters.value.axo },
+        { nombre: 'Oficina', valor: filters.value.oficina }],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      datos.value = response.data.eResponse.data.result;
+    if (response?.success && response?.data?.result) {
+      datos.value = response.data.result;
       showToast(
         datos.value.length === 0
           ? 'No se encontraron resultados'

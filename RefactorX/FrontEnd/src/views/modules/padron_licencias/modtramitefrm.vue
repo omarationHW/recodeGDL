@@ -10,7 +10,7 @@
         <p>Padrón de Licencias - Actualizar información de trámites en proceso</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="regresarConsulta">
+        <button class="btn-municipal-warning" @click="regresarConsulta">
           <font-awesome-icon icon="arrow-left" />
           Regresar a Consulta
         </button>
@@ -18,7 +18,11 @@
           <font-awesome-icon icon="plus" />
           Nuevo Trámite
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -112,9 +116,9 @@
       <!-- Formulario de Edición (solo si hay trámite y se puede modificar) -->
       <template v-if="tramiteEncontrado && puedeModificar">
         <!-- Tabs de Navegación -->
-        <div class="tabs-container">
+        <div class="municipal-tabs">
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'propietario' }"
             @click="setActiveTab('propietario')"
           >
@@ -122,7 +126,7 @@
             Datos del Propietario
           </button>
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'domicilioFiscal' }"
             @click="setActiveTab('domicilioFiscal')"
           >
@@ -130,7 +134,7 @@
             Domicilio Fiscal
           </button>
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'ubicacionNegocio' }"
             @click="setActiveTab('ubicacionNegocio')"
           >
@@ -138,7 +142,7 @@
             Ubicación del Negocio
           </button>
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'giroActividad' }"
             @click="setActiveTab('giroActividad')"
           >
@@ -146,7 +150,7 @@
             Giro y Actividad
           </button>
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'datosTecnicos' }"
             @click="setActiveTab('datosTecnicos')"
           >
@@ -154,7 +158,7 @@
             Datos Técnicos
           </button>
           <button
-            class="tab-button"
+            class="municipal-tab"
             :class="{ active: activeTab === 'observaciones' }"
             @click="setActiveTab('observaciones')"
           >
@@ -771,18 +775,46 @@
       </template>
 
       <!-- Empty State -->
-      <div v-if="!tramiteEncontrado" class="municipal-card">
-        <div class="municipal-card-body">
-          <div class="empty-state-content">
-            <div class="empty-state-icon">
-              <font-awesome-icon icon="search" />
-            </div>
-            <p class="empty-state-text">No hay trámite seleccionado</p>
-            <p class="empty-state-hint">Busque un trámite por su ID para comenzar</p>
-          </div>
+      <div v-if="!tramiteEncontrado && !hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="edit" size="3x" />
         </div>
+        <h4>Modificación de Trámites</h4>
+        <p>Busque un trámite por su ID para comenzar la modificación</p>
       </div>
+
+      <!-- Empty State - Sin resultados -->
+      <div v-else-if="!tramiteEncontrado && hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="inbox" size="3x" />
+        </div>
+        <h4>Sin resultados</h4>
+        <p>No se encontró un trámite con el ID especificado</p>
+      </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'modtramitefrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Modificación de Trámites'"
+        @close="showDocModal = false"
+      />
     </div>
+    <!-- /module-view-content -->
 
     <!-- Modal de Búsqueda de Giros -->
     <Modal :show="showGiroModal" @close="closeGiroModal" size="xl">
@@ -814,7 +846,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="giro in girosEncontrados" :key="giro.id_giro" class="clickable-row">
+              <tr
+                v-for="giro in girosEncontrados"
+                :key="giro.id_giro"
+                @click="selectedRow = giro"
+                :class="{ 'table-row-selected': selectedRow === giro }"
+                class="row-hover"
+              >
                 <td>{{ giro.id_giro }}</td>
                 <td>{{ giro.descripcion }}</td>
                 <td style="text-align: center;">
@@ -822,7 +860,7 @@
                   <span class="badge-secondary" v-else>Anun</span>
                 </td>
                 <td style="text-align: center;">
-                  <button class="btn-municipal-sm btn-municipal-primary" @click="seleccionarGiro(giro)">
+                  <button class="btn-municipal-sm btn-municipal-primary" @click.stop="seleccionarGiro(giro)">
                     Seleccionar
                   </button>
                 </td>
@@ -875,12 +913,18 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="calle in callesEncontradas" :key="calle.cvecalle" class="clickable-row">
+              <tr
+                v-for="calle in callesEncontradas"
+                :key="calle.cvecalle"
+                @click="selectedRow = calle"
+                :class="{ 'table-row-selected': selectedRow === calle }"
+                class="row-hover"
+              >
                 <td>{{ calle.calle }}</td>
                 <td style="text-align: center;">{{ calle.zona }}</td>
                 <td style="text-align: center;">{{ calle.subzona }}</td>
                 <td style="text-align: center;">
-                  <button class="btn-municipal-sm btn-municipal-primary" @click="seleccionarCalle(calle)">
+                  <button class="btn-municipal-sm btn-municipal-primary" @click.stop="seleccionarCalle(calle)">
                     Seleccionar
                   </button>
                 </td>
@@ -902,71 +946,6 @@
         </button>
       </template>
     </Modal>
-
-    <!-- Modal de Ayuda -->
-    <Modal :show="showDocumentation" @close="closeDocumentation" size="lg">
-      <template #header>
-        <h5>
-          <font-awesome-icon icon="question-circle" class="me-2" />
-          Ayuda - Modificación de Trámites
-        </h5>
-      </template>
-      <template #body>
-        <h6>Descripción del Módulo</h6>
-        <p>
-          Este módulo permite modificar la información de trámites en proceso (solicitudes de licencias o anuncios
-          que aún no han sido aprobados). Puede corregir datos del solicitante, actualizar ubicaciones,
-          modificar giros o actividades, y ajustar datos técnicos.
-        </p>
-
-        <h6>¿Qué trámites se pueden modificar?</h6>
-        <ul>
-          <li><strong>En Proceso (T):</strong> Trámites que están en revisión</li>
-          <li><strong>Rechazados (R):</strong> Trámites que fueron rechazados y necesitan corrección</li>
-        </ul>
-
-        <h6>¿Qué trámites NO se pueden modificar?</h6>
-        <ul>
-          <li><strong>Autorizados (A):</strong> Trámites ya aprobados (usar módulo de modificación de licencias)</li>
-          <li><strong>Cancelados (C):</strong> Trámites cancelados</li>
-        </ul>
-
-        <h6>Campos Obligatorios</h6>
-        <ul>
-          <li>Primer Apellido y Nombre(s) del propietario</li>
-          <li>RFC (formato: XXXX000000XXX)</li>
-          <li>CURP (formato: XXXX000000XXXXXX00)</li>
-          <li>Calle de ubicación del negocio</li>
-          <li>Número exterior de ubicación</li>
-          <li>Colonia de ubicación</li>
-          <li>Giro SCIAN y Actividad específica</li>
-        </ul>
-
-        <h6>Recomendaciones</h6>
-        <ul>
-          <li>Verifique que todos los datos sean correctos antes de actualizar</li>
-          <li>El RFC y CURP deben cumplir con el formato oficial</li>
-          <li>Use el botón de búsqueda para seleccionar giros y calles del catálogo</li>
-          <li>La zona y subzona se asignan automáticamente al seleccionar la calle</li>
-          <li>Agregue observaciones si el cambio es significativo</li>
-          <li>Los cambios quedan registrados con usuario y fecha de modificación</li>
-        </ul>
-
-        <h6>Diferencias importantes</h6>
-        <p>
-          <strong>Modificación de Trámites vs Modificación de Licencias:</strong>
-        </p>
-        <ul>
-          <li>Este módulo: Solicitudes en proceso (NO aprobadas)</li>
-          <li>modlicfrm: Registros ya autorizados y vigentes</li>
-        </ul>
-      </template>
-      <template #footer>
-        <button class="btn-municipal-secondary" @click="closeDocumentation">
-          Cerrar
-        </button>
-      </template>
-    </Modal>
   </div>
 </template>
 
@@ -977,6 +956,7 @@ import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import Modal from '@/components/common/Modal.vue'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
@@ -990,7 +970,22 @@ const searchId = ref(null)
 const tramiteEncontrado = ref(false)
 const tramiteOriginal = ref(null)
 const giroSeleccionado = ref('')
-const showDocumentation = ref(false)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Acordeones de búsqueda e info
 const showBusqueda = ref(true)
@@ -1089,7 +1084,9 @@ const buscarTramite = async () => {
     return
   }
 
-  showLoading('Buscando trámite...')
+  showLoading('Buscando trámite...', 'Consultando base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
   const startTime = performance.now()
 
   try {
@@ -1100,7 +1097,7 @@ const buscarTramite = async () => {
       [{ nombre: 'p_id_tramite', valor: searchId.value, tipo: 'integer' }],
       '',      // tenant
       null,    // pagination
-      'comun'  // esquema
+      'publico'  // esquema
     )
 
     if (!response || !response.result || response.result.length === 0) {
@@ -1197,7 +1194,7 @@ const cargarGiro = async (idGiro) => {
       [{ nombre: 'p_id_giro', valor: idGiro, tipo: 'integer' }],
       '',      // tenant
       null,    // pagination
-      'comun'  // esquema
+      'publico'  // esquema
     )
 
     if (response && response.result && response.result.length > 0) {
@@ -1213,6 +1210,8 @@ const limpiarFormulario = () => {
   tramiteEncontrado.value = false
   tramiteOriginal.value = null
   giroSeleccionado.value = ''
+  hasSearched.value = false
+  selectedRow.value = null
   form.value = {
     id_tramite: null,
     primer_ap: '',
@@ -1334,7 +1333,7 @@ const confirmarActualizacion = async () => {
 
   if (!result.isConfirmed) return
 
-  showLoading('Actualizando trámite...')
+  showLoading('Actualizando trámite...', 'Guardando cambios en la base de datos')
 
   try {
     const response = await execute(
@@ -1378,7 +1377,7 @@ const confirmarActualizacion = async () => {
       ],
       '',      // tenant
       null,    // pagination
-      'comun'  // esquema
+      'publico'  // esquema
     )
 
     hideLoading()
@@ -1472,6 +1471,7 @@ const openGiroModal = () => {
   showGiroModal.value = true
   giroSearch.value = ''
   girosEncontrados.value = []
+  selectedRow.value = null
 }
 
 const closeGiroModal = () => {
@@ -1495,7 +1495,7 @@ const buscarGiros = async () => {
       ],
       '',      // tenant
       null,    // pagination
-      'comun'  // esquema
+      'publico'  // esquema
     )
 
     if (response && response.result) {
@@ -1517,6 +1517,7 @@ const openCalleModal = () => {
   showCalleModal.value = true
   calleSearch.value = ''
   callesEncontradas.value = []
+  selectedRow.value = null
 }
 
 const closeCalleModal = () => {
@@ -1539,7 +1540,7 @@ const buscarCalles = async () => {
       ],
       '',      // tenant
       null,    // pagination
-      'comun'  // esquema
+      'publico'  // esquema
     )
 
     if (response && response.result) {
@@ -1557,14 +1558,6 @@ const seleccionarCalle = (calle) => {
   form.value.subzona = calle.subzona
   closeCalleModal()
   showToast('success', 'Calle seleccionada. Zona y subzona actualizadas automáticamente.')
-}
-
-const openDocumentation = () => {
-  showDocumentation.value = true
-}
-
-const closeDocumentation = () => {
-  showDocumentation.value = false
 }
 
 // Utilidades

@@ -10,18 +10,15 @@
         <p>Otras Obligaciones - Consulta de adeudos por local</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
-        <button
-          class="btn-municipal-secondary"
-          @click="goBack"
-        >
+        <button class="btn-municipal-secondary" @click="goBack">
           <font-awesome-icon icon="arrow-left" />
           Salir
         </button>
@@ -227,12 +224,14 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentacion -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'RAdeudos'"
       :moduleName="'otras_obligaciones'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Reporte de Adeudos'"
+      @close="showDocModal = false"
     />
   </div>
 </template>
@@ -255,9 +254,19 @@ const { showLoading, hideLoading } = useGlobalLoading()
 const { showToast, handleApiError } = useLicenciasErrorHandler()
 const { exportToPdf } = usePdfExport()
 
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentacion y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const datosLocal = ref({})
 const adeudosConcentrado = ref([])

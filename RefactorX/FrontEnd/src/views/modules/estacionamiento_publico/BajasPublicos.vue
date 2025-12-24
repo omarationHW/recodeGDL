@@ -14,11 +14,13 @@
         <p>Procesamiento de bajas con motivo</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentacion Tecnica">
-          <font-awesome-icon icon="file-code" /> Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -115,47 +117,28 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - BajasPublicos">
-      <h3>Bajas Públicos</h3>
-      <p>Este módulo permite dar de baja estacionamientos públicos del sistema.</p>
-
-      <h4>Instrucciones de uso:</h4>
-      <ol>
-        <li>Ingrese el número de licencia del estacionamiento público</li>
-        <li>Proporcione el motivo de la baja (campo obligatorio)</li>
-        <li>Presione el botón "Procesar Baja"</li>
-        <li>Confirme la acción en el mensaje de advertencia</li>
-      </ol>
-
-      <h4>Campos obligatorios:</h4>
-      <ul>
-        <li><strong>Licencia:</strong> Número de licencia del estacionamiento público</li>
-        <li><strong>Motivo:</strong> Razón por la cual se da de baja el estacionamiento</li>
-      </ul>
-
-      <p class="text-warning">
-        <font-awesome-icon icon="exclamation-triangle" />
-        <strong>Advertencia:</strong> La baja de un estacionamiento público es una acción que puede tener consecuencias importantes.
-      </p>
-    </DocumentationModal>
-
-    <!-- Modal de Documentación Técnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'BajasPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'BajasPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Bajas - Estacionamientos Públicos'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { reactive, ref, nextTick } from 'vue'
 import Swal from 'sweetalert2'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -259,12 +242,18 @@ async function darBaja() {
 }
 
 // Documentación y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>
@@ -277,7 +266,8 @@ const closeTechDocs = () => showTechDocs.value = false
   overflow: hidden;
 }
 
-.section-header {
+.section-header,
+.header-with-badge {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -332,7 +322,8 @@ const closeTechDocs = () => showTechDocs.value = false
   margin-bottom: 1.5rem;
 }
 
-.alert-icon {
+.alert-icon,
+.empty-state-icon {
   color: #856404;
   font-size: 1.5rem;
   flex-shrink: 0;
@@ -455,4 +446,46 @@ const closeTechDocs = () => showTechDocs.value = false
 .text-warning { color: #ffc107; }
 .text-info { color: #17a2b8; }
 .text-primary { color: #667eea; }
+
+/* Clases de componentes municipales */
+.municipal-tabs {
+  display: flex;
+  border-bottom: 2px solid #dee2e6;
+  margin-bottom: 1.5rem;
+}
+
+.municipal-tab {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #6c757d;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.municipal-tab:hover {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.municipal-tab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.row-hover {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.row-hover:hover {
+  background-color: #f8f9fa;
+}
+
+.table-row-selected {
+  background-color: #e7f3ff !important;
+  font-weight: 500;
+}
 </style>

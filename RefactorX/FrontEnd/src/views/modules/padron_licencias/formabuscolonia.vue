@@ -9,14 +9,16 @@
         <h1>Búsqueda de Colonias</h1>
         <p>Padrón de Licencias - Formulario auxiliar para búsqueda y selección de colonias</p>
       </div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -58,7 +60,6 @@
           <button
             class="btn-municipal-primary"
             @click="searchColonias"
-            :disabled="loading"
           >
             <font-awesome-icon icon="search" />
             Buscar
@@ -66,7 +67,6 @@
           <button
             class="btn-municipal-secondary"
             @click="clearFilters"
-            :disabled="loading"
           >
             <font-awesome-icon icon="times" />
             Limpiar
@@ -74,7 +74,6 @@
           <button
             class="btn-municipal-secondary"
             @click="loadColonias"
-            :disabled="loading"
           >
             <font-awesome-icon icon="sync-alt" />
             Actualizar
@@ -90,21 +89,30 @@
           <font-awesome-icon icon="list" />
           Resultados de Búsqueda
         </h5>
-        <div class="header-actions">
+        <div class="header-right">
           <span class="badge-purple" v-if="colonias.length > 0">
             {{ colonias.length }} colonias
           </span>
-          <div v-if="loading" class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
         </div>
       </div>
 
-      <div class="municipal-card-body table-container" v-if="!loading">
-        <div v-if="colonias.length === 0" class="empty-state">
-          <font-awesome-icon icon="search" class="empty-state-icon" />
-          <p class="empty-state-text">No se encontraron colonias</p>
-          <p class="empty-state-subtext">Intenta ajustar los filtros de búsqueda</p>
+      <div class="municipal-card-body table-container">
+        <!-- Empty State - Sin búsqueda -->
+        <div v-if="colonias.length === 0 && !hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="map-marked-alt" size="3x" />
+          </div>
+          <h4>Búsqueda de Colonias</h4>
+          <p>Ingresa los criterios de búsqueda para encontrar colonias</p>
+        </div>
+
+        <!-- Empty State - Sin resultados -->
+        <div v-else-if="colonias.length === 0 && hasSearched" class="empty-state">
+          <div class="empty-state-icon">
+            <font-awesome-icon icon="inbox" size="3x" />
+          </div>
+          <h4>Sin resultados</h4>
+          <p>No se encontraron colonias con los criterios especificados</p>
         </div>
 
         <div v-else class="table-responsive">
@@ -121,8 +129,9 @@
               <tr
                 v-for="(colonia, idx) in colonias"
                 :key="idx"
-                class="clickable-row"
-                @click="selectColonia(colonia)"
+                @click="selectedRow = colonia"
+                :class="{ 'table-row-selected': selectedRow === colonia }"
+                class="row-hover"
               >
                 <td>
                   <strong class="text-primary">{{ colonia.colonia?.trim() }}</strong>
@@ -160,14 +169,6 @@
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
-
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>{{ loadingMessage }}</p>
       </div>
     </div>
 
@@ -223,9 +224,6 @@
       </div>
     </Modal>
 
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
       <div class="toast-content">
@@ -237,16 +235,20 @@
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'formabuscolonia'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Búsqueda de Colonias'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -255,26 +257,35 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Modal from '@/components/common/Modal.vue'
 import Swal from 'sweetalert2'
 import { appConfig } from '@/config/app.config'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
-  handleApiError,
-  loadingMessage
+  handleApiError
 } = useLicenciasErrorHandler()
+
+const { showLoading, hideLoading } = useGlobalLoading()
 
 // Emits para cuando se usa como componente auxiliar
 const emit = defineEmits(['coloniaSelected'])
@@ -282,6 +293,8 @@ const emit = defineEmits(['coloniaSelected'])
 // Estado
 const colonias = ref([])
 const selectedColonia = ref(null)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const showViewModal = ref(false)
 const showFilters = ref(true)
 
@@ -297,7 +310,9 @@ const toggleFilters = () => {
 }
 
 const loadColonias = async () => {
-  setLoading(true, 'Cargando catálogo de colonias...')
+  showLoading('Cargando catálogo de colonias...')
+  hasSearched.value = true
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -330,7 +345,7 @@ const loadColonias = async () => {
     handleApiError(error)
     colonias.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -345,7 +360,9 @@ const searchColonias = async () => {
     return
   }
 
-  setLoading(true, 'Buscando colonias...')
+  showLoading('Buscando colonias...')
+  hasSearched.value = true
+  selectedRow.value = null
 
   const startTime = performance.now()
 
@@ -387,7 +404,7 @@ const searchColonias = async () => {
     handleApiError(error)
     colonias.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -396,13 +413,15 @@ const clearFilters = () => {
     nombre: '',
     cp: ''
   }
-  loadColonias()
+  colonias.value = []
+  hasSearched.value = false
+  selectedRow.value = null
 }
 
 const selectColonia = async (colonia) => {
   // Primero obtener los detalles completos de la colonia seleccionada
   try {
-    setLoading(true, 'Obteniendo detalles de la colonia...')
+    showLoading('Obteniendo detalles de la colonia...')
 
     const response = await execute(
       'sp_obtener_colonia_seleccionada',
@@ -456,7 +475,7 @@ const selectColonia = async (colonia) => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="acceso-page">
     <div class="breadcrumb">
       <span>Inicio</span> &gt; <span>Acceso</span>
@@ -11,7 +11,7 @@
           <input v-model="form.usuario" id="usuario" type="text" autocomplete="username" required />
         </div>
         <div class="form-group">
-          <label for="contrasena">Contraseña</label>
+          <label for="contrasena">Contrasena</label>
           <input v-model="form.contrasena" id="contrasena" type="password" autocomplete="current-password" required />
         </div>
         <div class="form-group">
@@ -26,14 +26,34 @@
         </div>
       </form>
     </div>
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'Acceso'"
+      :moduleName="'mercados'"
+      :docType="docType"
+      :title="'Mercados'"
+      @close="showDocModal = false"
+    />
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'Acceso'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - Acceso'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'Acceso'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - Acceso'" @close="showDocumentacion = false" />
 </template>
 
 <script>
+import sessionService from '@/services/sessionService';
+import apiService from '@/services/apiService';
+import DocumentationModal from '@/components/common/DocumentationModal.vue';
+
 export default {
   name: 'AccesoPage',
+  components: {
+    DocumentationModal
+  },
   data() {
     return {
+      showAyuda: false,
+      showDocumentacion: false,
       form: {
         usuario: '',
         contrasena: '',
@@ -43,59 +63,132 @@ export default {
       maxEjercicio: new Date().getFullYear(),
       loading: false,
       error: '',
-      intentos: 0
+      intentos: 0,
+      showDocModal: false,
+      docType: 'admin'
     };
   },
   mounted() {
-    // Opcional: cargar min/max ejercicio desde API
     this.fetchEjercicioMinMax();
-    // Opcional: cargar usuario recordado de localStorage
-    const lastUser = localStorage.getItem('usuario');
-    if (lastUser) this.form.usuario = lastUser;
+    const lastUser = sessionService.getUltimoUsuario();
+    if (lastUser) {
+      this.form.usuario = lastUser;
+    }
   },
   methods: {
     async fetchEjercicioMinMax() {
       try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'mercados.getEjercicioMinMax',
-          payload: {}
-        });
-        if (res.data.status === 'success' && res.data.data) {
-          this.minEjercicio = res.data.data.min_ejercicio;
-          this.maxEjercicio = res.data.data.max_ejercicio;
-          if (this.form.ejercicio < this.minEjercicio) this.form.ejercicio = this.minEjercicio;
-          if (this.form.ejercicio > this.maxEjercicio) this.form.ejercicio = this.maxEjercicio;
+        const response = await apiService.execute(
+          'sp_acceso_ejercicio_minmax',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
+        if (response.success && response.data && response.data.result) {
+          const result = response.data.result;
+          if (result && result.length > 0) {
+            this.minEjercicio = result[0].min_ejercicio || 2003;
+            this.maxEjercicio = result[0].max_ejercicio || new Date().getFullYear();
+            if (this.form.ejercicio < this.minEjercicio) {
+              this.form.ejercicio = this.minEjercicio;
+            }
+            if (this.form.ejercicio > this.maxEjercicio) {
+              this.form.ejercicio = this.maxEjercicio;
+            }
+          }
         }
-      } catch (error) {}
+      } catch (error) {
+        console.error('Error al cargar ejercicios:', error);
+        this.minEjercicio = 2003;
+        this.maxEjercicio = new Date().getFullYear();
+      }
     },
     async onSubmit() {
       this.error = '';
       this.loading = true;
       try {
-        const res = await this.$axios.post('/api/execute', {
-          action: 'mercados.login',
-          payload: {
-            usuario: this.form.usuario,
-            contrasena: this.form.contrasena,
-            ejercicio: this.form.ejercicio
+        const response = await apiService.execute(
+          'sp_acceso_login',
+          'mercados',
+          [
+            { nombre: 'p_usuario', valor: this.form.usuario, tipo: 'string' },
+            { nombre: 'p_contrasena', valor: this.form.contrasena, tipo: 'string' },
+            { nombre: 'p_ejercicio', valor: this.form.ejercicio, tipo: 'integer' }
+          ],
+          '',
+          null,
+          'publico'
+        );
+        if (response.success && response.data && response.data.result) {
+          const result = response.data.result;
+          if (result && result.length > 0 && result[0].success) {
+            const userData = result[0];
+            sessionService.setSession(
+              {
+                usuario: userData.usuario || this.form.usuario,
+                id_usuario: userData.id_usuario,
+                nivel: userData.nivel,
+                sistema: 'mercados'
+              },
+              this.form.ejercicio
+            );
+            await this.cargarPermisos(userData.usuario || this.form.usuario);
+            console.log('Login exitoso (Mercados):', sessionService.getSessionInfo());
+            this.$router.push('/mercados');
+          } else {
+            this.intentos++;
+            if (this.intentos >= 3) {
+              this.error = 'Ha excedido el numero de intentos. Contacte al administrador.';
+              setTimeout(() => {
+                this.form.usuario = '';
+                this.form.contrasena = '';
+                this.intentos = 0;
+                this.error = '';
+              }, 3000);
+            } else {
+              const message = result && result[0] && result[0].message
+                ? result[0].message
+                : 'Usuario o contrasena incorrectos';
+              this.error = message + ' (Intento ' + this.intentos + ' de 3)';
+            }
           }
-        });
-        if (res.data.status === 'success') {
-          localStorage.setItem('usuario', this.form.usuario);
-          this.$router.push({ name: 'menu' });
         } else {
           this.intentos++;
-          if (this.intentos >= 3) {
-            this.error = 'No está autorizado para ingresar al sistema, verifique su acceso';
-            setTimeout(() => window.location.reload(), 2000);
-          } else {
-            this.error = res.data.message || 'Usuario o contraseña incorrectos';
-          }
+          this.error = response.message || 'Error al validar credenciales';
         }
       } catch (error) {
-        this.error = 'Error de conexión con el servidor';
+        console.error('Error en login:', error);
+        if (error.statusCode) {
+          this.error = error.message || 'Error al conectar con el servidor';
+        } else if (error.originalError && error.originalError.request) {
+          this.error = 'No se pudo conectar con el servidor. Verifique su conexion.';
+        } else {
+          this.error = error.message || 'Error al procesar la solicitud';
+        }
+        this.intentos++;
       } finally {
         this.loading = false;
+      }
+    },
+    async cargarPermisos(usuario) {
+      try {
+        const response = await apiService.execute(
+          'sp_get_permisos_mercados',
+          'mercados',
+          [{ nombre: 'p_usuario', valor: usuario, tipo: 'string' }],
+          '',
+          null,
+          'publico'
+        );
+        if (response.success && response.data && response.data.result) {
+          const permisos = response.data.result || [];
+          sessionStorage.setItem('permisos_mercados', JSON.stringify(permisos));
+          console.log('Permisos cargados: ' + permisos.length + ' modulos disponibles');
+        }
+      } catch (error) {
+        console.error('Error al cargar permisos:', error);
       }
     },
     onCancel() {
@@ -107,67 +200,3 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.acceso-page {
-  max-width: 400px;
-  margin: 40px auto;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px #0001;
-  padding: 32px 24px;
-}
-.breadcrumb {
-  font-size: 0.9em;
-  color: #888;
-  margin-bottom: 16px;
-}
-.acceso-form-container h2 {
-  text-align: center;
-  margin-bottom: 24px;
-}
-.form-group {
-  margin-bottom: 18px;
-}
-.form-group label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 6px;
-}
-.form-group input {
-  width: 100%;
-  padding: 7px 10px;
-  border: 1px solid #bbb;
-  border-radius: 4px;
-  font-size: 1em;
-}
-.form-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 18px;
-}
-.form-actions button {
-  min-width: 100px;
-  padding: 8px 0;
-  border: none;
-  border-radius: 4px;
-  background: #1976d2;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-}
-.form-actions button[disabled] {
-  background: #aaa;
-  cursor: not-allowed;
-}
-.error-message {
-  color: #c00;
-  margin-bottom: 10px;
-  text-align: center;
-}
-.loading-message {
-  color: #1976d2;
-  margin-bottom: 10px;
-  text-align: center;
-}
-</style>

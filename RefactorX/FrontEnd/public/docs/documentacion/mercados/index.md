@@ -1,38 +1,39 @@
-# Index
+﻿# index
 
-## Descripcion
+## AnÃ¡lisis TÃ©cnico
 
-Componente del modulo **Mercados**.
+# Índice de Documentación
 
-## Funcionalidad
+**Total de módulos procesados:** 5
+**Fecha de generación:** 2025-08-27 20:48:45
 
-Este componente proporciona la interfaz para index.
+## Form
 
-## Uso
+- **AltaPagos**
+  - [📄 Documentación](modules/AltaPagos.md)
+  - [🎯 Casos de Uso](use-cases/AltaPagos_use_cases.md) (0 casos)
+  - [🧪 Casos de Prueba](test-cases/AltaPagos_test_cases.md)
 
-```vue
-<index />
-```
+- **AltaPagosEnergia**
+  - [📄 Documentación](modules/AltaPagosEnergia.md)
+  - [🎯 Casos de Uso](use-cases/AltaPagosEnergia_use_cases.md) (0 casos)
+  - [🧪 Casos de Prueba](test-cases/AltaPagosEnergia_test_cases.md)
 
-## Propiedades
+- **ConsultaGeneral**
+  - [📄 Documentación](modules/ConsultaGeneral.md)
+  - [🎯 Casos de Uso](use-cases/ConsultaGeneral_use_cases.md) (3 casos)
+  - [🧪 Casos de Prueba](test-cases/ConsultaGeneral_test_cases.md)
 
-| Propiedad | Tipo | Descripcion |
-|-----------|------|-------------|
-| - | - | Sin propiedades especificas |
+- **ModuloBD**
+  - [📄 Documentación](modules/ModuloBD.md)
+  - [🎯 Casos de Uso](use-cases/ModuloBD_use_cases.md) (3 casos)
+  - [🧪 Casos de Prueba](test-cases/ModuloBD_test_cases.md)
 
-## Eventos
+- **RptEmisionLaser**
+  - [📄 Documentación](modules/RptEmisionLaser.md)
+  - [🎯 Casos de Uso](use-cases/RptEmisionLaser_use_cases.md) (3 casos)
+  - [🧪 Casos de Prueba](test-cases/RptEmisionLaser_test_cases.md)
 
-| Evento | Descripcion |
-|--------|-------------|
-| - | Sin eventos especificos |
 
-## Procedimientos Almacenados
 
-Los procedimientos almacenados utilizados por este componente se encuentran en:
-`/Base/mercados/database/`
 
-## Notas Tecnicas
-
-- Modulo: mercados
-- Componente: index.vue
-- Ruta: /src/views/modules/mercados/index.vue

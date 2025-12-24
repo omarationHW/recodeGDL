@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Sistema de Semáforo</h1>
-        <p>Padrón de Licencias - Generador de Colores Aleatorios y Estadísticas</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Generador de Colores Aleatorios y Estadísticas</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -62,7 +65,6 @@
             <button
               class="btn-municipal-primary btn-lg"
               @click="generarColor"
-              :disabled="loading"
             >
               <font-awesome-icon icon="random" />
               Generar Color Aleatorio
@@ -70,7 +72,7 @@
             <button
               class="btn-municipal-success btn-lg"
               @click="guardarResultado"
-              :disabled="loading || !colorActual"
+              :disabled="!colorActual"
             >
               <font-awesome-icon icon="save" />
               Guardar Resultado
@@ -78,7 +80,6 @@
             <button
               class="btn-municipal-secondary btn-lg"
               @click="reiniciar"
-              :disabled="loading"
             >
               <font-awesome-icon icon="redo" />
               Reiniciar
@@ -189,20 +190,21 @@
 
     <!-- Historial de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
+      <div class="municipal-card-header header-with-badge">
         <h5>
           <font-awesome-icon icon="history" />
           Historial de Resultados
-          <span class="badge-purple" v-if="historial.length > 0">{{ historial.length }} registros</span>
         </h5>
-        <button
-          class="btn-municipal-secondary btn-sm"
-          @click="cargarHistorial"
-          :disabled="loading"
-        >
-          <font-awesome-icon icon="sync-alt" />
-          Actualizar
-        </button>
+        <div class="header-right">
+          <span class="badge-purple" v-if="historial.length > 0">{{ historial.length }} registros</span>
+          <button
+            class="btn-municipal-secondary btn-sm"
+            @click="cargarHistorial"
+          >
+            <font-awesome-icon icon="sync-alt" />
+            Actualizar
+          </button>
+        </div>
       </div>
       <div class="municipal-card-body table-container">
         <div class="table-responsive">
@@ -218,7 +220,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(registro, index) in historial" :key="index" class="clickable-row">
+              <tr
+                v-for="(registro, index) in historial"
+                :key="index"
+                @click="selectedRow = registro"
+                :class="{ 'table-row-selected': selectedRow === registro }"
+                class="row-hover"
+              >
                 <td><strong>{{ index + 1 }}</strong></td>
                 <td>
                   <span class="numero-badge">{{ registro.numero }}</span>
@@ -250,35 +258,31 @@
       </div>
     </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Generando color...</p>
-      </div>
-    </div>
-
-    </div>
-    <!-- /module-view-content -->
-
     <!-- Toast Notifications -->
     <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
       <button class="toast-close" @click="hideToast">
         <font-awesome-icon icon="times" />
       </button>
     </div>
-  </div>
-  <!-- /module-view -->
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'Semaforo'"
       :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
+      :docType="docType"
+      :title="'Sistema de Semáforo'"
+      @close="showDocModal = false"
     />
+    </div>
+    <!-- /module-view-content -->
+  </div>
+  <!-- /module-view -->
   </template>
 
 <script setup>
@@ -287,17 +291,25 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
@@ -305,15 +317,21 @@ const {
   handleApiError
 } = useLicenciasErrorHandler()
 
+const { showLoading, hideLoading } = useGlobalLoading()
+
 // Estado
 const colorActual = ref(null)
 const numeroGenerado = ref(null)
 const estadisticas = ref(null)
 const historial = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Métodos
 const generarColor = async () => {
-  setLoading(true)
+  showLoading('Generando color...', 'Calculando número aleatorio')
+  hasSearched.value = true
+  selectedRow.value = null
   try {
     const response = await execute(
       'sp_semaforo_get_random_color',
@@ -335,7 +353,7 @@ const generarColor = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -377,7 +395,7 @@ const guardarResultado = async () => {
 
   if (observaciones === undefined) return
 
-  setLoading(true)
+  showLoading('Guardando resultado...', 'Procesando información')
   try {
     const response = await execute(
       'sp_semaforo_save',
@@ -407,12 +425,12 @@ const guardarResultado = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const cargarEstadisticas = async () => {
-  setLoading(true)
+  showLoading('Cargando estadísticas...', 'Procesando datos')
   try {
     const response = await execute(
       'sp_semaforo_get_stats',
@@ -428,12 +446,12 @@ const cargarEstadisticas = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const cargarHistorial = async () => {
-  setLoading(true)
+  showLoading('Cargando historial...', 'Obteniendo registros')
   try {
     const response = await execute(
       'sp_semaforo_history',
@@ -451,13 +469,15 @@ const cargarHistorial = async () => {
   } catch (error) {
     handleApiError(error)
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
 const reiniciar = () => {
   colorActual.value = null
   numeroGenerado.value = null
+  hasSearched.value = false
+  selectedRow.value = null
   showToast('info', 'Semáforo reiniciado')
 }
 
@@ -502,6 +522,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Estilos específicos del Semáforo */
 .semaforo-container {
   display: flex;
   flex-direction: column;
@@ -560,12 +581,8 @@ onMounted(() => {
 }
 
 @keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .semaforo-info {
@@ -577,18 +594,11 @@ onMounted(() => {
   font-size: 48px;
   font-weight: bold;
   margin: 0 0 15px 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .semaforo-info p {
   font-size: 18px;
-  color: #495057;
   margin: 10px 0;
-}
-
-.color-description {
-  font-style: italic;
-  color: #6c757d;
 }
 
 .semaforo-controls {
@@ -596,11 +606,6 @@ onMounted(() => {
   gap: 15px;
   justify-content: center;
   flex-wrap: wrap;
-}
-
-.btn-lg {
-  padding: 15px 30px;
-  font-size: 18px;
 }
 
 .instructions-panel {
@@ -613,15 +618,6 @@ onMounted(() => {
 .instructions-panel h6 {
   margin-top: 0;
   color: #0056b3;
-}
-
-.instructions-panel ul {
-  margin: 10px 0 0 20px;
-  color: #495057;
-}
-
-.instructions-panel li {
-  margin: 5px 0;
 }
 
 .stats-container {
@@ -651,10 +647,6 @@ onMounted(() => {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.stat-card.total {
-  border-color: #007bff;
-}
-
 .stat-card.rojo {
   border-color: #dc3545;
 }
@@ -671,41 +663,11 @@ onMounted(() => {
   color: #28a745;
 }
 
-.stat-card.promedio {
-  border-color: #ffc107;
-}
-
-.stat-card.promedio .stat-icon {
-  color: #ffc107;
-}
-
-.stat-icon {
-  color: #6c757d;
-}
-
-.stat-content h3 {
-  font-size: 32px;
-  font-weight: bold;
-  margin: 0;
-  color: #495057;
-}
-
-.stat-content p {
-  margin: 5px 0 0 0;
-  color: #6c757d;
-  font-size: 14px;
-}
-
 .distribution-chart {
   background: #fff;
   border: 1px solid #dee2e6;
   border-radius: 4px;
   padding: 20px;
-}
-
-.distribution-chart h6 {
-  margin-top: 0;
-  color: #495057;
 }
 
 .chart-bars {
@@ -714,12 +676,6 @@ onMounted(() => {
 
 .chart-bar-container {
   margin-bottom: 15px;
-}
-
-.chart-label {
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: #495057;
 }
 
 .chart-bar {
@@ -750,18 +706,5 @@ onMounted(() => {
   border-radius: 20px;
   font-weight: bold;
   font-size: 16px;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-muted {
-  color: #6c757d;
-}
-
-.empty-icon {
-  margin-bottom: 15px;
-  opacity: 0.5;
 }
 </style>

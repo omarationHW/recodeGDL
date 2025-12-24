@@ -10,11 +10,11 @@
         <p>Otras Obligaciones - Gestión de Apremios y Diligencias</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -526,7 +526,7 @@
 
         <div class="municipal-card-body" v-else-if="!loading && !apremioActual">
           <div class="text-center text-muted">
-            <font-awesome-icon icon="info-circle" size="2x" class="empty-icon" />
+            <font-awesome-icon icon="info-circle" size="2x" class="empty-state-icon" />
             <p>No se encontraron registros de apremios para este módulo y control.</p>
           </div>
         </div>
@@ -590,7 +590,7 @@
                 </tr>
                 <tr v-if="periodos.length === 0">
                   <td colspan="6" class="text-center text-muted">
-                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+                    <font-awesome-icon icon="inbox" size="2x" class="empty-state-icon" />
                     <p>No hay periodos requeridos para este apremio.</p>
                   </td>
                 </tr>
@@ -601,26 +601,20 @@
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
+    <!-- Modal de Ayuda y Documentación -->
     <DocumentationModal
-      :show="showDocumentation"
+      :show="showDocModal"
       :componentName="'Apremios'"
       :moduleName="'otras_obligaciones'"
-      @close="closeDocumentation"
-    />
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'Apremios'"
-      :moduleName="'otras_obligaciones'"
-      @close="showTechDocs = false"
+      :docType="docType"
+      :title="'Apremios - Otras Obligaciones'"
+      @close="showDocModal = false"
     />
 
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
@@ -634,10 +628,18 @@ const route = useRoute()
 const router = useRouter()
 
 // Composables
-const showDocumentation = ref(false)
-const showTechDocs = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const BASE_DB = 'otras_obligaciones'

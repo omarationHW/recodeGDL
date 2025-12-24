@@ -8,6 +8,16 @@
         <h1>Presupuesto Devengado</h1>
         <p>Consulta de presupuesto devengado de ingresos por ejercicio</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -125,22 +135,44 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando operación...</p>
-      </div>
-    </div>
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'pres'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Presupuesto Devengado'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'pres'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Presupuesto Devengado'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const BASE_DB = 'multas_reglamentos'
 const OP_GET = 'RECAUDADORA_PRES'
+const SCHEMA = 'publico'
 const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
 
 const filters = ref({ q: '2014' }) // Valor por defecto
 const allRows = ref([])
@@ -185,7 +217,8 @@ async function reload() {
   ]
 
   try {
-    const data = await execute(OP_GET, BASE_DB, params)
+    showLoading('Consultando...', 'Por favor espere')
+    const data = await execute(OP_GET, BASE_DB, params, '', null, SCHEMA)
 
     // Extraer los datos de la respuesta
     let arr = []
@@ -203,6 +236,8 @@ async function reload() {
     console.error('Error al consultar presupuesto:', e)
     allRows.value = []
     searched.value = true
+  } finally {
+    hideLoading()
   }
 }
 
@@ -234,116 +269,3 @@ function formatDate(value) {
 reload()
 </script>
 
-<style scoped>
-.text-center {
-  text-align: center;
-}
-
-.text-right {
-  text-align: right;
-}
-
-.text-muted {
-  color: #6c757d;
-}
-
-.font-weight-bold {
-  font-weight: 600;
-}
-
-.mb-3 {
-  margin-bottom: 1rem;
-}
-
-/* Paginación */
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #dee2e6;
-}
-
-.pagination-info {
-  color: #6c757d;
-  font-size: 0.875rem;
-}
-
-.pagination-controls {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.pagination-pages {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.pagination-button {
-  padding: 0.375rem 0.75rem;
-  border: 1px solid #dee2e6;
-  background-color: #fff;
-  color: #007bff;
-  cursor: pointer;
-  border-radius: 0.25rem;
-  transition: all 0.2s;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.pagination-button:hover:not(:disabled) {
-  background-color: #e9ecef;
-  border-color: #007bff;
-}
-
-.pagination-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-  color: #6c757d;
-}
-
-.pagination-button.active {
-  background-color: #007bff;
-  color: #fff;
-  border-color: #007bff;
-}
-
-.table-responsive {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.row-hover:hover {
-  background-color: #f8f9fa;
-}
-
-/* Responsive para móviles */
-@media (max-width: 768px) {
-  .pagination-container {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .pagination-controls {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .pagination-pages {
-    justify-content: center;
-  }
-
-  .municipal-table {
-    font-size: 0.875rem;
-  }
-
-  .municipal-table th,
-  .municipal-table td {
-    padding: 0.5rem;
-  }
-}
-</style>

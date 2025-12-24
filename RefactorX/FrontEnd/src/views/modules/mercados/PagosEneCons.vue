@@ -10,6 +10,15 @@
         <p>Inicio > Mercados > Pagos Energía</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="exportarExcel"
           :disabled="loading || pagos.length === 0">
           <font-awesome-icon icon="file-excel" />
@@ -20,10 +29,7 @@
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -233,13 +239,22 @@
 
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'PagosEneCons'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - PagosEneCons'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'PagosEneCons'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - PagosEneCons'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 // Composables
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -369,18 +384,19 @@ const buscarPagos = async () => {
 
   try {
     showLoading('Consultando pagos de energía', 'Por favor espere...')
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_pagos_energia',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_energia', Valor: parseInt(form.value.id_energia) }
-        ]
-      }
-    })
+    const response = await apiService.execute(
+          'sp_cons_pagos_energia',
+          'mercados',
+          [
+          { nombre: 'p_id_energia', valor: parseInt(form.value.id_energia) }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (response.data.eResponse && response.data.eResponse.success === true) {
-      pagos.value = response.data.eResponse.data.result || []
+    if (response && response.success === true) {
+      pagos.value = response.data.result || []
       if (pagos.value.length === 0) {
         showToast('No se encontraron pagos para este ID de energía', 'info')
       } else {
@@ -388,11 +404,11 @@ const buscarPagos = async () => {
         showFilters.value = false
       }
     } else {
-      error.value = response.data.eResponse?.message || 'Error al buscar pagos'
+      error.value = response?.message || 'Error al buscar pagos'
       showToast(error.value, 'error')
     }
   } catch (err) {
-    error.value = err.response?.data?.eResponse?.message || 'Error al buscar pagos'
+    error.value = err.response?.message || 'Error al buscar pagos'
     console.error('Error al buscar pagos:', err)
     showToast(error.value, 'error')
   } finally {

@@ -19,7 +19,11 @@
           <font-awesome-icon icon="sync" :spin="loading" />
           Actualizar
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -306,10 +310,12 @@
   </div>
 
   <DocumentationModal
-    :show="showDocumentation"
+    :show="showDocModal"
     :componentName="'GFacturacion'"
     :moduleName="'otras_obligaciones'"
-    @close="closeDocumentation"
+    :docType="docType"
+    :title="'Facturación'"
+    @close="showDocModal = false"
   />
 
 </template>
@@ -327,9 +333,18 @@ import * as XLSX from 'xlsx'
 
 const router = useRouter()
 const route = useRoute()
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const BASE_DB = 'otras_obligaciones'

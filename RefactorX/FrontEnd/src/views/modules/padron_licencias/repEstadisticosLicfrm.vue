@@ -7,15 +7,18 @@
       </div>
       <div class="module-view-info">
         <h1>Reportes Estadísticos de Licencias</h1>
-        <p>Padrón de Licencias - Análisis Estadístico de Licencias por Giro y Zona</p></div>
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="openDocumentation"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
+        <p>Padrón de Licencias - Análisis Estadístico de Licencias por Giro y Zona</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -34,7 +37,6 @@
               <select
                 class="municipal-form-control"
                 v-model="filters.tipoReporte"
-                :disabled="loading"
               >
                 <option value="">Seleccionar tipo...</option>
                 <option value="1">Reporte 1 - Licencias por Giro y Zona</option>
@@ -53,7 +55,6 @@
                 type="date"
                 class="municipal-form-control"
                 v-model="filters.fechaInicio"
-                :disabled="loading"
               >
             </div>
             <div class="form-group">
@@ -62,7 +63,6 @@
                 type="date"
                 class="municipal-form-control"
                 v-model="filters.fechaFin"
-                :disabled="loading"
               >
             </div>
           </div>
@@ -71,7 +71,7 @@
             <button
               class="btn-municipal-primary"
               @click="generarReporte"
-              :disabled="loading || !filters.tipoReporte || !filters.fechaInicio || !filters.fechaFin"
+              :disabled="!filters.tipoReporte || !filters.fechaInicio || !filters.fechaFin"
             >
               <font-awesome-icon icon="chart-line" />
               Generar Reporte
@@ -79,7 +79,6 @@
             <button
               class="btn-municipal-secondary"
               @click="clearFilters"
-              :disabled="loading"
             >
               <font-awesome-icon icon="times" />
               Limpiar
@@ -90,20 +89,21 @@
 
       <!-- Tabla de resultados -->
       <div class="municipal-card" v-if="resultados.length > 0">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header header-with-badge">
           <h5>
             <font-awesome-icon icon="table" />
             Resultados del Reporte
-            <span class="badge-purple" v-if="resultados.length > 0">{{ resultados.length }} registros</span>
           </h5>
-          <button
-            class="btn-municipal-primary"
-            @click="exportarExcel"
-            :disabled="loading"
-          >
-            <font-awesome-icon icon="file-excel" />
-            Exportar a Excel
-          </button>
+          <div class="header-right">
+            <span class="badge-purple" v-if="resultados.length > 0">{{ resultados.length }} registros</span>
+            <button
+              class="btn-municipal-primary btn-sm ms-2"
+              @click="exportarExcel"
+            >
+              <font-awesome-icon icon="file-excel" />
+              Exportar a Excel
+            </button>
+          </div>
         </div>
         <div class="municipal-card-body">
           <div class="table-responsive">
@@ -125,7 +125,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in resultados" :key="row.id_giro" class="clickable-row">
+                <tr
+                  v-for="row in resultados"
+                  :key="row.id_giro"
+                  @click="selectedRow = row"
+                  :class="{ 'table-row-selected': selectedRow === row }"
+                  class="row-hover"
+                >
                   <td>
                     <span class="badge-secondary">{{ row.id_giro }}</span>
                   </td>
@@ -170,7 +176,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(row, index) in resultados" :key="index" class="clickable-row">
+                <tr
+                  v-for="(row, index) in resultados"
+                  :key="index"
+                  @click="selectedRow = row"
+                  :class="{ 'table-row-selected': selectedRow === row }"
+                  class="row-hover"
+                >
                   <td><strong>{{ row.concepto }}</strong></td>
                   <td class="text-right">{{ row.cantidad || 0 }}</td>
                   <td class="text-right">{{ formatCurrency(row.monto_total) }}</td>
@@ -191,7 +203,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(row, index) in resultados" :key="index" class="clickable-row">
+                <tr
+                  v-for="(row, index) in resultados"
+                  :key="index"
+                  @click="selectedRow = row"
+                  :class="{ 'table-row-selected': selectedRow === row }"
+                  class="row-hover"
+                >
                   <td>
                     <span class="badge-purple">Zona {{ row.zona || 'N/A' }}</span>
                   </td>
@@ -208,40 +226,47 @@
         </div>
       </div>
 
-      <!-- Mensaje cuando no hay datos -->
-      <div class="municipal-card" v-if="!loading && resultados.length === 0 && filters.tipoReporte">
-        <div class="municipal-card-body text-center text-muted">
-          <font-awesome-icon icon="chart-bar" size="3x" class="empty-icon" />
-          <p>No se encontraron datos para el reporte seleccionado en el rango de fechas especificado</p>
+      <!-- Empty State - Sin búsqueda -->
+      <div v-if="resultados.length === 0 && !hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="chart-bar" size="3x" />
         </div>
+        <h4>Reportes Estadísticos de Licencias</h4>
+        <p>Seleccione el tipo de reporte y el rango de fechas para generar el análisis estadístico</p>
       </div>
-    </div>
 
-    <!-- Loading overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Generando reporte estadístico...</p>
+      <!-- Empty State - Sin resultados -->
+      <div v-else-if="resultados.length === 0 && hasSearched" class="empty-state">
+        <div class="empty-state-icon">
+          <font-awesome-icon icon="inbox" size="3x" />
+        </div>
+        <h4>Sin resultados</h4>
+        <p>No se encontraron datos para el reporte seleccionado en el rango de fechas especificado</p>
       </div>
-    </div>
 
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'repEstadisticosLicfrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Reportes Estadísticos de Licencias'"
+        @close="showDocModal = false"
+      />
     </div>
   </div>
-
-    <!-- Modal de Ayuda -->
-    <DocumentationModal
-      :show="showDocumentation"
-      :componentName="'repEstadisticosLicfrm'"
-      :moduleName="'padron_licencias'"
-      @close="closeDocumentation"
-    />
   </template>
 
 <script setup>
@@ -250,27 +275,39 @@ import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
 import { useExcelExport } from '@/composables/useExcelExport'
 import Swal from 'sweetalert2'
 
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const {
-  loading,
-  setLoading,
   toast,
   showToast,
   hideToast,
   getToastIcon,
   handleApiError
 } = useLicenciasErrorHandler()
+const { showLoading, hideLoading } = useGlobalLoading()
 const { exportToExcel } = useExcelExport()
 
 // Estado
 const resultados = ref([])
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 const filters = ref({
   tipoReporte: '',
   fechaInicio: '',
@@ -318,7 +355,9 @@ const generarReporte = async () => {
     return
   }
 
-  setLoading(true, 'Generando reporte...')
+  showLoading('Generando reporte estadístico...', 'Procesando información de licencias')
+  hasSearched.value = true
+  selectedRow.value = null
 
   try {
     let spName = ''
@@ -366,7 +405,7 @@ const generarReporte = async () => {
     handleApiError(error)
     resultados.value = []
   } finally {
-    setLoading(false)
+    hideLoading()
   }
 }
 
@@ -440,6 +479,14 @@ const clearFilters = () => {
     fechaFin: ''
   }
   resultados.value = []
+  hasSearched.value = false
+  selectedRow.value = null
+
+  // Restablecer fechas por defecto
+  const today = new Date()
+  const firstDay = new Date(today.getFullYear(), 0, 1)
+  filters.value.fechaInicio = firstDay.toISOString().split('T')[0]
+  filters.value.fechaFin = today.toISOString().split('T')[0]
 }
 
 const formatCurrency = (value) => {

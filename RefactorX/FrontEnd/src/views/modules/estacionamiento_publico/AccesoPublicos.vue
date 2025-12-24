@@ -13,6 +13,16 @@
         <h1>Acceso — Estacionamientos Públicos</h1>
         <p>Consulta de estacionamientos registrados en el padrón</p>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
       <div class="module-view-actions">
         <button class="btn-municipal-primary" @click="cargarDatos" :disabled="loading">
           <font-awesome-icon :icon="loading ? 'spinner' : 'sync-alt'" :spin="loading" />
@@ -68,7 +78,7 @@
           </div>
 
           <div v-else-if="estacionamientos.length === 0" class="text-center py-4 text-muted">
-            <font-awesome-icon icon="inbox" size="3x" class="mb-3 empty-icon" />
+            <font-awesome-icon icon="inbox" size="3x" class="mb-3 empty-state-icon" />
             <p>No hay estacionamientos registrados</p>
           </div>
 
@@ -304,6 +314,16 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'AccesoPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Acceso - Estacionamientos Públicos'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
@@ -312,9 +332,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 
 const { loading, execute } = useApi()
 const {
@@ -454,6 +475,20 @@ const changePageSize = (size) => {
 
 const formatNumber = (number) => {
   return new Intl.NumberFormat('es-MX').format(number)
+}
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
 }
 
 onMounted(() => {

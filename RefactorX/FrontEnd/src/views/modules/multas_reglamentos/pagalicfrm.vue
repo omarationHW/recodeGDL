@@ -7,6 +7,16 @@
       <div class="module-view-info">
         <h1>Paga Licencias</h1>
       </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
     </div>
 
     <div class="module-view-content">
@@ -45,24 +55,91 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando pago...</p>
+      <!-- Resultado del Pago -->
+      <div class="municipal-card" v-if="paymentResult && successMessage">
+        <div class="municipal-card-header">
+          <h5>
+            <font-awesome-icon icon="check-circle" class="text-success" />
+            Detalles del Pago
+          </h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="result-grid">
+            <div class="result-item">
+              <label class="result-label">Número de Licencia:</label>
+              <div class="result-value"><strong>{{ paymentResult.licencia }}</strong></div>
+            </div>
+            <div class="result-item">
+              <label class="result-label">Contribuyente:</label>
+              <div class="result-value">{{ paymentResult.contribuyente }}</div>
+            </div>
+            <div class="result-item">
+              <label class="result-label">Monto Pagado:</label>
+              <div class="result-value monto-pagado">{{ formatCurrency(paymentResult.monto) }}</div>
+            </div>
+            <div class="result-item">
+              <label class="result-label">Folio/Referencia:</label>
+              <div class="result-value"><code>{{ paymentResult.folio }}</code></div>
+            </div>
+            <div class="result-item">
+              <label class="result-label">Fecha de Pago:</label>
+              <div class="result-value">{{ paymentResult.fecha }}</div>
+            </div>
+            <div class="result-item">
+              <label class="result-label">Estado:</label>
+              <div class="result-value">
+                <span class="status-badge status-success">{{ paymentResult.estado }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información adicional si existe -->
+          <div v-if="paymentResult.observaciones || paymentResult.nota" class="additional-info">
+            <label class="result-label">Observaciones:</label>
+            <div class="result-value">{{ paymentResult.observaciones || paymentResult.nota }}</div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'pagalicfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Paga Licencias'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'pagalicfrm'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Paga Licencias'"
+      @close="showDocumentacion = false"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import { useApi } from '@/composables/useApi';
+import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue';
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
 
 const { loading, execute } = useApi();
+const { showLoading, hideLoading } = useGlobalLoading();
 const BASE_DB = 'multas_reglamentos';
 const OP = 'RECAUDADORA_PAGALICFRM';
+const SCHEMA = 'publico';
 
 const filters = ref({
   licencia: ''
@@ -70,6 +147,7 @@ const filters = ref({
 
 const errorMessage = ref('');
 const successMessage = ref('');
+const paymentResult = ref(null);
 
 async function pagar() {
   // Validar que el campo no esté vacío
@@ -86,6 +164,7 @@ async function pagar() {
   // Limpiar mensajes previos
   errorMessage.value = '';
   successMessage.value = '';
+  paymentResult.value = null;
 
   try {
     // Crear una promesa con timeout de 10 segundos
@@ -96,18 +175,31 @@ async function pagar() {
     // Ejecutar la petición con timeout
     const executePromise = execute(OP, BASE_DB, [
       { name: 'licencia', type: 'C', value: licencia }
-    ]);
+    ], '', null, SCHEMA);
 
     // Race entre la petición y el timeout
     const response = await Promise.race([executePromise, timeoutPromise]);
 
+    console.log('Respuesta del pago:', response);
+
+    // Extraer datos de la respuesta
+    const result = Array.isArray(response?.result) ? response.result[0] :
+                   Array.isArray(response) ? response[0] :
+                   response?.result || response || {};
+
+    // Guardar el resultado para mostrarlo
+    paymentResult.value = {
+      licencia: result.licencia || result.numero_licencia || licencia,
+      contribuyente: result.contribuyente || result.nombre || 'N/A',
+      monto: result.monto || result.total || result.importe || 0,
+      folio: result.folio || result.folio_pago || result.referencia || 'N/A',
+      fecha: result.fecha || result.fecha_pago || new Date().toLocaleDateString('es-MX'),
+      estado: result.estado || result.estatus || 'PAGADO',
+      ...result
+    };
+
     // Si la operación fue exitosa
     successMessage.value = 'Pago procesado exitosamente';
-    setTimeout(() => {
-      successMessage.value = '';
-    }, 3000);
-
-    console.log('Respuesta del pago:', response);
   } catch (e) {
     console.error('Error al procesar el pago:', e);
 
@@ -127,130 +219,11 @@ function limpiar() {
   filters.value = { licencia: '' };
   errorMessage.value = '';
   successMessage.value = '';
+  paymentResult.value = null;
+}
+
+function formatCurrency(v) {
+  return Number(v || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 </script>
 
-<style scoped>
-.form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 1rem;
-}
-
-.municipal-form-label {
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #495057;
-}
-
-.municipal-form-control {
-  padding: 0.5rem;
-  border: 1px solid #ced4da;
-  border-radius: 0.25rem;
-  font-size: 1rem;
-  transition: border-color 0.15s ease-in-out;
-}
-
-.municipal-form-control:focus {
-  outline: none;
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.alert-error {
-  margin-top: 0.5rem;
-  padding: 0.75rem;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 0.25rem;
-  color: #721c24;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  animation: slideDown 0.3s ease-out;
-}
-
-.alert-success {
-  margin-top: 0.5rem;
-  padding: 0.75rem;
-  background-color: #d4edda;
-  border: 1px solid #c3e6cb;
-  border-radius: 0.25rem;
-  color: #155724;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.button-group {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.btn-municipal-primary {
-  padding: 0.5rem 1rem;
-  border: 1px solid #007bff;
-  border-radius: 0.25rem;
-  background-color: #007bff;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-municipal-primary:hover:not(:disabled) {
-  background-color: #0056b3;
-  border-color: #0056b3;
-}
-
-.btn-municipal-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-municipal-secondary {
-  padding: 0.5rem 1rem;
-  border: 1px solid #6c757d;
-  border-radius: 0.25rem;
-  background-color: #6c757d;
-  color: #fff;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-municipal-secondary:hover:not(:disabled) {
-  background-color: #5a6268;
-  border-color: #545b62;
-}
-
-.btn-municipal-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-@media (max-width: 768px) {
-  .button-group {
-    flex-direction: column;
-  }
-}
-</style>

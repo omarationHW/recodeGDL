@@ -9,25 +9,6 @@
         <h1>Descuentos por Pronto Pago</h1>
         <p>Aseo Contratado - Configuración y aplicación de descuentos por pago anticipado</p>
       </div>
-      <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
-        </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
-      </div>
-    
       <button
         type="button"
         class="btn-help-icon"
@@ -277,7 +258,7 @@
               </div>
 
               <!-- Vista Previa del Descuento -->
-              <div v-if="formConfig.porcentaje > 0" class="municipal-alert municipal-alert-success">
+              <div v-if="formConfig.porcentaje > 0" class="alert alert-success">
                 <h6 class="alert-heading">
                   <font-awesome-icon icon="calculator" class="me-2" />
                   Ejemplo de Aplicación
@@ -378,7 +359,7 @@
             </h6>
             <div class="table-responsive mb-4">
               <table class="municipal-table">
-                <thead class="municipal-table-header">
+                <thead>
                   <tr>
                     <th>
                       <input
@@ -448,7 +429,7 @@
                   </select>
                 </div>
 
-                <div v-if="descuentoSeleccionado" class="municipal-alert municipal-alert-info">
+                <div v-if="descuentoSeleccionado" class="alert alert-info">
                   <h6>Resumen del Descuento:</h6>
                   <div class="row">
                     <div class="col-md-3">
@@ -516,7 +497,7 @@
             </div>
           </div>
 
-          <div v-else-if="contratoSeleccionado && adeudosDisponibles.length === 0" class="municipal-alert municipal-alert-success">
+          <div v-else-if="contratoSeleccionado && adeudosDisponibles.length === 0" class="alert alert-success">
             <font-awesome-icon icon="check-circle" class="me-2" />
             Este contrato no tiene adeudos pendientes.
           </div>
@@ -569,7 +550,7 @@
           <div v-if="descuentosAplicados.length > 0">
             <div class="table-responsive">
               <table class="municipal-table">
-                <thead class="municipal-table-header">
+                <thead>
                   <tr>
                     <th>Fecha</th>
                     <th>Contrato</th>
@@ -617,7 +598,7 @@
             </div>
           </div>
 
-          <div v-else-if="!cargando" class="municipal-alert municipal-alert-warning">
+          <div v-else-if="!cargando" class="alert alert-warning">
             <font-awesome-icon icon="info-circle" class="me-2" />
             No se encontraron descuentos aplicados con los criterios especificados.
           </div>
@@ -664,20 +645,10 @@
         <li>Una vez aplicado, el descuento se refleja en el monto a pagar</li>
       </ul>
     </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'DescuentosPago'"
-      :moduleName="'aseo_contratado'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import Swal from 'sweetalert2'
@@ -686,10 +657,8 @@ import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useToast } from '@/composables/useToast'
 
-const { showLoading, hideLoading } = useGlobalLoading()
-
 const { execute } = useApi()
-const { handleApiError } = useLicenciasErrorHandler()
+const { handleError } = useLicenciasErrorHandler()
 const { showToast } = useToast()
 
 // Estado
@@ -819,8 +788,7 @@ const cargarConfiguraciones = async () => {
     const response = await execute('SP_ASEO_DESCUENTOS_CONFIG_LISTAR', 'aseo_contratado', {})
     configuraciones.value = response || []
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al cargar configuraciones')
+    handleError(error, 'Error al cargar configuraciones')
     configuraciones.value = []
   }
 }
@@ -875,8 +843,7 @@ const guardarConfiguracion = async () => {
     await cargarConfiguraciones()
     nuevaConfiguracion()
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al guardar configuración')
+    handleError(error, 'Error al guardar configuración')
   } finally {
     guardando.value = false
   }
@@ -923,8 +890,7 @@ const buscarContrato = async () => {
       adeudosDisponibles.value = []
     }
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al buscar contrato')
+    handleError(error, 'Error al buscar contrato')
     contratoSeleccionado.value = null
     adeudosDisponibles.value = []
   } finally {
@@ -997,8 +963,7 @@ const aplicarDescuento = async () => {
     busqueda.value.num_contrato = ''
 
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al aplicar descuento')
+    handleError(error, 'Error al aplicar descuento')
   } finally {
     aplicando.value = false
   }
@@ -1016,8 +981,7 @@ const consultarDescuentos = async () => {
     descuentosAplicados.value = response || []
     showToast(`${descuentosAplicados.value.length} registro(s) encontrado(s)`, 'success')
   } catch (error) {
-    hideLoading()
-    handleApiError(error, 'Error al consultar descuentos')
+    handleError(error, 'Error al consultar descuentos')
     descuentosAplicados.value = []
   } finally {
     cargando.value = false
@@ -1050,14 +1014,5 @@ const formatFecha = (fecha) => {
 
 // Inicialización
 cargarConfiguraciones()
-
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
-
 </script>
 

@@ -10,19 +10,21 @@
         <p>Mercados - Registro de Pagos con Validación de Operación</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button
           class="btn-municipal-purple"
           @click="mostrarAyuda"
         >
           <font-awesome-icon icon="question-circle" />
           Ayuda
-        </button>
-        <button
-          class="btn-municipal-danger"
-          @click="cerrar"
-        >
-          <font-awesome-icon icon="times" />
-          Cerrar
         </button>
       </div>
     </div>
@@ -49,10 +51,10 @@
                 <option value="">Seleccione...</option>
                 <option
                   v-for="rec in recaudadoras"
-                  :key="rec.id_rec"
-                  :value="rec.id_rec"
+                  :key="rec.id_recaudadora"
+                  :value="rec.id_recaudadora"
                 >
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -127,10 +129,10 @@
                 <option value="">Seleccione...</option>
                 <option
                   v-for="rec in recaudadoras"
-                  :key="rec.id_rec"
-                  :value="rec.id_rec"
+                  :key="rec.id_recaudadora"
+                  :value="rec.id_recaudadora"
                 >
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -262,7 +264,7 @@
 
           <div class="d-flex justify-content-end mt-3">
             <button
-              class="btn-municipal-success"
+              class="btn-municipal-primary"
               @click="grabarPagos"
               :disabled="!hayPagosValidos || loading"
             >
@@ -290,12 +292,15 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'CargaPagMercado'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - CargaPagMercado'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'CargaPagMercado'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - CargaPagMercado'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
@@ -304,7 +309,12 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
-import { useToast } from '@/stores/toast';
+import { useToast } from '@/composables/useToast';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 library.add(
   faShoppingBasket, faSearch, faList, faSave, faTimes,
@@ -367,16 +377,17 @@ onMounted(() => {
 async function cargarRecaudadoras() {
   await globalLoading.executeWithLoading(async () => {
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_recaudadoras',
-          Base: 'padron_licencias',
-          Parametros: []
-        }
-      });
+      const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-        recaudadoras.value = response.data.eResponse.data.result;
+      if (response.success && response.data?.result) {
+        recaudadoras.value = response.data.result;
       }
     } catch (error) {
       console.error('Error al cargar recaudadoras:', error);
@@ -389,16 +400,17 @@ async function cargarRecaudadoras() {
 async function cargarSecciones() {
   await globalLoading.executeWithLoading(async () => {
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_secciones',
-          Base: 'padron_licencias',
-          Parametros: []
-        }
-      });
+      const response = await apiService.execute(
+          'sp_get_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-        secciones.value = response.data.eResponse.data.result;
+      if (response.success && response.data?.result) {
+        secciones.value = response.data.result;
       }
     } catch (error) {
       console.error('Error al cargar secciones:', error);
@@ -417,19 +429,20 @@ async function onOficinaChange() {
 
   await globalLoading.executeWithLoading(async () => {
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_catalogo_mercados',
-          Base: 'padron_licencias',
-          Parametros: [
-            { Nombre: 'p_id_rec', Valor: parseInt(form.value.oficina) },
+      const response = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
+            { nombre: 'p_id_rec', valor: parseInt(form.value.oficina) },
             { nombre: 'p_nivel_usuario', tipo: 'integer', valor: 1 }
-          ]
-        }
-      });
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-        mercados.value = response.data.eResponse.data.result;
+      if (response.success && response.data?.result) {
+        mercados.value = response.data.result;
       }
     } catch (error) {
       console.error('Error al cargar mercados:', error);
@@ -455,18 +468,19 @@ async function onOficinaPagoChange() {
 
   await globalLoading.executeWithLoading(async () => {
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_cajas',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) }
-          ]
-        }
-      });
+      const response = await apiService.execute(
+          'sp_get_cajas',
+          'mercados',
+          [
+            { nombre: 'p_oficina', valor: parseInt(formPago.value.oficina_pago) }
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-        cajas.value = response.data.eResponse.data.result;
+      if (response.success && response.data?.result) {
+        cajas.value = response.data.result;
       }
     } catch (error) {
       console.error('Error al cargar cajas:', error);
@@ -487,22 +501,23 @@ async function buscarAdeudos() {
 
   await globalLoading.executeWithLoading(async () => {
     try {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_adeudos_local',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-            { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado) },
-            { Nombre: 'p_categoria', Valor: parseInt(form.value.categoria) },
-            { Nombre: 'p_seccion', Valor: form.value.seccion },
-            { Nombre: 'p_local', Valor: parseInt(form.value.local) }
-          ]
-        }
-      });
+      const response = await apiService.execute(
+          'sp_get_adeudos_local',
+          'mercados',
+          [
+            { nombre: 'p_oficina', valor: parseInt(form.value.oficina) },
+            { nombre: 'p_mercado', valor: parseInt(form.value.mercado) },
+            { nombre: 'p_categoria', valor: parseInt(form.value.categoria) },
+            { nombre: 'p_seccion', valor: form.value.seccion },
+            { nombre: 'p_local', valor: parseInt(form.value.local) }
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success && response.data.eResponse.data?.result) {
-        adeudos.value = response.data.eResponse.data.result.map(a => ({
+      if (response.success && response.data?.result) {
+        adeudos.value = response.data.result.map(a => ({
           ...a,
           partida: ''
         }));
@@ -542,42 +557,44 @@ async function actualizarStatus() {
   await globalLoading.executeWithLoading(async () => {
     try {
       // Obtener ingreso de operación
-      const responseIngreso = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_ingreso_operacion',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_fecha_ingreso', Valor: formPago.value.fecha_ingreso },
-            { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) },
-            { Nombre: 'p_caja', Valor: formPago.value.caja },
-            { Nombre: 'p_operacion', Valor: parseInt(formPago.value.operacion) },
-            { Nombre: 'p_oficina_mercado', Valor: parseInt(form.value.oficina) },
-            { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado) }
-          ]
-        }
-      });
+      const responseIngreso = await apiService.execute(
+          'sp_get_ingreso_operacion',
+          'mercados',
+          [
+            { nombre: 'p_fecha_ingreso', valor: formPago.value.fecha_ingreso },
+            { nombre: 'p_oficina', valor: parseInt(formPago.value.oficina_pago) },
+            { nombre: 'p_caja', valor: formPago.value.caja },
+            { nombre: 'p_operacion', valor: parseInt(formPago.value.operacion) },
+            { nombre: 'p_oficina_mercado', valor: parseInt(form.value.oficina) },
+            { nombre: 'p_mercado', valor: parseInt(form.value.mercado) }
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (responseIngreso.data?.eResponse?.success && responseIngreso.data.eResponse.data?.result?.length > 0) {
-        status.value.importe_ingresado = responseIngreso.data.eResponse.data.result[0].ingreso || 0;
+      if (responseIngreso.success && responseIngreso.data.result?.length > 0) {
+        status.value.importe_ingresado = responseIngreso.data.result[0].ingreso || 0;
       }
 
       // Obtener captura de operación
-      const responseCaptura = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_get_captura_operacion',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_fecha_pago', Valor: formPago.value.fecha_pago },
-            { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) },
-            { Nombre: 'p_caja', Valor: formPago.value.caja },
-            { Nombre: 'p_operacion', Valor: parseInt(formPago.value.operacion) },
-            { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado) }
-          ]
-        }
-      });
+      const responseCaptura = await apiService.execute(
+          'sp_get_captura_operacion',
+          'mercados',
+          [
+            { nombre: 'p_fecha_pago', valor: formPago.value.fecha_pago },
+            { nombre: 'p_oficina', valor: parseInt(formPago.value.oficina_pago) },
+            { nombre: 'p_caja', valor: formPago.value.caja },
+            { nombre: 'p_operacion', valor: parseInt(formPago.value.operacion) },
+            { nombre: 'p_mercado', valor: parseInt(form.value.mercado) }
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (responseCaptura.data?.eResponse?.success && responseCaptura.data.eResponse.data?.result?.length > 0) {
-        status.value.importe_capturado = responseCaptura.data.eResponse.data.result[0].capturado || 0;
+      if (responseCaptura.success && responseCaptura.data.result?.length > 0) {
+        status.value.importe_capturado = responseCaptura.data.result[0].capturado || 0;
       }
 
       status.value.importe_por_capturar = status.value.importe_ingresado - status.value.importe_capturado;
@@ -627,25 +644,26 @@ async function grabarPagos() {
         partida: a.partida
       }));
 
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_insert_pagos_mercado',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_fecha_pago', Valor: formPago.value.fecha_pago },
-            { Nombre: 'p_oficina', Valor: parseInt(formPago.value.oficina_pago) },
-            { Nombre: 'p_caja', Valor: formPago.value.caja },
-            { Nombre: 'p_operacion', Valor: parseInt(formPago.value.operacion) },
-            { Nombre: 'p_usuario', Valor: 1 }, // TODO: Obtener de sesión
-            { Nombre: 'p_mercado', Valor: parseInt(form.value.mercado) },
-            { Nombre: 'p_categoria', Valor: parseInt(form.value.categoria) },
-            { Nombre: 'p_seccion', Valor: form.value.seccion },
-            { Nombre: 'p_pagos', Valor: JSON.stringify(pagosJson) }
-          ]
-        }
-      });
+      const response = await apiService.execute(
+          'sp_insert_pagos_mercado',
+          'mercados',
+          [
+            { nombre: 'p_fecha_pago', valor: formPago.value.fecha_pago },
+            { nombre: 'p_oficina', valor: parseInt(formPago.value.oficina_pago) },
+            { nombre: 'p_caja', valor: formPago.value.caja },
+            { nombre: 'p_operacion', valor: parseInt(formPago.value.operacion) },
+            { nombre: 'p_usuario', valor: 1 }, // TODO: Obtener de sesión
+            { nombre: 'p_mercado', valor: parseInt(form.value.mercado) },
+            { nombre: 'p_categoria', valor: parseInt(form.value.categoria) },
+            { nombre: 'p_seccion', valor: form.value.seccion },
+            { nombre: 'p_pagos', valor: JSON.stringify(pagosJson) }
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success) {
+      if (response.success) {
         toast.show(`${pagosValidos.length} pagos grabados correctamente`, 'success');
         await buscarAdeudos();
       }
@@ -717,13 +735,7 @@ function mostrarAyuda() {
     icon: 'info',
     confirmButtonText: 'Entendido'
   });
-}
-
-// Cerrar
-function cerrar() {
-  router.push('/');
-}
-</script>
+}</script>
 
 <!--
   Estilos eliminados según patrones municipales.

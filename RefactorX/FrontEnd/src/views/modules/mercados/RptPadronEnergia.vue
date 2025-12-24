@@ -10,7 +10,16 @@
         <p>Inicio > Reportes > Padrón de Energía del Mercado</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="!resultados.length || loading">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="!resultados.length || loading">
           <font-awesome-icon icon="file-excel" />
           Exportar Excel
         </button>
@@ -18,6 +27,7 @@
           <font-awesome-icon icon="print" />
           Imprimir
         </button>
+        
       </div>
     </div>
 
@@ -28,7 +38,7 @@
           <h5>
             <font-awesome-icon icon="filter" />
             Filtros de Consulta
-            <font-awesome-icon :icon="mostrarFiltros ? 'chevron-up' : 'chevron-down'" class="ms-2" />
+            <font-awesome-icon :icon="mostrarFiltros ? 'angle-up' : 'angle-down'" class="ms-2" />
           </h5>
         </div>
         <div v-show="mostrarFiltros" class="municipal-card-body">
@@ -46,7 +56,7 @@
                 >
                   <option value="">Seleccione recaudadora...</option>
                   <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                    {{ rec.id_rec }} - {{ rec.recaudadora }}
+                   {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
@@ -172,11 +182,11 @@
             </div>
             <div class="pagination-buttons">
               <button @click="previousPage" :disabled="currentPage === 1" class="btn-pagination">
-                <font-awesome-icon icon="chevron-left" />
+                <font-awesome-icon icon="angle-left" />
               </button>
               <span class="mx-3">Página {{ currentPage }} de {{ totalPages }}</span>
               <button @click="nextPage" :disabled="currentPage === totalPages" class="btn-pagination">
-                <font-awesome-icon icon="chevron-right" />
+                <font-awesome-icon icon="angle-right" />
               </button>
             </div>
           </div>
@@ -184,12 +194,50 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptPadronEnergia'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptPadronEnergia'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptPadronEnergia'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptPadronEnergia'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
+import Swal from 'sweetalert2';
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -220,15 +268,16 @@ const mercadoDescripcion = computed(() => resultados.value.length > 0 ? resultad
 const fetchRecaudadoras = async () => {
   showLoading('Cargando recaudadoras...', 'Por favor espere');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      recaudadoras.value = response.data.eResponse.data.result;
+    const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success && response?.data?.result) {
+      recaudadoras.value = response.data.result;
     }
   } catch (error) {
     console.error('Error al cargar recaudadoras:', error);
@@ -244,15 +293,16 @@ const onOficinaChange = async () => {
 
   showLoading('Cargando mercados...', 'Por favor espere');
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_mercados_by_recaudadora',
-        Base: 'padron_licencias',
-        Parametros: [{ Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) }]
-      }
-    });
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      mercados.value = response.data.eResponse.data.result;
+    const response = await apiService.execute(
+          'sp_get_mercados_by_recaudadora',
+          'mercados',
+          [{ nombre: 'p_id_rec', valor: parseInt(filters.value.oficina) }],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success && response?.data?.result) {
+      mercados.value = response.data.result;
     }
   } catch (error) {
     console.error('Error al cargar mercados:', error);
@@ -266,18 +316,19 @@ const consultar = async () => {
   loading.value = true;
   busquedaRealizada.value = false;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'rpt_padron_energia',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
-          { Nombre: 'p_mercado', Valor: parseInt(filters.value.mercado) }
-        ]
-      }
-    });
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      resultados.value = response.data.eResponse.data.result;
+    const response = await apiService.execute(
+          'rpt_padron_energia',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(filters.value.oficina) },
+          { nombre: 'p_mercado', valor: parseInt(filters.value.mercado) }
+        ],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success && response?.data?.result) {
+      resultados.value = response.data.result;
       busquedaRealizada.value = true;
       currentPage.value = 1;
     } else {
@@ -346,8 +397,29 @@ const exportarExcel = () => {
   window.URL.revokeObjectURL(url);
 };
 
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Reporte de PadrÃ³n de EnergÃ­a',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo genera el reporte del padrÃ³n de energÃ­a elÃ©ctrica.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione la recaudadora y mercado
+          <li>Puede filtrar por vigencia y otros criterios
+          <li>Exporte el reporte para anÃ¡lisis adicional</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
+}
+
 onMounted(() => {
   fetchRecaudadoras();
 });
 </script>
-

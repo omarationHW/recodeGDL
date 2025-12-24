@@ -40,10 +40,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -208,12 +209,12 @@
 
       <!-- Tabla de resultados -->
       <div class="municipal-card">
-        <div class="municipal-card-header">
-          <div class="header-with-badge">
-            <h5>
-              <font-awesome-icon icon="list" />
-              Resultados de Búsqueda
-            </h5>
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Resultados de Búsqueda
+          </h5>
+          <div class="header-right">
             <span class="badge-purple" v-if="totalResultados > 0">
               {{ formatNumber(totalResultados) }} registros totales
             </span>
@@ -236,25 +237,36 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="anuncios.length === 0 && !primeraBusqueda">
-                  <td colspan="8" class="text-center text-muted">
-                    <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                    <p>Utiliza los filtros de búsqueda para encontrar anuncios</p>
+                <tr v-if="anuncios.length === 0 && !hasSearched">
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <div class="empty-state-icon">
+                        <font-awesome-icon icon="search" size="3x" />
+                      </div>
+                      <h4>Consulta de Anuncios</h4>
+                      <p>Utiliza los filtros de búsqueda para encontrar anuncios publicitarios</p>
+                    </div>
                   </td>
                 </tr>
-                <tr v-else-if="anuncios.length === 0">
-                  <td colspan="8" class="text-center text-muted">
-                    <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                    <p>No se encontraron anuncios con los filtros especificados</p>
+                <tr v-else-if="anuncios.length === 0 && hasSearched">
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <div class="empty-state-icon">
+                        <font-awesome-icon icon="inbox" size="3x" />
+                      </div>
+                      <h4>Sin resultados</h4>
+                      <p>No se encontraron anuncios con los criterios especificados</p>
+                    </div>
                   </td>
                 </tr>
                 <tr
                   v-else
                   v-for="anuncio in anuncios"
                   :key="anuncio.id_anuncio"
-                  @click="anuncioSeleccionado = anuncio"
+                  @click="selectedRow = anuncio"
                   @dblclick="verDetalle(anuncio)"
-                  :class="{ 'row-hover': true, 'selected-row': anuncioSeleccionado?.id_anuncio === anuncio.id_anuncio, 'clickable-row': true }"
+                  :class="{ 'table-row-selected': selectedRow?.id_anuncio === anuncio.id_anuncio }"
+                  class="row-hover"
                 >
                   <td><strong class="text-primary">{{ anuncio.anuncio }}</strong></td>
                   <td>
@@ -359,6 +371,28 @@
           </div>
         </div>
       </div>
+
+      <!-- Toast Notifications -->
+      <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+        <div class="toast-content">
+          <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+          <span class="toast-message">{{ toast.message }}</span>
+        </div>
+        <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+        <button class="toast-close" @click="hideToast">
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+
+      <!-- Modal de Ayuda y Documentación -->
+      <DocumentationModal
+        :show="showDocModal"
+        :componentName="'consultaAnunciofrm'"
+        :moduleName="'padron_licencias'"
+        :docType="docType"
+        :title="'Consulta de Anuncios'"
+        @close="showDocModal = false"
+      />
     </div>
 
     <!-- Modal de Detalle -->
@@ -575,30 +609,7 @@
         </div>
       </div>
     </Modal>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <div class="toast-content">
-        <span class="toast-message">{{ toast.message }}</span>
-        <span v-if="toast.duration" class="toast-duration">
-          <font-awesome-icon icon="clock" class="toast-duration-icon" />
-          {{ toast.duration }}
-        </span>
-      </div>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
-
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'consultaAnunciofrm'"
-    :moduleName="'padron_licencias'"
-    @close="closeDocumentation"
-  />
 </template>
 
 <script setup>
@@ -613,10 +624,19 @@ import { useExcelExport } from '@/composables/useExcelExport'
 import { usePdfExport } from '@/composables/usePdfExport'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => (showDocumentation.value = true)
-const closeDocumentation = () => (showDocumentation.value = false)
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const router = useRouter()
 const { execute } = useApi()
@@ -658,6 +678,8 @@ const primeraBusqueda = ref(false)
 const showDetalleModal = ref(false)
 const anuncioSeleccionado = ref({})
 const loadingEstadisticas = ref(true)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Filtros
 const filtros = ref({
@@ -731,8 +753,11 @@ const limpiarFiltros = () => {
     fecha_hasta: '',
     id_giro: ''
   }
-  establecerFechasPorDefecto()
+  anuncios.value = []
+  hasSearched.value = false
   currentPage.value = 1
+  selectedRow.value = null
+  establecerFechasPorDefecto()
 }
 
 const buscarAnuncios = async () => {
@@ -740,6 +765,8 @@ const buscarAnuncios = async () => {
   localStorage.removeItem('anuncios_consulta')
 
   showLoading('Buscando anuncios...', 'Consultando base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
   primeraBusqueda.value = true
   showFilters.value = false  // Contraer acordeón al buscar
 
@@ -820,7 +847,7 @@ const buscarAnuncios = async () => {
       params,
       'padron_licencias',
       null,
-      'comun'
+      'publico'
     )
 
     const endTime = performance.now()
@@ -865,7 +892,7 @@ const cargarEstadisticas = async () => {
       [],
       'padron_licencias',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -880,6 +907,7 @@ const cargarEstadisticas = async () => {
 const cambiarPagina = (pagina) => {
   if (pagina !== '...' && pagina >= 1 && pagina <= totalPaginas.value) {
     currentPage.value = pagina
+    selectedRow.value = null
     buscarAnuncios()
   }
 }

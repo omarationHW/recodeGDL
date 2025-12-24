@@ -17,11 +17,13 @@
         <p>Registro y consulta de pagos</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-secondary" @click="mostrarDocumentacion" title="Documentación Técnica">
-          <font-awesome-icon icon="file-code" /> Documentación
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button class="btn-municipal-purple" @click="openDocumentation" title="Ayuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-purple" @click="abrirAyuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
         </button>
       </div>
     </div>
@@ -82,7 +84,7 @@
 
         <!-- Sección: Adeudos Pendientes -->
         <div v-if="adeudosPendientes.length > 0" class="form-section">
-          <div class="section-header section-header-warning">
+          <div class="section-header section-header-warning header-with-badge">
             <div class="section-icon section-icon-warning">
               <font-awesome-icon icon="exclamation-triangle" />
             </div>
@@ -115,7 +117,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="adeudo in adeudosPendientes" :key="adeudo.id" :class="{ 'row-selected': adeudo.seleccionado }">
+                  <tr v-for="adeudo in adeudosPendientes" :key="adeudo.id" :class="{ 'table-row-selected': adeudo.seleccionado }" class="row-hover">
                     <td>
                       <input type="checkbox" v-model="adeudo.seleccionado" class="form-check-input" />
                     </td>
@@ -361,58 +363,34 @@
 
         <!-- Estado vacío para resultados -->
         <div v-if="resultados.length === 0 && consultaRealizada" class="empty-table-state">
-          <font-awesome-icon icon="inbox" class="empty-icon" />
+          <font-awesome-icon icon="inbox" class="empty-state-icon" />
           <p>No se encontraron pagos para la fecha y recaudadora indicadas</p>
         </div>
 
       </div>
     </div>
 
-    <!-- Modal de Ayuda -->
-    <DocumentationModal :show="showDocumentation" @close="closeDocumentation" title="Ayuda - Pagos Públicos">
-      <h3>Pagos de Estacionamientos Públicos</h3>
-      <p>Este módulo permite registrar pagos de adeudos de estacionamientos públicos y consultar el historial de pagos.</p>
-
-      <h4>Procedimiento para Registrar Pago:</h4>
-      <ol>
-        <li>Busque el folio del estacionamiento público</li>
-        <li>Revise los adeudos pendientes mostrados en la tabla</li>
-        <li>Seleccione los periodos a pagar (use los checkboxes)</li>
-        <li>Ingrese el importe del pago</li>
-        <li>Complete los datos adicionales (recaudadora, caja, folio de recibo)</li>
-        <li>Presione "Registrar Pago"</li>
-      </ol>
-
-      <h4>Procedimiento para Consultar Pagos:</h4>
-      <ol>
-        <li>Seleccione la recaudadora</li>
-        <li>Seleccione la fecha</li>
-        <li>Presione "Consultar Pagos"</li>
-      </ol>
-
-      <h4>Notas Importantes:</h4>
-      <ul>
-        <li>El importe no puede exceder el total de adeudos seleccionados</li>
-        <li>El pago se aplica a los periodos seleccionados en orden cronológico</li>
-        <li>Los pagos registrados en la sesión actual se muestran en el historial</li>
-      </ul>
-    </DocumentationModal>
-
-    <!-- Modal de Documentación Técnica -->
-    <TechnicalDocsModal :show="showTechDocs" :componentName="'PagosPublicos'" :moduleName="'estacionamiento_publico'" @close="closeTechDocs" />
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'PagosPublicos'"
+      :moduleName="'estacionamiento_publico'"
+      :docType="docType"
+      :title="'Pagos de Estacionamientos Públicos'"
+      @close="showDocModal = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { reactive, ref, computed } from 'vue'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
 
 const BASE_DB = 'estacionamiento_publico'
-const SCHEMA = 'public'
+const SCHEMA = 'publico'
 const { execute } = useApi()
 const { toast, showToast, hideToast, getToastIcon, handleApiError } = useLicenciasErrorHandler()
 const { showLoading, hideLoading } = useGlobalLoading()
@@ -725,12 +703,18 @@ async function consultar() {
 }
 
 // Documentación y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 </script>
 
 <style scoped>
@@ -773,6 +757,11 @@ const closeTechDocs = () => showTechDocs.value = false
 
 .section-header-info {
   border-bottom-color: #3b82f6;
+}
+
+.header-with-badge {
+  display: flex;
+  justify-content: space-between;
 }
 
 .section-icon {
@@ -971,11 +960,11 @@ const closeTechDocs = () => showTechDocs.value = false
   font-size: 0.9rem;
 }
 
-.municipal-table tbody tr:hover {
+.row-hover:hover {
   background-color: #f8fafc;
 }
 
-.municipal-table tbody tr.row-selected {
+.table-row-selected {
   background-color: rgba(234, 130, 21, 0.1);
 }
 
@@ -1028,7 +1017,7 @@ const closeTechDocs = () => showTechDocs.value = false
   border: 1px dashed #cbd5e1;
 }
 
-.empty-table-state .empty-icon {
+.empty-state-icon {
   font-size: 3rem;
   color: #94a3b8;
   margin-bottom: 1rem;

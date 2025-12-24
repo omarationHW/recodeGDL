@@ -9,15 +9,22 @@
         <p>Inicio > Mercados > Facturación Global</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="consultar" :disabled="loading">
           <font-awesome-icon icon="search" /> Consultar
         </button>
-        <button class="btn-municipal-success" @click="exportarExcel" :disabled="loading || results.length === 0">
+        <button class="btn-municipal-primary" @click="exportarExcel" :disabled="loading || results.length === 0">
           <font-awesome-icon icon="file-excel" /> Exportar
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -33,7 +40,7 @@
               <select v-model="filters.oficina" class="municipal-form-control" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -100,21 +107,29 @@
               <span>registros por página</span>
             </div>
             <div class="pagination-controls">
-              <button class="btn-municipal-secondary btn-sm" @click="currentPage--" :disabled="currentPage === 1"><font-awesome-icon icon="chevron-left" /></button>
+              <button class="btn-municipal-secondary btn-sm" @click="currentPage--" :disabled="currentPage === 1"><font-awesome-icon icon="angle-left" /></button>
               <span class="mx-2">Página {{ currentPage }} de {{ totalPages }}</span>
-              <button class="btn-municipal-secondary btn-sm" @click="currentPage++" :disabled="currentPage === totalPages"><font-awesome-icon icon="chevron-right" /></button>
+              <button class="btn-municipal-secondary btn-sm" @click="currentPage++" :disabled="currentPage === totalPages"><font-awesome-icon icon="angle-right" /></button>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'RptFacturaGLunes'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - RptFacturaGLunes'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'RptFacturaGLunes'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - RptFacturaGLunes'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios';
 import { useGlobalLoading } from '@/composables/useGlobalLoading';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -143,11 +158,16 @@ const totalImporte = computed(() => results.value.reduce((sum, row) => sum + (pa
 const fetchRecaudadoras = async () => {
   loading.value = true;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'mercados', Parametros: [] }
-    });
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      recaudadoras.value = response.data.eResponse.data.result;
+    const response = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success && response?.data?.result) {
+      recaudadoras.value = response.data.result;
     }
   } catch (error) {
     console.error('Error:', error);
@@ -161,19 +181,20 @@ const consultar = async () => {
   loading.value = true;
   busquedaRealizada.value = false;
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_rpt_factura_global',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(filters.value.oficina) },
-          { Nombre: 'p_axo', Valor: parseInt(filters.value.axo) },
-          { Nombre: 'p_periodo', Valor: parseInt(filters.value.periodo) }
-        ]
-      }
-    });
-    if (response.data.eResponse?.success && response.data.eResponse?.data?.result) {
-      results.value = response.data.eResponse.data.result;
+    const response = await apiService.execute(
+          'sp_rpt_factura_global',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(filters.value.oficina) },
+          { nombre: 'p_axo', valor: parseInt(filters.value.axo) },
+          { nombre: 'p_periodo', valor: parseInt(filters.value.periodo) }
+        ],
+          '',
+          null,
+          'publico'
+        );
+    if (response?.success && response?.data?.result) {
+      results.value = response.data.result;
       busquedaRealizada.value = true;
       currentPage.value = 1;
     } else {
@@ -217,7 +238,3 @@ onMounted(async () => {
   }
 });
 </script>
-
-<style scoped>
-@import '@/styles/municipal-theme.css';
-</style>

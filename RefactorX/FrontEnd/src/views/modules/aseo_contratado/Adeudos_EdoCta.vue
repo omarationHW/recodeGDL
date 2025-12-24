@@ -8,25 +8,6 @@
         <h1>Estado de Cuenta Detallado</h1>
         <p>Aseo Contratado - Consulta detallada de adeudos y movimientos</p>
       </div>
-      <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
-        </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
-        </button>
-      </div>
-    
       <button type="button" class="btn-help-icon" @click="openDocumentation" title="Ayuda">
         <font-awesome-icon icon="question-circle" />
       </button>
@@ -342,20 +323,10 @@
         <li>Use los filtros para consultas específicas</li>
       </ul>
     </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
-      :componentName="'Adeudos_EdoCta'"
-      :moduleName="'aseo_contratado'"
-      @close="closeTechDocs"
-    />
-
   </div>
 </template>
 
 <script setup>
-import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
@@ -364,6 +335,7 @@ import { useLicenciasErrorHandler } from '@/composables/useLicenciasErrorHandler
 const { execute } = useApi()
 const { showToast } = useLicenciasErrorHandler()
 
+const loading = ref(false)
 const showDocumentation = ref(false)
 const numContrato = ref(null)
 const contratoInfo = ref(null)
@@ -386,8 +358,6 @@ const totales = computed(() => {
       multa: acc.multa + parseFloat(edo.importe_multa || 0),
       gastos: acc.gastos + parseFloat(edo.importe_gastos || 0),
       actualizacion: acc.actualizacion + parseFloat(edo.importe_actualizacion || 0),
-
-const { showLoading, hideLoading } = useGlobalLoading()
       total: acc.total + parseFloat(edo.total_periodo || 0)
     }
   }, { adeudo: 0, recargo: 0, multa: 0, gastos: 0, actualizacion: 0, total: 0 })
@@ -399,7 +369,7 @@ const buscarContrato = async () => {
     return
   }
 
-  showLoading()
+  loading.value = true
   try {
     const response = await execute('SP_ASEO_ADEUDOS_BUSCAR_CONTRATO', 'aseo_contratado', {
       p_num_contrato: numContrato.value,
@@ -407,8 +377,8 @@ const buscarContrato = async () => {
       p_nombre_empresa: null
     })
 
-    if (response && response.length > 0) {
-      contratoInfo.value = response[0]
+    if (response && response.data && response.data.length > 0) {
+      contratoInfo.value = response.data[0]
       // Consultar automáticamente el estado de cuenta
       await consultarEstadoCuenta()
     } else {
@@ -417,19 +387,18 @@ const buscarContrato = async () => {
       estadoCuenta.value = []
     }
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
+    console.error('Error:', error)
     showToast('Error al buscar contrato', 'error')
     contratoInfo.value = null
   } finally {
-    hideLoading()
+    loading.value = false
   }
 }
 
 const consultarEstadoCuenta = async () => {
   if (!contratoInfo.value) return
 
-  showLoading()
+  loading.value = true
   consultaRealizada.value = true
   try {
     // Preparar fecha hasta si se especificó periodo_hasta
@@ -445,8 +414,8 @@ const consultarEstadoCuenta = async () => {
       p_fecha_hasta: fechaHasta
     })
 
-    if (response) {
-      let datos = response
+    if (response && response.data) {
+      let datos = response.data
 
       // Aplicar filtros locales
       if (filtros.value.periodo_desde) {
@@ -466,11 +435,10 @@ const consultarEstadoCuenta = async () => {
       }
     }
   } catch (error) {
-    hideLoading()
-    handleApiError(error)
+    console.error('Error:', error)
     showToast('Error al consultar estado de cuenta', 'error')
   } finally {
-    hideLoading()
+    loading.value = false
   }
 }
 

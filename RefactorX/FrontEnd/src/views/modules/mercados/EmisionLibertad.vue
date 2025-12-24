@@ -9,15 +9,22 @@
         <p>Inicio > Operaciones > Emisión Libertad</p>
       </div>
       <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
         <button class="btn-municipal-primary" @click="generarEmision" :disabled="loading || !canGenerate">
           <font-awesome-icon icon="play" /> Generar Emisión
         </button>
-        <button class="btn-municipal-success" @click="exportarTXT" :disabled="loading || emision.length === 0">
+        <button class="btn-municipal-primary" @click="exportarTXT" :disabled="loading || emision.length === 0">
           <font-awesome-icon icon="file-download" /> Exportar TXT
         </button>
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
-        </button>
+        
       </div>
     </div>
 
@@ -41,7 +48,7 @@
               <select class="municipal-form-control" v-model="selectedRecaudadora" @change="onRecaudadoraChange" :disabled="loading">
                 <option value="">Seleccione...</option>
                 <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                  {{ rec.id_rec }} - {{ rec.recaudadora }}
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
                 </option>
               </select>
             </div>
@@ -148,12 +155,21 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'EmisionLibertad'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - EmisionLibertad'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'EmisionLibertad'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - EmisionLibertad'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
 
@@ -168,7 +184,7 @@ const loading = ref(false)
 const searched = ref(false)
 const toast = ref({ show: false, type: 'info', message: '' })
 const currentPage = ref(1)
-const itemsPerPage = ref(25)
+const itemsPerPage = ref(10)
 
 const canGenerate = computed(() => selectedRecaudadora.value && selectedMercados.value.length > 0 && axo.value && periodo.value)
 
@@ -200,21 +216,26 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Seleccione año, periodo, recaudadora y uno o más mercados. Luego genere la emisión para crear recibos.')
+  showToast('Seleccione año, periodo, recaudadora y uno o más mercados. Luego genere la emisión para crear recibos.', 'info')
 }
 
 const fetchRecaudadoras = async () => {
   showLoading('Cargando Emisión Libertad', 'Preparando oficinas recaudadoras...')
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_recaudadoras', Base: 'mercados', Parametros: [] }
-    })
-    if (res.data.eResponse.success) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar recaudadoras')
+    showToast('Error al cargar recaudadoras', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -228,17 +249,19 @@ const onRecaudadoraChange = async () => {
   if (!selectedRecaudadora.value) return
   loading.value = true
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: { Operacion: 'sp_get_mercados_by_recaudadora', 
-      Base: 'padron_licencias', 
-      Parametros: [{ Nombre: 'p_oficina', Valor: parseInt(selectedRecaudadora.value) }] }
-      // Parametros: [] }
-    })
-    if (res.data.eResponse.success) {
-      mercados.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+      'sp_get_mercados_by_recaudadora',
+      'mercados',
+      [{ nombre: 'p_oficina', valor: parseInt(selectedRecaudadora.value), tipo: 'integer' }],
+      '',
+      null,
+      'publico'
+    )
+    if (res.success) {
+      mercados.value = res.data.result || []
     }
   } catch (err) {
-    showToast('error', 'Error al cargar mercados')
+    showToast('Error al cargar mercados', 'error')
   } finally {
     loading.value = false
   }
@@ -246,7 +269,7 @@ const onRecaudadoraChange = async () => {
 
 const generarEmision = async () => {
   if (!canGenerate.value) {
-    showToast('warning', 'Complete todos los campos y seleccione al menos un mercado')
+    showToast('Complete todos los campos y seleccione al menos un mercado', 'warning')
     return
   }
   loading.value = true
@@ -254,31 +277,32 @@ const generarEmision = async () => {
   searched.value = true
   currentPage.value = 1
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'generar_emision_libertad',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(selectedRecaudadora.value) },
-          { Nombre: 'p_mercados', Valor: JSON.stringify(selectedMercados.value) },
-          { Nombre: 'p_axo', Valor: parseInt(axo.value) },
-          { Nombre: 'p_periodo', Valor: parseInt(periodo.value) },
-          { Nombre: 'p_usuario_id', Valor: 1 }
-        ]
-      }
-    })
-    if (res.data.eResponse.success) {
-      emision.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'generar_emision_libertad',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(selectedRecaudadora.value) },
+          { nombre: 'p_mercados', valor: JSON.stringify(selectedMercados.value) },
+          { nombre: 'p_axo', valor: parseInt(axo.value) },
+          { nombre: 'p_periodo', valor: parseInt(periodo.value) },
+          { nombre: 'p_usuario_id', valor: 1 }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      emision.value = res.data.result || []
       if (emision.value.length > 0) {
-        showToast('success', `Emisión generada: ${emision.value.length} locales`)
+        showToast(`Emisión generada: ${emision.value.length} locales`, 'success')
       } else {
-        showToast('info', 'No hay locales para los mercados seleccionados')
+        showToast('No hay locales para los mercados seleccionados', 'info')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al generar emisión')
+      showToast(res.message || 'Error al generar emisión', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión al generar emisión')
+    showToast('Error de conexión al generar emisión', 'error')
   } finally {
     loading.value = false
   }
@@ -286,7 +310,7 @@ const generarEmision = async () => {
 
 const exportarTXT = () => {
   if (emision.value.length === 0) {
-    showToast('warning', 'No hay datos para exportar')
+    showToast('No hay datos para exportar', 'warning')
     return
   }
   try {
@@ -303,9 +327,9 @@ const exportarTXT = () => {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    showToast('success', 'Archivo exportado exitosamente')
+    showToast('Archivo exportado exitosamente', 'success')
   } catch (err) {
-    showToast('error', 'Error al exportar')
+    showToast('Error al exportar', 'error')
   }
 }
 
@@ -325,42 +349,3 @@ onMounted(() => {
   fetchRecaudadoras()
 })
 </script>
-
-<style scoped>
-.empty-icon {
-  color: #6c757d;
-  opacity: 0.5;
-  margin-bottom: 1rem;
-}
-
-.mercados-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.mercado-checkbox {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  background: #f9f9f9;
-}
-
-.mercado-checkbox input[type="checkbox"] {
-  margin-right: 0.5rem;
-}
-
-.mercado-checkbox label {
-  margin: 0;
-  cursor: pointer;
-  user-select: none;
-  flex: 1;
-}
-
-.full-width {
-  grid-column: 1 / -1;
-}
-</style>

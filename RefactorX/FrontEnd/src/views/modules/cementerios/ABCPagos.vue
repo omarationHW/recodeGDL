@@ -10,32 +10,15 @@
         <p>Cementerios - Alta y baja de pagos por folio/cuenta RCM</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-secondary"
-          @click="mostrarDocumentacion"
-          title="Documentacion Tecnica"
-        >
-          <font-awesome-icon icon="file-code" />
-          Documentacion
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
       </div>
-    
-      <button
-        type="button"
-        class="btn-help-icon"
-        @click="mostrarAyuda = true"
-        title="Ayuda"
-      >
-        <font-awesome-icon icon="question-circle" />
-      </button>
     </div>
 
     <div class="module-view-content">
@@ -221,13 +204,19 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="adeudo in adeudosPendientes" :key="adeudo.id_adeudo">
+                <tr
+                  v-for="adeudo in adeudosPendientes"
+                  :key="adeudo.id_adeudo"
+                  @click="selectedRow = adeudo"
+                  :class="{ 'table-row-selected': selectedRow === adeudo }"
+                  class="row-hover"
+                >
                   <td>
                     <input
                       type="checkbox"
                       v-model="adeudosSeleccionados"
                       :value="adeudo.id_adeudo"
-                      @change="calcularTotalPago"
+                      @change.stop="calcularTotalPago"
                     />
                   </td>
                   <td><strong>{{ adeudo.axo_adeudo }}</strong></td>
@@ -245,7 +234,7 @@
               </tfoot>
             </table>
           </div>
-          <div v-else class="municipal-alert municipal-alert-warning">
+          <div v-else class="alert alert-warning">
             No hay adeudos pendientes para este folio
           </div>
 
@@ -295,7 +284,13 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="pago in pagosRegistrados" :key="pago.control_id">
+                <tr
+                  v-for="pago in pagosRegistrados"
+                  :key="pago.control_id"
+                  @click="selectedRow = pago"
+                  :class="{ 'table-row-selected': selectedRow === pago }"
+                  class="row-hover"
+                >
                   <td>
                     <input
                       type="radio"
@@ -303,6 +298,7 @@
                       :value="pago.control_id"
                       v-model="pagoSeleccionadoId"
                       :disabled="pago.vigencia !== 'A'"
+                      @click.stop
                     />
                   </td>
                   <td>{{ formatDate(pago.fecing) }}</td>
@@ -318,7 +314,7 @@
                   <td>
                     <button
                       class="btn-municipal-danger btn-sm"
-                      @click="confirmarBajaPago(pago)"
+                      @click.stop="confirmarBajaPago(pago)"
                       :disabled="pago.vigencia !== 'A'"
                       title="Dar de baja"
                     >
@@ -329,7 +325,7 @@
               </tbody>
             </table>
           </div>
-          <div v-else class="municipal-alert municipal-alert-info">
+          <div v-else class="alert alert-info">
             No hay pagos registrados para este folio
           </div>
 
@@ -347,68 +343,82 @@
       </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
     <!-- Modal de Ayuda -->
     <DocumentationModal
-      :show="mostrarAyuda"
-      @close="mostrarAyuda = false"
-      title="Registro de Pagos"
-    >
-      <h6>Descripción</h6>
-      <p>Módulo para registrar pagos de cuentas RCM y gestionar bajas de pagos registrados.</p>
-
-      <h6>Funcionalidades</h6>
-      <ul>
-        <li>Búsqueda de folio por control RCM</li>
-        <li>Visualización de datos del folio y propietario</li>
-        <li>Registro de pagos seleccionando adeudos pendientes</li>
-        <li>Cálculo automático de totales con descuentos</li>
-        <li>Baja de pagos registrados</li>
-        <li>Actualización automática de último año pagado</li>
-      </ul>
-
-      <h6>Instrucciones - Alta de Pago</h6>
-      <ol>
-        <li>Ingrese el número de folio (control RCM) y busque</li>
-        <li>Verifique los datos del folio</li>
-        <li>Haga clic en "Registrar Pago"</li>
-        <li>Complete los datos: fecha, recaudadora, caja y operación</li>
-        <li>Seleccione los adeudos a pagar (puede seleccionar varios años)</li>
-        <li>Verifique el total calculado</li>
-        <li>Haga clic en "Guardar Pago"</li>
-      </ol>
-
-      <h6>Instrucciones - Baja de Pago</h6>
-      <ol>
-        <li>Ingrese el número de folio y busque</li>
-        <li>Haga clic en "Dar de Baja Pago"</li>
-        <li>Seleccione el pago a dar de baja</li>
-        <li>Confirme la operación</li>
-      </ol>
-    </DocumentationModal>
-    <!-- Modal de Documentacion Tecnica -->
-    <TechnicalDocsModal
-      :show="showTechDocs"
+      :show="showDocModal"
       :componentName="'ABCPagos'"
       :moduleName="'cementerios'"
-      @close="closeTechDocs"
+      :docType="docType"
+      :title="'Registro de Pagos'"
+      @close="showDocModal = false"
     />
-
   </div>
 </template>
 
 <script setup>
-import TechnicalDocsModal from '@/components/common/TechnicalDocsModal.vue'
 import { ref, computed } from 'vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import DocumentationModal from '@/components/common/DocumentationModal.vue'
 import { useApi } from '@/composables/useApi'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
-import { useToast } from '@/composables/useToast'
 import Swal from 'sweetalert2'
 
 const { execute } = useApi()
 const { showLoading, hideLoading } = useGlobalLoading()
-const { showToast } = useToast()
+
+// Toast State (Manual system like reference)
+const toast = ref({
+  show: false,
+  type: 'info',
+  message: ''
+})
+
+// Toast Methods
+const showToast = (type, message) => {
+  toast.value = { show: true, type, message }
+  setTimeout(() => {
+    hideToast()
+  }, 3000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = {
+    success: 'check-circle',
+    error: 'times-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  }
+  return icons[type] || 'info-circle'
+}
+
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 // Estado
 const loading = ref(false)
@@ -416,11 +426,12 @@ const folioABuscar = ref(null)
 const datosFolio = ref(null)
 const adeudosPendientes = ref([])
 const pagosRegistrados = ref([])
-const mostrarAyuda = ref(false)
 const modoOperacion = ref(null) // null, 'alta', 'baja'
 const adeudosSeleccionados = ref([])
 const pagoSeleccionadoId = ref(null)
 const totalPagoCalculado = ref(0)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 const formPago = ref({
   fecha: new Date().toISOString().split('T')[0],
@@ -438,35 +449,50 @@ const todosAdeudosSeleccionados = computed(() => {
 // Métodos
 const buscarFolio = async () => {
   if (!folioABuscar.value) {
-    showToast('Debe ingresar un número de folio', 'warning')
+    showToast('warning', 'Debe ingresar un número de folio')
     return
   }
 
   loading.value = true
+  showLoading('Buscando folio...')
+  hasSearched.value = true
+  selectedRow.value = null
   try {
+    // Usar SP: sp_pagos_buscar_folio
+    // Base: cementerio.public (según 03_SP_CEMENTERIOS_ABCPAGOS_EXACTO_all_procedures.sql)
     const response = await execute(
-      'sp_cem_buscar_folio_pagos',
-      'cementerios',
-      {
-        p_control_rcm: folioABuscar.value
-      },
+      'sp_pagos_buscar_folio',
+      'cementerio',
+      [folioABuscar.value],
       '',
       null,
-      'comun'
+      'public'
     )
 
-    if (response && response.result && response.result.length > 0) {
-      datosFolio.value = response.result[0]
-      showToast('Folio encontrado', 'success')
+    /* TODO FUTURO: Query SQL original (comentado - ahora usa SP)
+    SELECT
+        a.control_rcm,
+        a.*,
+        c.nombre as nombre_cementerio
+    FROM padron_licencias.comun.ta_13_datosrcm a
+    LEFT JOIN cementerio.public.tc_13_cementerios c ON a.cementerio = c.cementerio
+    WHERE a.control_rcm = [folioABuscar]
+      AND a.vigencia = 'A'
+    */
+
+    if (response && response.length > 0) {
+      datosFolio.value = response[0]
+      showToast('success', 'Folio encontrado')
     } else {
-      showToast('Folio no encontrado', 'error')
+      showToast('error', 'Folio no encontrado')
       datosFolio.value = null
     }
   } catch (error) {
-    showToast('Error al buscar folio: ' + error.message, 'error')
+    showToast('error', 'Error al buscar folio: ' + error.message)
     datosFolio.value = null
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -482,45 +508,92 @@ const iniciarBajaPago = async () => {
 
 const cargarAdeudosPendientes = async () => {
   loading.value = true
+  showLoading('Cargando adeudos pendientes...')
+  selectedRow.value = null
   try {
+    // Usar SP: sp_pagos_adeudos_pendientes
+    // Base: cementerio.public (según 03_SP_CEMENTERIOS_ABCPAGOS_EXACTO_all_procedures.sql)
     const response = await execute(
-      'sp_cem_obtener_adeudos_pendientes',
-      'cementerios',
-      {
-        p_control_rcm: folioABuscar.value
-      },
+      'sp_pagos_adeudos_pendientes',
+      'cementerio',
+      [folioABuscar.value],
       '',
       null,
-      'comun'
+      'public'
     )
+
+    /* TODO FUTURO: Query SQL original (comentado - ahora usa SP)
+    SELECT
+        id_adeudo,
+        control_rcm,
+        axo_adeudo,
+        importe,
+        importe_recargos,
+        COALESCE(descto_impote, 0) as descto_importe,
+        COALESCE(descto_recargos, 0) as descto_recargos,
+        vigencia,
+        (importe - COALESCE(descto_impote, 0) + importe_recargos - COALESCE(descto_recargos, 0)) as total
+    FROM cementerio.public.ta_13_adeudosrcm
+    WHERE control_rcm = [folioABuscar]
+      AND id_pago IS NULL
+      AND vigencia = 'A'
+    ORDER BY axo_adeudo
+    */
 
     adeudosPendientes.value = response || []
   } catch (error) {
+    console.error('Error al cargar adeudos:', error)
     adeudosPendientes.value = []
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
 const cargarPagosRegistrados = async () => {
   loading.value = true
+  showLoading('Cargando pagos registrados...')
+  selectedRow.value = null
   try {
+    // Usar SP: sp_pagos_listar_por_folio
+    // Base: cementerio.public (según 03_SP_CEMENTERIOS_ABCPAGOS_EXACTO_all_procedures.sql)
     const response = await execute(
-      'sp_cem_listar_pagos_folio',
-      'cementerios',
-      {
-        p_control_rcm: folioABuscar.value
-      },
+      'sp_pagos_listar_por_folio',
+      'cementerio',
+      [folioABuscar.value],
       '',
       null,
-      'comun'
+      'public'
     )
+
+    /* TODO FUTURO: Query SQL original (comentado - ahora usa SP)
+    SELECT
+        control_id,
+        control_rcm,
+        fecing,
+        recing,
+        cajing,
+        opcaja,
+        axo_pago_desde,
+        axo_pago_hasta,
+        importe_anual,
+        importe_recargos,
+        vigencia,
+        usuario,
+        fecha_mov,
+        (importe_anual + COALESCE(importe_recargos, 0)) as total
+    FROM cementerio.public.ta_13_pagosrcm
+    WHERE control_rcm = [folioABuscar]
+    ORDER BY fecing DESC
+    */
 
     pagosRegistrados.value = response || []
   } catch (error) {
+    console.error('Error al cargar pagos:', error)
     pagosRegistrados.value = []
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -542,12 +615,12 @@ const calcularTotalPago = () => {
 const guardarPago = async () => {
   if (!formPago.value.fecha || !formPago.value.recaudadora ||
       !formPago.value.caja || !formPago.value.operacion) {
-    showToast('Debe completar todos los campos requeridos', 'warning')
+    showToast('warning', 'Debe completar todos los campos requeridos')
     return
   }
 
   if (adeudosSeleccionados.value.length === 0) {
-    showToast('Debe seleccionar al menos un adeudo', 'warning')
+    showToast('warning', 'Debe seleccionar al menos un adeudo')
     return
   }
 
@@ -571,48 +644,85 @@ const guardarPago = async () => {
     icon: 'question',
     showCancelButton: true,
     confirmButtonText: 'Sí, registrar',
-    cancelButtonText: 'Cancelar'
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d'
   })
 
   if (!result.isConfirmed) return
 
   loading.value = true
+  showLoading('Guardando pago...')
+  selectedRow.value = null
   try {
+    // Usar SP: sp_pagos_registrar
+    // Base: cementerio.public (según 03_SP_CEMENTERIOS_ABCPAGOS_EXACTO_all_procedures.sql)
     const response = await execute(
-      'sp_cem_registrar_pago',
-      'cementerios',
+      'sp_pagos_registrar',
+      'cementerio',
       {
         p_control_rcm: folioABuscar.value,
+        p_cementerio: datosFolio.value.cementerio,
+        p_clase: datosFolio.value.clase,
+        p_clase_alfa: datosFolio.value.clase_alfa,
+        p_seccion: datosFolio.value.seccion,
+        p_seccion_alfa: datosFolio.value.seccion_alfa,
+        p_linea: datosFolio.value.linea,
+        p_linea_alfa: datosFolio.value.linea_alfa,
+        p_fosa: datosFolio.value.fosa,
+        p_fosa_alfa: datosFolio.value.fosa_alfa,
         p_fecha: formPago.value.fecha,
         p_recaudadora: formPago.value.recaudadora,
         p_caja: formPago.value.caja,
         p_operacion: formPago.value.operacion,
         p_axo_desde: axoDesde,
         p_axo_hasta: axoHasta,
-        p_importe: totalPagoCalculado.value,
-        p_id_usuario: 1, // TODO: Obtener del contexto de usuario
-        p_operacion_tipo: 1, // Alta
-        p_control_id: null
+        p_importe_total: totalPagoCalculado.value,
+        p_adeudos_ids: adeudosSeleccionados.value,
+        p_usuario: 1 // TODO: Obtener del contexto
       },
       '',
       null,
-      'comun'
+      'public'
     )
 
-    if (response && response.result && response.result.length > 0) {
-      const result = response.result[0]
-      if (result.par_ok === 1) {
-        showToast(result.par_observ, 'success')
-        cancelarOperacion()
-        await buscarFolio() // Recargar datos del folio
-      } else {
-        showToast(result.par_observ, 'error')
+    /* TODO FUTURO: Queries SQL originales (comentadas - ahora usa SP transaccional)
+    -- 1. INSERT en ta_13_pagosrcm
+    INSERT INTO cementerio.public.ta_13_pagosrcm (
+        control_rcm, cementerio, clase, clase_alfa, seccion, seccion_alfa,
+        linea, linea_alfa, fosa, fosa_alfa, fecing, recing, cajing, opcaja,
+        axo_pago_desde, axo_pago_hasta, importe_anual, importe_recargos,
+        vigencia, usuario, fecha_mov
+    ) VALUES (...) RETURNING control_id;
+
+    -- 2. UPDATE adeudos relacionados
+    UPDATE cementerio.public.ta_13_adeudosrcm
+    SET id_pago = [pagoId], usuario = [usuario], fecha_mov = CURRENT_DATE
+    WHERE id_adeudo IN ([adeudosSeleccionados]);
+
+    -- 3. UPDATE último año pagado
+    UPDATE padron_licencias.comun.ta_13_datosrcm
+    SET axo_pagado = [axoHasta], usuario = [usuario], fecha_mov = CURRENT_DATE
+    WHERE control_rcm = [folioABuscar];
+    */
+
+    if (response && response.length > 0) {
+      const resultado = response[0]
+
+      if (resultado.p_error) {
+        showToast('error', 'Error al registrar pago: ' + resultado.p_error)
+        return
       }
+
+      showToast('success', 'Pago registrado exitosamente')
+      cancelarOperacion()
+      await buscarFolio() // Recargar datos del folio
     }
   } catch (error) {
-    showToast('Error al registrar pago: ' + error.message, 'error')
+    showToast('error', 'Error al registrar pago: ' + error.message)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -632,48 +742,70 @@ const confirmarBajaPago = async (pago) => {
     showCancelButton: true,
     confirmButtonText: 'Sí, dar de baja',
     cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#d33'
+    confirmButtonColor: '#ea8215',
+    cancelButtonColor: '#6c757d'
   })
 
   if (!result.isConfirmed) return
 
   loading.value = true
+  showLoading('Dando de baja pago...')
+  selectedRow.value = null
   try {
+    // Usar SP: sp_pagos_dar_baja
+    // Base: cementerio.public (según 03_SP_CEMENTERIOS_ABCPAGOS_EXACTO_all_procedures.sql)
     const response = await execute(
-      'sp_cem_registrar_pago',
-      'cementerios',
+      'sp_pagos_dar_baja',
+      'cementerio',
       {
+        p_control_id: pago.control_id,
         p_control_rcm: folioABuscar.value,
-        p_fecha: pago.fecing,
-        p_recaudadora: pago.recing,
-        p_caja: pago.cajing,
-        p_operacion: pago.opcaja,
-        p_axo_desde: pago.axo_pago_desde,
-        p_axo_hasta: pago.axo_pago_hasta,
-        p_importe: pago.importe_anual,
-        p_id_usuario: 1, // TODO: Obtener del contexto de usuario
-        p_operacion_tipo: 2, // Baja
-        p_control_id: pago.control_id
+        p_usuario: 1 // TODO: Obtener del contexto
       },
       '',
       null,
-      'comun'
+      'public'
     )
 
-    if (response && response.result && response.result.length > 0) {
-      const result = response.result[0]
-      if (result.par_ok === 1) {
-        showToast(result.par_observ, 'success')
-        await cargarPagosRegistrados() // Recargar listado
-        await buscarFolio() // Recargar datos del folio
-      } else {
-        showToast(result.par_observ, 'error')
+    /* TODO FUTURO: Queries SQL originales (comentadas - ahora usa SP transaccional)
+    -- 1. UPDATE vigencia a 'B'
+    UPDATE cementerio.public.ta_13_pagosrcm
+    SET vigencia = 'B', usuario = [usuario], fecha_mov = CURRENT_DATE
+    WHERE control_id = [control_id];
+
+    -- 2. Liberar adeudos (id_pago = NULL)
+    UPDATE cementerio.public.ta_13_adeudosrcm
+    SET id_pago = NULL, usuario = [usuario], fecha_mov = CURRENT_DATE
+    WHERE id_pago = [control_id];
+
+    -- 3. Recalcular último año pagado
+    SELECT MAX(axo_pago_hasta) as ultimo_axo
+    FROM cementerio.public.ta_13_pagosrcm
+    WHERE control_rcm = [folioABuscar] AND vigencia = 'A';
+
+    -- 4. UPDATE último año pagado
+    UPDATE padron_licencias.comun.ta_13_datosrcm
+    SET axo_pagado = [ultimoAxo], usuario = [usuario], fecha_mov = CURRENT_DATE
+    WHERE control_rcm = [folioABuscar];
+    */
+
+    if (response && response.length > 0) {
+      const resultado = response[0]
+
+      if (resultado.p_error) {
+        showToast('error', 'Error al dar de baja: ' + resultado.p_error)
+        return
       }
     }
+
+    showToast('success', 'Pago dado de baja exitosamente')
+    await cargarPagosRegistrados() // Recargar listado
+    await buscarFolio() // Recargar datos del folio
   } catch (error) {
-    showToast('Error al dar de baja pago: ' + error.message, 'error')
+    showToast('error', 'Error al dar de baja pago: ' + error.message)
   } finally {
     loading.value = false
+    hideLoading()
   }
 }
 
@@ -695,6 +827,8 @@ const limpiar = () => {
   datosFolio.value = null
   adeudosPendientes.value = []
   pagosRegistrados.value = []
+  hasSearched.value = false
+  selectedRow.value = null
   cancelarOperacion()
 }
 
@@ -707,13 +841,4 @@ const formatNumber = (number) => {
   if (!number) return '0.00'
   return Number(number).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
-
-// Documentacion y Ayuda
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
-const showTechDocs = ref(false)
-const mostrarDocumentacion = () => showTechDocs.value = true
-const closeTechDocs = () => showTechDocs.value = false
-
 </script>

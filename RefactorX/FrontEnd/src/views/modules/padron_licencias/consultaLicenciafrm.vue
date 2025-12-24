@@ -40,10 +40,11 @@
           <font-awesome-icon icon="sync-alt" />
           Actualizar
         </button>
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -85,7 +86,7 @@
 
     <!-- Filtros de búsqueda -->
     <div class="municipal-card">
-      <div class="municipal-card-header" @click="toggleFilters" style="cursor: pointer;">
+      <div class="municipal-card-header clickable" @click="toggleFilters">
         <h5>
           <font-awesome-icon icon="filter" />
           Filtros de Búsqueda
@@ -223,12 +224,12 @@
 
     <!-- Tabla de resultados -->
     <div class="municipal-card">
-      <div class="municipal-card-header">
-        <div class="header-with-badge">
-          <h5>
-            <font-awesome-icon icon="list" />
-            Resultados de Búsqueda
-          </h5>
+      <div class="municipal-card-header header-with-badge">
+        <h5>
+          <font-awesome-icon icon="list" />
+          Resultados de Búsqueda
+        </h5>
+        <div class="header-right">
           <span class="badge-purple" v-if="totalResultados > 0">
             {{ formatNumber(totalResultados) }} registros totales
           </span>
@@ -254,26 +255,13 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="licencias.length === 0 && !primeraBusqueda">
-                <td colspan="11" class="text-center text-muted">
-                  <font-awesome-icon icon="search" size="2x" class="empty-icon" />
-                  <p>Utiliza los filtros de búsqueda para encontrar licencias</p>
-                </td>
-              </tr>
-              <tr v-else-if="licencias.length === 0">
-                <td colspan="11" class="text-center text-muted">
-                  <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
-                  <p>No se encontraron licencias con los filtros especificados</p>
-                </td>
-              </tr>
               <tr
-                v-else
                 v-for="lic in licencias"
                 :key="lic.id_licencia"
-                @click="licenciaSeleccionada = lic"
+                @click="selectedRow = lic"
                 @dblclick="verDetalle(lic)"
-                :class="{ 'row-hover': true, 'selected-row': licenciaSeleccionada?.id_licencia === lic.id_licencia }"
-                style="cursor: pointer;"
+                :class="{ 'table-row-selected': selectedRow?.id_licencia === lic.id_licencia }"
+                class="row-hover"
               >
                 <td><strong class="text-primary">{{ lic.id_licencia }}</strong></td>
                 <td>{{ lic.licencia }}</td>
@@ -333,6 +321,24 @@
               </tr>
             </tbody>
           </table>
+
+          <!-- Empty State - Sin búsqueda -->
+          <div v-if="licencias.length === 0 && !hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="search" size="3x" />
+            </div>
+            <h4>Consulta de Licencias</h4>
+            <p>Utiliza los filtros de búsqueda para encontrar licencias</p>
+          </div>
+
+          <!-- Empty State - Sin resultados -->
+          <div v-else-if="licencias.length === 0 && hasSearched" class="empty-state">
+            <div class="empty-state-icon">
+              <font-awesome-icon icon="inbox" size="3x" />
+            </div>
+            <h4>Sin resultados</h4>
+            <p>No se encontraron licencias con los filtros especificados</p>
+          </div>
         </div>
       </div>
 
@@ -350,9 +356,8 @@
           <label class="municipal-form-label me-2">Registros por página:</label>
           <select
             class="municipal-form-control form-control-sm"
-            v-model="itemsPerPage"
-            @change="changePageSize"
-            style="width: auto; display: inline-block;"
+            :value="itemsPerPage"
+            @change="changePageSize($event.target.value)"
           >
             <option :value="10">10</option>
             <option :value="20">20</option>
@@ -410,6 +415,28 @@
         </div>
       </div>
     </div>
+
+    <!-- Toast Notifications -->
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <div class="toast-content">
+        <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+      <span v-if="toast.duration" class="toast-duration">{{ toast.duration }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+
+    <!-- Modal de Ayuda y Documentación -->
+    <DocumentationModal
+      :show="showDocModal"
+      :componentName="'consultaLicenciafrm'"
+      :moduleName="'padron_licencias'"
+      :docType="docType"
+      :title="'Consulta de Licencias'"
+      @close="showDocModal = false"
+    />
     </div>
   </div>
 
@@ -608,23 +635,6 @@
       </button>
     </div>
   </Modal>
-
-  <!-- Toast Notifications -->
-  <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-    <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-    <span class="toast-message">{{ toast.message }}</span>
-    <button class="toast-close" @click="hideToast">
-      <font-awesome-icon icon="times" />
-    </button>
-  </div>
-
-  <!-- Modal de Ayuda -->
-  <DocumentationModal
-    :show="showDocumentation"
-    :componentName="'consultaLicenciafrm'"
-    :moduleName="'padron_licencias'"
-    @close="closeDocumentation"
-  />
 </template>
 
 <script setup>
@@ -639,10 +649,19 @@ import { useExcelExport } from '@/composables/useExcelExport'
 import { usePdfExport } from '@/composables/usePdfExport'
 import Swal from 'sweetalert2'
 
-// Composables
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+// Documentación y Ayuda
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const router = useRouter()
 const { execute } = useApi()
@@ -671,6 +690,8 @@ const licenciaSeleccionada = ref({})
 const historialLicenciaId = ref(null)
 const loadingHistorial = ref(false)
 const loadingEstadisticas = ref(true)
+const selectedRow = ref(null)
+const hasSearched = ref(false)
 
 // Filtros
 const filtros = ref({
@@ -764,7 +785,7 @@ const cargarEstadisticas = async () => {
       [],
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     if (response && response.result) {
@@ -781,6 +802,8 @@ const buscarLicencias = async () => {
   localStorage.removeItem('licencias_consulta')
 
   showLoading('Buscando licencias...', 'Consultando base de datos')
+  hasSearched.value = true
+  selectedRow.value = null
   primeraBusqueda.value = true
   showFilters.value = false  // Contraer acordeón al buscar
 
@@ -873,7 +896,7 @@ const buscarLicencias = async () => {
       params,
       'guadalajara',
       null,
-      'comun'
+      'publico'
     )
 
     hideLoading()
@@ -909,7 +932,9 @@ const limpiarFiltros = () => {
   })
   licencias.value = []
   totalResultados.value = 0
+  hasSearched.value = false
   currentPage.value = 1
+  selectedRow.value = null
   primeraBusqueda.value = false
   establecerFechasPorDefecto()
 }
@@ -917,16 +942,20 @@ const limpiarFiltros = () => {
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
+    selectedRow.value = null
     buscarLicencias()
   }
 }
 
-const changePageSize = () => {
+const changePageSize = (size) => {
+  itemsPerPage.value = parseInt(size)
   currentPage.value = 1
+  selectedRow.value = null
   buscarLicencias()
 }
 
 const verDetalle = (licencia) => {
+  selectedRow.value = licencia
   licenciaSeleccionada.value = licencia
   showDetalleModal.value = true
 }
@@ -1076,22 +1105,25 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
+<style>
 /* Los estilos están en municipal-theme.css */
-/* Personalización específica de estadísticas para 4 columnas */
 .stats-grid {
-  grid-template-columns: repeat(4, 1fr) !important;
+  grid-template-columns: repeat(4, 1fr);
 }
 
 @media (max-width: 1200px) {
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
   .stats-grid {
-    grid-template-columns: repeat(1, 1fr) !important;
+    grid-template-columns: repeat(1, 1fr);
   }
+}
+
+.clickable {
+  cursor: pointer;
 }
 </style>

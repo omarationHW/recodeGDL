@@ -10,11 +10,11 @@
         <p>Otras Obligaciones - Modificación de datos generales y específicos</p>
       </div>
       <div class="button-group ms-auto">
-        <button
-          class="btn-municipal-purple"
-          @click="openDocumentation"
-          title="Ayuda"
-        >
+        <button class="btn-municipal-info" @click="abrirDocumentacion">
+          <font-awesome-icon icon="book" />
+          Documentación
+        </button>
+        <button class="btn-municipal-purple" @click="abrirAyuda">
           <font-awesome-icon icon="question-circle" />
           Ayuda
         </button>
@@ -110,7 +110,7 @@
 
       <!-- Panel de datos encontrados -->
       <div class="municipal-card" v-if="registroActual">
-        <div class="municipal-card-header">
+        <div class="municipal-card-header header-with-badge">
           <h5>
             <font-awesome-icon icon="info-circle" />
             Datos del Registro
@@ -637,10 +637,12 @@
   </div>
 
   <DocumentationModal
-    :show="showDocumentation"
+    :show="showDocModal"
     :componentName="'GActualiza'"
     :moduleName="'otras_obligaciones'"
-    @close="closeDocumentation"
+    :docType="docType"
+    :title="'Actualización de Datos'"
+    @close="showDocModal = false"
   />
 </template>
 
@@ -655,9 +657,18 @@ import Swal from 'sweetalert2'
 
 const router = useRouter()
 const route = useRoute()
-const showDocumentation = ref(false)
-const openDocumentation = () => showDocumentation.value = true
-const closeDocumentation = () => showDocumentation.value = false
+const showDocModal = ref(false)
+const docType = ref('ayuda')
+
+const abrirAyuda = () => {
+  docType.value = 'ayuda'
+  showDocModal.value = true
+}
+
+const abrirDocumentacion = () => {
+  docType.value = 'documentacion'
+  showDocModal.value = true
+}
 
 const { execute } = useApi()
 const BASE_DB = 'otras_obligaciones'

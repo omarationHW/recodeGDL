@@ -9,9 +9,16 @@
         <p>Inicio > Operaciones > Paso de Adeudos (Mercado 214)</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" /> Ayuda
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
         </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        
       </div>
     </div>
 
@@ -92,7 +99,7 @@
             </table>
           </div>
           <div class="button-row mt-3">
-            <button class="btn-municipal-success" @click="insertarAdeudos" :disabled="loading">
+            <button class="btn-municipal-primary" @click="insertarAdeudos" :disabled="loading">
               <font-awesome-icon :icon="loading ? 'spinner' : 'save'" :spin="loading" />
               {{ loading ? 'Insertando...' : 'Insertar Adeudos en BD' }}
             </button>
@@ -133,11 +140,50 @@
       </button>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'PasoAdeudos'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - PasoAdeudos'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'PasoAdeudos'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - PasoAdeudos'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import Swal from 'sweetalert2'
+
+// Helpers de confirmación SweetAlert
+const confirmarAccion = async (titulo, texto, confirmarTexto = 'Sí, continuar') => {
+  const result = await Swal.fire({
+    title: titulo,
+    text: texto,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: confirmarTexto,
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+
+const mostrarConfirmacionEliminar = async (texto) => {
+  const result = await Swal.fire({
+    title: '¿Eliminar registro?',
+    text: texto,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  })
+  return result.isConfirmed
+}
+import apiService from '@/services/apiService';
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const form = ref({
   ano: new Date().getFullYear(),
@@ -168,12 +214,12 @@ const getToastIcon = (type) => {
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Genere adeudos para el Tianguis (Mercado 214) seleccionando el año y trimestre. El importe se calcula como: (Superficie * Importe Cuota) * 13')
+  showToast('Genere adeudos para el Tianguis (Mercado 214) seleccionando el año y trimestre. El importe se calcula como: (Superficie * Importe Cuota) * 13', 'info')
 }
 
 const generarAdeudos = async () => {
   if (!form.value.ano || form.value.ano < 2009) {
-    showToast('warning', 'Ingrese un año válido (mayor o igual a 2009)')
+    showToast('Ingrese un año válido (mayor o igual a 2009)', 'warning')
     return
   }
 
@@ -182,23 +228,24 @@ const generarAdeudos = async () => {
   resultado.value.show = false
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_tianguis_locales',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_ano', Valor: parseInt(form.value.ano) }
-        ]
-      }
-    })
+    const res = await apiService.execute(
+          'sp_get_tianguis_locales',
+          'mercados',
+          [
+          { nombre: 'p_ano', valor: parseInt(form.value.ano) }
+        ],
+          '',
+          null,
+          'publico'
+        )
     console.log(res.data)
 
-    if (res.data.eResponse.success) {
-      console.log(res.data.eResponse.data)
-      const locales = res.data.eResponse.data.result
+    if (res.success) {
+      console.log(res.data)
+      const locales = res.data.result
 
       if (locales.length === 0) {
-        showToast('warning', 'No se encontraron locales activos para el año seleccionado')
+        showToast('No se encontraron locales activos para el año seleccionado', 'warning')
         return
       }
 
@@ -220,12 +267,12 @@ const generarAdeudos = async () => {
       })
 
       adeudos.value = adeudosGenerados
-      showToast('success', `${adeudosGenerados.length} adeudos generados correctamente`)
+      showToast(`${adeudosGenerados.length} adeudos generados correctamente`, 'success')
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al obtener locales')
+      showToast(res.message || 'Error al obtener locales', 'error')
     }
   } catch (err) {
-    showToast('error', 'Error de conexión: ' + err.message)
+    showToast('Error de conexión: ' + err.message, 'error')
   } finally {
     loading.value = false
   }
@@ -233,7 +280,7 @@ const generarAdeudos = async () => {
 
 const insertarAdeudos = async () => {
   if (adeudos.value.length === 0) {
-    showToast('warning', 'No hay adeudos para insertar')
+    showToast('No hay adeudos para insertar', 'warning')
     return
   }
 
@@ -248,29 +295,30 @@ const insertarAdeudos = async () => {
   for (let i = 0; i < adeudos.value.length; i++) {
     const adeudo = adeudos.value[i]
     try {
-      const res = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_insertar_adeudo_local',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_id_local', Valor: parseInt(adeudo.id_local) },
-            { Nombre: 'p_ano', Valor: parseInt(form.value.ano) },
-            { Nombre: 'p_periodo', Valor: parseInt(adeudo.periodo) },
-            { Nombre: 'p_importe', Valor: parseFloat(adeudo.importe_adeudo) },
-            { Nombre: 'p_id_usuario', Valor: 1 }
-          ]
-        }
-      })
+      const res = await apiService.execute(
+          'sp_insertar_adeudo_local',
+          'mercados',
+          [
+            { nombre: 'p_id_local', valor: parseInt(adeudo.id_local) },
+            { nombre: 'p_ano', valor: parseInt(form.value.ano) },
+            { nombre: 'p_periodo', valor: parseInt(adeudo.periodo) },
+            { nombre: 'p_importe', valor: parseFloat(adeudo.importe_adeudo) },
+            { nombre: 'p_id_usuario', valor: 1 }
+          ],
+          '',
+          null,
+          'publico'
+        )
 
-      if (res.data.eResponse.success) {
-        const result = res.data.eResponse.data.result[0]
+      if (res.success) {
+        const result = res.data.result[0]
         if (result.success) {
           insertados.push(adeudo.id_local)
         } else {
           errores.push(`Local ${adeudo.id_local}: ${result.message}`)
         }
       } else {
-        errores.push(`Local ${adeudo.id_local}: ${res.data.eResponse.message}`)
+        errores.push(`Local ${adeudo.id_local}: ${res.message}`)
       }
     } catch (err) {
       errores.push(`Local ${adeudo.id_local}: Error de conexión`)
@@ -287,14 +335,14 @@ const insertarAdeudos = async () => {
   }
 
   if (insertados.length === adeudos.value.length) {
-    showToast('success', `¡Proceso completado! ${insertados.length} adeudos insertados`)
+    showToast(`¡Proceso completado! ${insertados.length} adeudos insertados`, 'success')
     setTimeout(() => {
       adeudos.value = []
     }, 3000)
   } else if (insertados.length > 0) {
-    showToast('warning', `Proceso completado con errores: ${insertados.length} insertados, ${errores.length} fallidos`)
+    showToast(`Proceso completado con errores: ${insertados.length} insertados, ${errores.length} fallidos`, 'warning')
   } else {
-    showToast('error', 'No se pudieron insertar adeudos')
+    showToast('No se pudieron insertar adeudos', 'error')
   }
 }
 
@@ -315,18 +363,3 @@ const formatNumber = (val) => {
   return num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 </script>
-
-<style scoped>
-.bg-success {
-  background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
-}
-
-.bg-warning {
-  background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
-}
-
-.table-footer {
-  background: #f8f9fa;
-  font-weight: 600;
-}
-</style>

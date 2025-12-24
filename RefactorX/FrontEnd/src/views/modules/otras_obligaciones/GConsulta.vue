@@ -42,7 +42,7 @@
       <!-- Tarjeta de búsqueda -->
       <div class="municipal-card">
         <div class="municipal-card-header">
-          <h5>
+          <h5 class="header-with-badge">
             <font-awesome-icon icon="search" />
             {{ etiquetaBusqueda }}
             <span class="badge badge-purple ms-2" v-if="datosContrato">
@@ -242,7 +242,7 @@
       <!-- Tabla de adeudos pendientes -->
       <div class="municipal-card" v-if="datosContrato">
         <div class="municipal-card-header">
-          <h5>
+          <h5 class="header-with-badge">
             <font-awesome-icon icon="list" />
             Adeudos Pendientes
             <span class="badge badge-purple ms-2" v-if="adeudos.length > 0">

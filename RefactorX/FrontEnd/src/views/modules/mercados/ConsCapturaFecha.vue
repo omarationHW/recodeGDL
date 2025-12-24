@@ -9,11 +9,15 @@
         <p>Mercados - Detalle de Pagos Capturados por Fecha</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-danger" @click="cerrar">
-          <font-awesome-icon icon="times" />
-          Cerrar
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
         </button>
-      </div>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        </div>
     </div>
 
     <div class="module-view-content">
@@ -123,13 +127,21 @@
       </div>
     </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'ConsCapturaFecha'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - ConsCapturaFecha'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'ConsCapturaFecha'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - ConsCapturaFecha'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useRouter } from 'vue-router';
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const router = useRouter();
 
@@ -151,22 +163,19 @@ const formatCurrency = (value) => {
 
 const showToast = (type, message) => {
   Swal.fire({ toast: true, position: 'top-end', icon: type, title: message, showConfirmButton: false, timer: 3000 });
-};
-
-const cerrar = () => router.push('/mercados');
-
-async function cargarOficinas() {
+};async function cargarOficinas() {
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_captura_fecha_get_oficinas',
-        Base: 'mercados',
-        Parametros: []
-      }
-    });
+    const response = await apiService.execute(
+          'sp_cons_captura_fecha_get_oficinas',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      oficinas.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      oficinas.value = response.data.result || [];
     }
   } catch (error) {
     console.error('Error cargando oficinas:', error);
@@ -175,7 +184,7 @@ async function cargarOficinas() {
 
 async function buscarPagos() {
   if (!form.value.fecha || !form.value.oficina || !form.value.caja || !form.value.operacion) {
-    showToast('warning', 'Complete todos los campos');
+    showToast('Complete todos los campos', 'warning');
     return;
   }
 
@@ -185,28 +194,29 @@ async function buscarPagos() {
   selectAll.value = false;
 
   try {
-    const response = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_cons_captura_fecha_get_pagos',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_fecha', Valor: form.value.fecha, tipo: 'date' },
-          { Nombre: 'p_oficina', Valor: form.value.oficina, tipo: 'integer' },
-          { Nombre: 'p_caja', Valor: form.value.caja },
-          { Nombre: 'p_operacion', Valor: form.value.operacion, tipo: 'integer' }
-        ]
-      }
-    });
+    const response = await apiService.execute(
+          'sp_cons_captura_fecha_get_pagos',
+          'mercados',
+          [
+          { nombre: 'p_fecha', valor: form.value.fecha, tipo: 'date' },
+          { nombre: 'p_oficina', valor: form.value.oficina, tipo: 'integer' },
+          { nombre: 'p_caja', valor: form.value.caja },
+          { nombre: 'p_operacion', valor: form.value.operacion, tipo: 'integer' }
+        ],
+          '',
+          null,
+          'publico'
+        );
 
-    if (response.data?.eResponse?.success) {
-      pagos.value = response.data.eResponse.data.result || [];
+    if (response.success) {
+      pagos.value = response.data.result || [];
       if (pagos.value.length === 0) {
-        showToast('info', 'No se encontraron pagos');
+        showToast('No se encontraron pagos', 'info');
       }
     }
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al buscar pagos');
+    showToast('Error al buscar pagos', 'error');
   } finally {
     loading.value = false;
   }
@@ -222,7 +232,7 @@ function toggleAll() {
 
 async function borrarPagos() {
   if (selected.value.length === 0) {
-    showToast('warning', 'Seleccione al menos un pago');
+    showToast('Seleccione al menos un pago', 'warning');
     return;
   }
 
@@ -243,32 +253,55 @@ async function borrarPagos() {
 
   try {
     for (const pago of selected.value) {
-      const response = await axios.post('/api/generic', {
-        eRequest: {
-          Operacion: 'sp_cons_captura_fecha_delete',
-          Base: 'mercados',
-          Parametros: [
-            { Nombre: 'p_id_local', Valor: pago.id_local, tipo: 'integer' },
-            { Nombre: 'p_axo', Valor: pago.axo, tipo: 'integer' },
-            { Nombre: 'p_periodo', Valor: pago.periodo, tipo: 'integer' },
-            { Nombre: 'p_usuario', Valor: 1, tipo: 'integer' }
-          ]
-        }
-      });
+      const response = await apiService.execute(
+          'sp_cons_captura_fecha_delete',
+          'mercados',
+          [
+            { nombre: 'p_id_local', valor: pago.id_local, tipo: 'integer' },
+            { nombre: 'p_axo', valor: pago.axo, tipo: 'integer' },
+            { nombre: 'p_periodo', valor: pago.periodo, tipo: 'integer' },
+            { nombre: 'p_usuario', valor: 1, tipo: 'integer' }
+          ],
+          '',
+          null,
+          'publico'
+        );
 
-      if (response.data?.eResponse?.success) {
+      if (response.success) {
         exitosos++;
       }
     }
 
-    showToast('success', `${exitosos} pago(s) eliminado(s)`);
+    showToast(`${exitosos} pago(s) eliminado(s)`, 'success');
     buscarPagos();
   } catch (error) {
     console.error('Error:', error);
-    showToast('error', 'Error al borrar pagos');
+    showToast('Error al borrar pagos', 'error');
   } finally {
     loading.value = false;
   }
+}
+
+
+// Ayuda
+function mostrarAyuda() {
+  Swal.fire({
+    title: 'Ayuda - Consulta de Captura por Fecha',
+    html: `
+      <div style="text-align: left;">
+        <h6>Funcionalidad del mÃ³dulo:</h6>
+        <p>Este mÃ³dulo permite consultar las capturas realizadas en un rango de fechas.</p>
+        <h6>Instrucciones:</h6>
+        <ol>
+          <li>Seleccione el rango de fechas a consultar
+          <li>Aplique filtros adicionales segÃºn sea necesario
+          <li>Los resultados se muestran en orden cronolÃ³gico</li>
+        </ol>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Entendido'
+  });
 }
 
 onMounted(() => cargarOficinas());

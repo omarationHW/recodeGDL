@@ -10,10 +10,16 @@
         <p>Inicio > Mercados > Mantenimiento > Alta de Energía</p>
       </div>
       <div class="button-group ms-auto">
-        <button class="btn-municipal-purple" @click="mostrarAyuda">
-          <font-awesome-icon icon="question-circle" />
-          Ayuda
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
         </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        
       </div>
     </div>
 
@@ -36,30 +42,34 @@
                   @change="onRecaudadoraChange" required>
                   <option value="">Seleccione...</option>
                   <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
-                    {{ rec.id_rec }} - {{ rec.recaudadora }}
+                   {{ rec.id_rec }} - {{ rec.recaudadora }}
                   </option>
                 </select>
               </div>
 
               <div class="form-group">
                 <label class="municipal-form-label">Mercado <span class="required">*</span></label>
-                <select class="municipal-form-control" v-model="form.num_mercado" :disabled="loading || !form.oficina || localEncontrado"
-                  required>
+                <select class="municipal-form-control" v-model="form.num_mercado" @change="onMercadoChange"
+                  :disabled="loading || !form.oficina || localEncontrado" required>
                   <option value="">Seleccione...</option>
-                  <option v-for="merc in mercados" :key="merc.num_mercado" :value="merc.num_mercado">
-                    {{ merc.num_mercado }} - {{ merc.descripcion }}
+                  <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                    {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
                   </option>
                 </select>
               </div>
 
               <div class="form-group">
                 <label class="municipal-form-label">Categoría <span class="required">*</span></label>
-                <input type="number" class="municipal-form-control" v-model.number="form.categoria"
-                  :disabled="loading || localEncontrado" min="1" max="9" required />
+                <select class="municipal-form-control" v-model="form.categoria" :disabled="loading || localEncontrado" required>
+                  <option value="">Seleccione...</option>
+                  <option v-for="cat in categorias" :key="cat.categoria" :value="cat.categoria">
+                    {{ cat.categoria }} - {{ cat.descripcion }}
+                  </option>
+                </select>
               </div>
 
               <div class="form-group">
-                <label class="municipal-form-label">Sección <span class="required">*</span></label>
+                <label class="municipal-form-label">Sección</label>
                 <select class="municipal-form-control" v-model="form.seccion" :disabled="loading || localEncontrado"
                   required>
                   <option value="">Seleccione...</option>
@@ -70,7 +80,7 @@
               </div>
 
               <div class="form-group">
-                <label class="municipal-form-label">Local <span class="required">*</span></label>
+                <label class="municipal-form-label">Local</label>
                 <input type="number" class="municipal-form-control" v-model.number="form.local"
                   :disabled="loading || localEncontrado" min="1" required />
               </div>
@@ -91,9 +101,14 @@
             <div class="row mt-3">
               <div class="col-12">
                 <div class="text-end">
-                  <button v-if="!localEncontrado" type="submit" class="btn-municipal-primary" :disabled="loading">
+                  <button v-if="form.oficina && form.num_mercado && !localEncontrado && !localSeleccionado" type="button"
+                    class="btn-municipal-secondary me-2" @click="mostrarLocalesDisponibles" :disabled="loading">
+                    <font-awesome-icon icon="list" />
+                    Ver Locales Disponibles
+                  </button>
+                  <button v-if="localSeleccionado && !localEncontrado" type="submit" class="btn-municipal-primary" :disabled="loading">
                     <font-awesome-icon icon="search" />
-                    Buscar Local
+                    Cargar datos del Local
                   </button>
                   <button v-if="localEncontrado" type="button" class="btn-municipal-secondary" @click="limpiarBusqueda"
                     :disabled="loading">
@@ -136,6 +151,129 @@
         </div>
       </div>
 
+      <!-- Listado de Locales Disponibles -->
+      <div v-if="mostrarListaLocales && localesDisponibles.length > 0" class="municipal-card">
+        <div class="municipal-card-header header-with-badge">
+          <h5>
+            <font-awesome-icon icon="list" />
+            Locales Disponibles en este Mercado
+          </h5>
+          <div class="header-right">
+            <span class="badge-purple">{{ localesDisponibles.length }} locales</span>
+            <button class="btn-sm btn-municipal-secondary ms-2" @click="mostrarListaLocales = false">
+              <font-awesome-icon icon="times" />
+            </button>
+          </div>
+        </div>
+        <div class="municipal-card-body">
+          <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="municipal-table table-sm">
+              <thead class="municipal-table-header" style="position: sticky; top: 0; z-index: 10;">
+                <tr>
+                  <th>Cat.</th>
+                  <th>Sec.</th>
+                  <th>Local</th>
+                  <th>Letra</th>
+                  <th>Bloque</th>
+                  <th>Nombre</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(local, index) in paginatedData" :key="index">
+                  <td>{{ local.categoria }}</td>
+                  <td>{{ local.seccion }}</td>
+                  <td><strong>{{ local.local }}</strong></td>
+                  <td>{{ local.letra_local || '-' }}</td>
+                  <td>{{ local.bloque || '-' }}</td>
+                  <td>{{ local.nombre }}</td>
+                  <td>
+                    <button class="btn-municipal-primary btn-sm" @click="seleccionarLocal(local)">
+                      <font-awesome-icon icon="check" />
+                      Usar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Controles de paginación -->
+          <div v-if="localesDisponibles.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, localesDisponibles.length) }}
+                de {{ localesDisponibles.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Formulario de Alta de Energía -->
       <div v-if="localEncontrado" class="municipal-card">
         <div class="municipal-card-header">
@@ -157,7 +295,7 @@
                 </select>
               </div>
 
-              <div class="form-group col-md-3">
+              <div class="form-group">
                 <label class="municipal-form-label">Descripción Local <span class="required">*</span></label>
                 <input type="text" class="municipal-form-control" v-model="energiaForm.descripcion"
                   :disabled="loading" maxlength="50" required />
@@ -194,8 +332,8 @@
 
               <div class="form-group col-md-3">
                 <label class="municipal-form-label">Número de Oficio <span class="required">*</span></label>
-                <input type="text" class="municipal-form-control" v-model="energiaForm.numero"
-                  :disabled="loading" maxlength="20" required />
+                <input type="number" class="municipal-form-control" v-model.number="energiaForm.numero"
+                  :disabled="loading" min="1" required />
               </div>
             </div>
 
@@ -226,32 +364,42 @@
         <p class="mt-3 text-muted">Procesando, por favor espere...</p>
       </div>
     </div>
-
-    <!-- Toast Notifications -->
-    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
-      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
-      <span class="toast-message">{{ toast.message }}</span>
-      <button class="toast-close" @click="hideToast">
-        <font-awesome-icon icon="times" />
-      </button>
-    </div>
   </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'EnergiaMtto'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - EnergiaMtto'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'EnergiaMtto'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - EnergiaMtto'" @close="showDocumentacion = false" />
 </template>
 
 <script setup>
+import apiService from '@/services/apiService';
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import { useToast } from '@/composables/useToast'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
 
 const { showLoading, hideLoading } = useGlobalLoading()
+const { showToast } = useToast()
 
 // Estado
 const loading = ref(false)
 const recaudadoras = ref([])
 const mercados = ref([])
+const categorias = ref([])
 const secciones = ref([])
 const localEncontrado = ref(false)
 const localInfo = ref(null)
+const localesDisponibles = ref([])
+const mostrarListaLocales = ref(false)
+const localSeleccionado = ref(false)
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 // Formulario de búsqueda
 const form = ref({
@@ -272,48 +420,55 @@ const energiaForm = ref({
   vigencia: 'A',
   fecha_alta: '',
   axo: new Date().getFullYear(),
-  numero: ''
-})
-
-// Toast
-const toast = ref({
-  show: false,
-  type: 'info',
-  message: ''
+  numero: null
 })
 
 // Computed
 const currentYear = computed(() => new Date().getFullYear())
 const maxDate = computed(() => new Date().toISOString().split('T')[0])
 
-// Métodos de Toast
-const showToast = (type, message) => {
-  toast.value = {
-    show: true,
-    type,
-    message
+// Computed para paginación
+const totalPages = computed(() => {
+  return Math.ceil(localesDisponibles.value.length / itemsPerPage.value)
+})
+
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return localesDisponibles.value.slice(start, end)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
   }
-  setTimeout(() => {
-    hideToast()
-  }, 5000)
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
 }
 
-const hideToast = () => {
-  toast.value.show = false
-}
-
-const getToastIcon = (type) => {
-  const icons = {
-    success: 'check-circle',
-    error: 'times-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  }
-  return icons[type] || 'info-circle'
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
 }
 
 const mostrarAyuda = () => {
-  showToast('info', 'Busque un local sin energía registrada para dar de alta el servicio de energía eléctrica. Los adeudos se generarán automáticamente desde la fecha de alta.')
+  showToast('Busque un local sin energía registrada para dar de alta el servicio de energía eléctrica. Los adeudos se generarán automáticamente desde la fecha de alta.', 'info')
 }
 
 // Cargar catálogos
@@ -321,24 +476,25 @@ const fetchRecaudadoras = async () => {
   try {
     showLoading('Cargando Alta de Energía', 'Preparando catálogos del sistema...')
     loading.value = true
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_recaudadoras',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse.success) {
-      recaudadoras.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
       if (recaudadoras.value.length > 0) {
-        showToast('success', `Se cargaron ${recaudadoras.value.length} recaudadoras`)
+        showToast(`Se cargaron ${recaudadoras.value.length} recaudadoras`, 'success')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar recaudadoras')
+      showToast(res.message || 'Error al cargar recaudadoras', 'error')
     }
   } catch (err) {
     console.error('Error al cargar recaudadoras:', err)
-    showToast('error', 'Error de conexión al cargar recaudadoras')
+    showToast('Error de conexión al cargar recaudadoras', 'error')
   } finally {
     loading.value = false
     hideLoading()
@@ -347,64 +503,159 @@ const fetchRecaudadoras = async () => {
 
 const fetchSecciones = async () => {
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_secciones',
-        Base: 'padron_licencias',
-        Parametros: []
-      }
-    })
-    if (res.data.eResponse.success) {
-      secciones.value = res.data.eResponse.data.result || []
+    const res = await apiService.execute(
+          'sp_get_secciones',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      secciones.value = res.data.result || []
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar secciones')
+      showToast(res.message || 'Error al cargar secciones', 'error')
     }
   } catch (err) {
     console.error('Error al cargar secciones:', err)
-    showToast('error', 'Error de conexión al cargar secciones')
+    showToast('Error de conexión al cargar secciones', 'error')
+  }
+}
+
+const fetchCategorias = async () => {
+  try {
+    const res = await apiService.execute(
+          'sp_categoria_list',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      categorias.value = res.data.result || []
+    } else {
+      showToast(res.message || 'Error al cargar categorías', 'error')
+    }
+  } catch (err) {
+    console.error('Error al cargar categorías:', err)
+    showToast('Error de conexión al cargar categorías', 'error')
   }
 }
 
 const onRecaudadoraChange = async () => {
   if (!form.value.oficina) {
     mercados.value = []
+    form.value.num_mercado = ''
+    form.value.categoria = ''
+    localSeleccionado.value = false
     return
   }
 
   try {
     loading.value = true
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_get_mercados',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_id_rec', Valor: parseInt(form.value.oficina) }
-        ]
-      }
-    })
-    if (res.data.eResponse.success) {
-      mercados.value = res.data.eResponse.data.result || []
+    const nivelUsuario = 1 // TODO: Obtener del store de usuario
+    const res = await apiService.execute(
+          'sp_get_catalogo_mercados',
+          'mercados',
+          [
+          { nombre: 'p_oficina', tipo: 'integer', valor: parseInt(form.value.oficina) },
+          { nombre: 'p_nivel_usuario', tipo: 'integer', valor: nivelUsuario }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      mercados.value = res.data.result || []
       if (mercados.value.length > 0) {
-        showToast('success', `Se cargaron ${mercados.value.length} mercados`)
+        showToast(`Se cargaron ${mercados.value.length} mercados`, 'success')
       } else {
-        showToast('warning', 'No se encontraron mercados para esta recaudadora')
+        showToast('No se encontraron mercados para esta recaudadora', 'warning')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al cargar mercados')
+      showToast(res.message || 'Error al cargar mercados', 'error')
     }
   } catch (err) {
     console.error('Error al cargar mercados:', err)
-    showToast('error', 'Error de conexión al cargar mercados')
+    showToast('Error de conexión al cargar mercados', 'error')
   } finally {
     loading.value = false
   }
+}
+
+const onMercadoChange = () => {
+  // No auto-llenar categoría - dejar que el usuario seleccione
+  form.value.categoria = ''
+  // Limpiar lista de locales disponibles al cambiar de mercado
+  localesDisponibles.value = []
+  mostrarListaLocales.value = false
+  localSeleccionado.value = false
+}
+
+// Mostrar locales disponibles
+const mostrarLocalesDisponibles = async () => {
+  if (!form.value.oficina || !form.value.num_mercado) {
+    showToast('Seleccione oficina y mercado primero', 'warning')
+    return
+  }
+
+  loading.value = true
+  try {
+    const res = await apiService.execute(
+          'sp_consulta_locales_buscar',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(form.value.oficina) },
+          { nombre: 'p_num_mercado', valor: parseInt(form.value.num_mercado) },
+          { nombre: 'p_categoria', valor: null },
+          { nombre: 'p_seccion', valor: null },
+          { nombre: 'p_local', valor: null },
+          { nombre: 'p_letra_local', valor: null },
+          { nombre: 'p_bloque', valor: null }
+        ],
+          '',
+          null,
+          'publico'
+        )
+
+    if (res.success) {
+      localesDisponibles.value = res.data.result || []
+      currentPage.value = 1 // Resetear a la primera página
+      if (localesDisponibles.value.length > 0) {
+        mostrarListaLocales.value = true
+        showToast(`Se encontraron ${localesDisponibles.value.length} locales`, 'success')
+      } else {
+        showToast('No se encontraron locales en este mercado', 'info')
+      }
+    } else {
+      showToast(res.message || 'Error al cargar locales', 'error')
+    }
+  } catch (err) {
+    console.error('Error al cargar locales:', err)
+    showToast('Error de conexión al cargar locales', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+// Seleccionar un local de la lista
+const seleccionarLocal = (local) => {
+  form.value.categoria = local.categoria
+  form.value.seccion = local.seccion
+  form.value.local = local.local
+  form.value.letra_local = local.letra_local || ''
+  form.value.bloque = local.bloque || ''
+  mostrarListaLocales.value = false
+  localSeleccionado.value = true
+  showToast('Local seleccionado. Haga clic en "Cargar datos del Local" para continuar.', 'info')
 }
 
 // Buscar local
 const buscarLocal = async () => {
   if (!form.value.oficina || !form.value.num_mercado || !form.value.categoria ||
     !form.value.seccion || !form.value.local) {
-    showToast('warning', 'Debe completar todos los campos requeridos')
+    showToast('Debe completar todos los campos requeridos', 'warning')
     return
   }
 
@@ -412,65 +663,67 @@ const buscarLocal = async () => {
 
   try {
     // 1. Buscar el local en padron_licencias
-    const resLocal = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_buscar_local',
-        Base: 'padron_licencias',
-        Parametros: [
-          { Nombre: 'p_oficina', Valor: parseInt(form.value.oficina) },
-          { Nombre: 'p_num_mercado', Valor: parseInt(form.value.num_mercado) },
-          { Nombre: 'p_categoria', Valor: parseInt(form.value.categoria) },
-          { Nombre: 'p_seccion', Valor: form.value.seccion },
-          { Nombre: 'p_local', Valor: parseInt(form.value.local) },
-          { Nombre: 'p_letra_local', Valor: form.value.letra_local || '' },
-          { Nombre: 'p_bloque', Valor: form.value.bloque || '' }
-        ]
-      }
-    })
+    const resLocal = await apiService.execute(
+          'sp_buscar_local',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(form.value.oficina) },
+          { nombre: 'p_num_mercado', valor: parseInt(form.value.num_mercado) },
+          { nombre: 'p_categoria', valor: parseInt(form.value.categoria) },
+          { nombre: 'p_seccion', valor: form.value.seccion },
+          { nombre: 'p_local', valor: parseInt(form.value.local) },
+          { nombre: 'p_letra_local', valor: form.value.letra_local || '' },
+          { nombre: 'p_bloque', valor: form.value.bloque || '' }
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (resLocal.data.eResponse.success) {
-      const resultLocal = resLocal.data.eResponse.data.result || []
+    if (resLocal.success) {
+      const resultLocal = resLocal.data.result || []
       if (resultLocal.length > 0) {
         const local = resultLocal[0]
 
         // 2. Verificar si el local tiene energía en mercados
-        const resEnergia = await axios.post('/api/generic', {
-          eRequest: {
-            Operacion: 'sp_verificar_local_sin_energia',
-            Base: 'mercados',
-            Parametros: [
-              { Nombre: 'p_id_local', Valor: local.id_local }
-            ]
-          }
-        })
+        const resEnergia = await apiService.execute(
+          'sp_verificar_local_sin_energia',
+          'mercados',
+          [
+              { nombre: 'p_id_local', valor: local.id_local }
+            ],
+          '',
+          null,
+          'publico'
+        )
 
-        if (resEnergia.data.eResponse.success) {
-          const resultEnergia = resEnergia.data.eResponse.data.result || []
+        if (resEnergia.success) {
+          const resultEnergia = resEnergia.data.result || []
           if (resultEnergia.length > 0 && resultEnergia[0].tiene_energia) {
             // El local YA tiene energía
             localInfo.value = null
             localEncontrado.value = false
-            showToast('warning', resultEnergia[0].message || 'El local ya tiene energía registrada')
+            showToast(resultEnergia[0].message || 'El local ya tiene energía registrada', 'warning')
           } else {
             // El local NO tiene energía, se puede continuar
             localInfo.value = local
             localEncontrado.value = true
-            showToast('success', 'Local encontrado. Complete los datos de energía para continuar.')
+            showToast('Local encontrado. Complete los datos de energía para continuar.', 'success')
           }
         } else {
-          showToast('error', resEnergia.data.eResponse.message || 'Error al verificar energía')
+          showToast(resEnergia.message || 'Error al verificar energía', 'error')
         }
       } else {
         localInfo.value = null
         localEncontrado.value = false
-        showToast('warning', 'No se encontró el local')
+        showToast('No se encontró el local', 'warning')
       }
     } else {
-      showToast('error', resLocal.data.eResponse.message || 'Error al buscar local')
+      showToast(resLocal.message || 'Error al buscar local', 'error')
     }
   } catch (err) {
     console.error('Error al buscar local:', err)
-    showToast('error', 'Error de conexión al buscar local')
+    showToast('Error de conexión al buscar local', 'error')
   } finally {
     loading.value = false
   }
@@ -479,7 +732,7 @@ const buscarLocal = async () => {
 // Grabar energía
 const grabarEnergia = async () => {
   if (!localInfo.value) {
-    showToast('error', 'No hay un local seleccionado')
+    showToast('No hay un local seleccionado', 'error')
     return
   }
 
@@ -487,54 +740,60 @@ const grabarEnergia = async () => {
   if (!energiaForm.value.cve_consumo || !energiaForm.value.descripcion ||
     !energiaForm.value.cantidad || !energiaForm.value.vigencia ||
     !energiaForm.value.fecha_alta || !energiaForm.value.axo || !energiaForm.value.numero) {
-    showToast('warning', 'Debe completar todos los campos de energía')
+    showToast('Debe completar todos los campos de energía', 'warning')
     return
   }
 
   if (energiaForm.value.cantidad <= 0) {
-    showToast('warning', 'La cantidad debe ser mayor a 0')
+    showToast('La cantidad debe ser mayor a 0', 'warning')
+    return
+  }
+
+  if (energiaForm.value.numero <= 0) {
+    showToast('El número de oficio debe ser mayor a 0', 'warning')
     return
   }
 
   loading.value = true
 
   try {
-    const res = await axios.post('/api/generic', {
-      eRequest: {
-        Operacion: 'sp_alta_energia_mtto',
-        Base: 'mercados',
-        Parametros: [
-          { Nombre: 'p_id_local', Valor: localInfo.value.id_local },
-          { Nombre: 'p_cve_consumo', Valor: energiaForm.value.cve_consumo },
-          { Nombre: 'p_descripcion', Valor: energiaForm.value.descripcion },
-          { Nombre: 'p_cantidad', Valor: parseFloat(energiaForm.value.cantidad) },
-          { Nombre: 'p_vigencia', Valor: energiaForm.value.vigencia },
-          { Nombre: 'p_fecha_alta', Valor: energiaForm.value.fecha_alta },
-          { Nombre: 'p_axo', Valor: parseInt(energiaForm.value.axo) },
-          { Nombre: 'p_numero', Valor: energiaForm.value.numero },
-          { Nombre: 'p_user_id', Valor: 1 } // TODO: Obtener del contexto de usuario
-        ]
-      }
-    })
+    const res = await apiService.execute(
+          'sp_alta_energia_mtto',
+          'mercados',
+          [
+          { nombre: 'p_id_local', valor: localInfo.value.id_local },
+          { nombre: 'p_cve_consumo', valor: energiaForm.value.cve_consumo },
+          { nombre: 'p_descripcion', valor: energiaForm.value.descripcion },
+          { nombre: 'p_cantidad', valor: parseFloat(energiaForm.value.cantidad) },
+          { nombre: 'p_vigencia', valor: energiaForm.value.vigencia },
+          { nombre: 'p_fecha_alta', valor: energiaForm.value.fecha_alta },
+          { nombre: 'p_axo', valor: parseInt(energiaForm.value.axo) },
+          { nombre: 'p_numero', valor: String(energiaForm.value.numero) },
+          { nombre: 'p_user_id', valor: 1 } // TODO: Obtener del contexto de usuario
+        ],
+          '',
+          null,
+          'publico'
+        )
 
-    if (res.data.eResponse.success) {
-      const result = res.data.eResponse.data.result || []
+    if (res.success) {
+      const result = res.data.result || []
       if (result.length > 0 && result[0].success) {
-        showToast('success', result[0].message || 'Energía eléctrica grabada correctamente')
+        showToast(result[0].message || 'Energía eléctrica grabada correctamente', 'success')
         // Limpiar y resetear
         setTimeout(() => {
           limpiarBusqueda()
         }, 2000)
       } else {
         const errorMsg = result.length > 0 ? result[0].message : 'Error al grabar energía'
-        showToast('error', errorMsg)
+        showToast(errorMsg, 'error')
       }
     } else {
-      showToast('error', res.data.eResponse.message || 'Error al grabar energía')
+      showToast(res.message || 'Error al grabar energía', 'error')
     }
   } catch (err) {
     console.error('Error al grabar energía:', err)
-    showToast('error', 'Error de conexión al grabar energía')
+    showToast('Error de conexión al grabar energía', 'error')
   } finally {
     loading.value = false
   }
@@ -558,38 +817,20 @@ const limpiarBusqueda = () => {
     vigencia: 'A',
     fecha_alta: '',
     axo: new Date().getFullYear(),
-    numero: ''
+    numero: null
   }
   localEncontrado.value = false
   localInfo.value = null
   mercados.value = []
+  localesDisponibles.value = []
+  mostrarListaLocales.value = false
+  localSeleccionado.value = false
 }
 
 // Lifecycle
 onMounted(() => {
   fetchRecaudadoras()
   fetchSecciones()
+  fetchCategorias()
 })
 </script>
-
-<style scoped>
-/* Los estilos están definidos en municipal-theme.css */
-
-.required {
-  color: #dc3545;
-}
-
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
-}
-
-.badge-green {
-  background-color: #28a745;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-</style>

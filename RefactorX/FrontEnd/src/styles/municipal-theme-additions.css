@@ -1,0 +1,372 @@
+/* ====================================
+   MUNICIPAL THEME - ADICIONALES
+   Clases CSS para reemplazar estilos inline
+   ==================================== */
+
+/* =================================================================================
+   CLASES PARA SWAL (SweetAlert2) - Estilos de confirmacion
+   ================================================================================= */
+
+/* Contenedor de confirmacion SweetAlert */
+.swal-confirm-container {
+  text-align: left;
+  padding: 0 1.25rem;
+}
+
+.swal-confirm-container p {
+  margin-bottom: 0.625rem;
+  color: var(--slate-600);
+}
+
+.swal-confirm-container ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.swal-confirm-container li {
+  margin: 0.3125rem 0;
+  padding: 0.25rem 0;
+}
+
+.swal-confirm-container .swal-warning-text {
+  margin-top: 0.9375rem;
+  color: var(--municipal-danger);
+  font-weight: bold;
+}
+
+.swal-confirm-container .swal-error-text {
+  color: var(--municipal-danger);
+  font-weight: 500;
+}
+
+.swal-confirm-container .swal-info-text {
+  color: var(--slate-600);
+  font-size: 0.9rem;
+}
+
+/* =================================================================================
+   CLASES UTILITARIAS ADICIONALES
+   ================================================================================= */
+
+/* Texto */
+.text-left { text-align: left !important; }
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
+
+/* Font weights */
+.fw-normal { font-weight: normal !important; }
+.fw-medium { font-weight: 500 !important; }
+.fw-semibold { font-weight: 600 !important; }
+.fw-bold { font-weight: bold !important; }
+
+/* Margins */
+.ms-2 { margin-left: 0.5rem !important; }
+.ms-3 { margin-left: 0.75rem !important; }
+.mt-0 { margin-top: 0 !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mb-0 { margin-bottom: 0 !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.my-1 { margin-top: 0.3125rem !important; margin-bottom: 0.3125rem !important; }
+
+/* Paddings */
+.p-3 { padding: 1rem !important; }
+.p-4 { padding: 1.5rem !important; }
+.px-3 { padding-left: 1rem !important; padding-right: 1rem !important; }
+.py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+
+/* Display */
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-flex { display: flex !important; }
+.d-inline-flex { display: inline-flex !important; }
+
+/* Flexbox alignment */
+.align-self-end { align-self: flex-end !important; }
+.align-items-center { align-items: center !important; }
+.gap-2 { gap: 0.5rem !important; }
+.gap-3 { gap: 0.75rem !important; }
+
+/* =================================================================================
+   CLASES PARA TABLAS - Anchos de columna
+   ================================================================================= */
+
+.col-w-10 { width: 10% !important; }
+.col-w-13 { width: 13% !important; }
+.col-w-15 { width: 15% !important; }
+.col-w-20 { width: 20% !important; }
+.col-w-25 { width: 25% !important; }
+.col-w-30 { width: 30% !important; }
+.col-w-32 { width: 32% !important; }
+.col-w-40 { width: 40% !important; }
+.col-w-50 { width: 50% !important; }
+.col-w-55 { width: 55% !important; }
+
+/* Tabla ancha para muchas columnas */
+.table-wide { min-width: 1200px; }
+.table-extra-wide { min-width: 1400px; }
+
+/* =================================================================================
+   CLASES PARA ALERTAS Y MENSAJES
+   ================================================================================= */
+
+/* Alerta de advertencia estilo callout */
+.alert-callout-warning {
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.25rem;
+}
+
+.alert-callout-warning p {
+  margin: 0;
+  color: #856404;
+  font-size: 0.875rem;
+}
+
+/* Alerta de informacion */
+.alert-callout-info {
+  background: #e7f3ff;
+  border-left: 4px solid var(--municipal-info);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.25rem;
+}
+
+.alert-callout-info p {
+  margin: 0;
+  color: #0c5460;
+  font-size: 0.875rem;
+}
+
+/* Alerta de error */
+.alert-callout-danger {
+  background: #f8d7da;
+  border-left: 4px solid var(--municipal-danger);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.25rem;
+}
+
+.alert-callout-danger p {
+  margin: 0;
+  color: #721c24;
+  font-size: 0.875rem;
+}
+
+/* =================================================================================
+   CLASES PARA FORMULARIOS DE DETALLE
+   ================================================================================= */
+
+/* Contenedor de detalles estilo ficha */
+.detail-card {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid #dee2e6;
+}
+
+.detail-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.detail-card td {
+  padding: 0.5rem 0;
+}
+
+.detail-card td:first-child {
+  color: var(--slate-600);
+  font-weight: 500;
+  width: 40%;
+}
+
+.detail-card .highlight-value {
+  color: var(--municipal-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* =================================================================================
+   CLASES PARA FORMULARIOS DE MODAL
+   ================================================================================= */
+
+/* Label de formulario en modal */
+.modal-form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.modal-form-label .required {
+  color: var(--municipal-danger);
+}
+
+/* Textarea en modal */
+.modal-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.modal-textarea:focus {
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 3px rgba(234, 130, 21, 0.1);
+  outline: none;
+}
+
+/* Texto de ayuda en modal */
+.modal-help-text {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--slate-600);
+  font-size: 0.75rem;
+}
+
+/* =================================================================================
+   CLASES PARA IMPRESION
+   ================================================================================= */
+
+/* Contenedor de impresion */
+.print-container {
+  font-family: Arial, sans-serif;
+  padding: 1.875rem;
+  background: white;
+}
+
+.print-header {
+  text-align: center;
+  border-bottom: 3px solid var(--municipal-primary);
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.875rem;
+}
+
+.print-header h2 {
+  color: var(--municipal-primary);
+  margin: 0;
+}
+
+.print-header p {
+  margin: 0.3125rem 0;
+}
+
+.print-section {
+  margin-bottom: 1.25rem;
+}
+
+/* =================================================================================
+   CLASES PARA GRID Y COLUMNAS
+   ================================================================================= */
+
+/* Ocupar todo el ancho en grid */
+.grid-full-width {
+  grid-column: 1 / -1;
+}
+
+/* Pre formateado */
+.pre-wrap {
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
+/* =================================================================================
+   CLASES PARA BADGES ADICIONALES
+   ================================================================================= */
+
+/* Badge morado personalizado */
+.badge-purple {
+  background-color: var(--gov-purple);
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Badge gold */
+.badge-gold {
+  background-color: var(--gov-primary-gold);
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* =================================================================================
+   CLASES PARA PROGRESS BARS
+   ================================================================================= */
+
+.progress-bar-container {
+  background-color: var(--slate-200);
+  border-radius: 4px;
+  overflow: hidden;
+  height: 1.25rem;
+}
+
+.progress-bar-fill {
+  background: var(--gradient-municipal);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.progress-bar-fill.success {
+  background: var(--municipal-success);
+}
+
+.progress-bar-fill.warning {
+  background: var(--municipal-warning);
+}
+
+.progress-bar-fill.danger {
+  background: var(--municipal-danger);
+}
+
+/* =================================================================================
+   CLASES PARA TEXTOS DE COLORES
+   ================================================================================= */
+
+.text-municipal-primary { color: var(--municipal-primary) !important; }
+.text-municipal-secondary { color: var(--municipal-secondary) !important; }
+.text-municipal-success { color: var(--municipal-success) !important; }
+.text-municipal-danger { color: var(--municipal-danger) !important; }
+.text-municipal-warning { color: var(--municipal-warning) !important; }
+.text-municipal-info { color: var(--municipal-info) !important; }
+
+/* =================================================================================
+   CLASES PARA FONDOS
+   ================================================================================= */
+
+.bg-light-gray { background-color: #f8f9fa !important; }
+.bg-warning-light { background-color: #fff3cd !important; }
+.bg-danger-light { background-color: #f8d7da !important; }
+.bg-success-light { background-color: #d4edda !important; }
+.bg-info-light { background-color: #d1ecf1 !important; }
+
+/* =================================================================================
+   RESPONSIVE ADICIONAL
+   ================================================================================= */
+
+@media (max-width: 768px) {
+  .detail-card td:first-child {
+    width: 50%;
+  }
+
+  .swal-confirm-container {
+    padding: 0 0.5rem;
+  }
+
+  .print-container {
+    padding: 1rem;
+  }
+}

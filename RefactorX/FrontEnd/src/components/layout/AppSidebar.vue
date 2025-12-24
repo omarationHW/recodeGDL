@@ -1,0 +1,2600 @@
+<template>
+  <aside
+    class="app-sidebar"
+    :class="{ 'sidebar-collapsed': sidebarCollapsed }"
+    :style="{ width: sidebarWidth + 'px' }"
+  >
+    <!-- Handle de redimensionamiento -->
+    <div
+      class="sidebar-resize-handle"
+      @mousedown="startResize"
+      title="Arrastra para ajustar el ancho"
+    ></div>
+
+    <!-- Búsqueda en menú -->
+    <div class="sidebar-search">
+      <div class="search-input-wrapper">
+        <font-awesome-icon icon="search" class="search-icon" />
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Buscar en menú..."
+          class="search-input"
+          @input="handleSearch"
+        />
+        <button
+          v-if="searchQuery"
+          @click="clearSearch"
+          class="search-clear"
+          title="Limpiar búsqueda"
+        >
+          <font-awesome-icon icon="times" />
+        </button>
+      </div>
+      <div v-if="searchQuery && filteredItems.length === 0" class="search-no-results">
+        <font-awesome-icon icon="inbox" />
+        <span>No se encontraron resultados</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul class="nav-list">
+        <MenuItem
+          v-for="item in filteredItems"
+          :key="item.path || item.label"
+          :item="item"
+          :level="0"
+          :search-query="searchQuery"
+        />
+      </ul>
+    </nav>
+  </aside>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import sessionService from '@/services/sessionService'
+import MenuItem from './MenuItem.vue'
+import { useSidebar } from '@/composables/useSidebar'
+
+const route = useRoute()
+const { sidebarCollapsed, sidebarWidth, setSidebarWidth } = useSidebar()
+const currentSystem = ref(sessionService.getSistema())
+
+// Mapeo de sistemas a prefijos de ruta
+const SISTEMA_TO_PATH = {
+  'mercados': '/mercados',
+  'cementerios': '/cementerios',
+  'estacionamiento_publico': '/estacionamiento-publico',
+  'estacionamiento_exclusivo': '/estacionamiento-exclusivo',
+  'aseo_contratado': '/aseo-contratado',
+  'multas_reglamentos': '/multas-reglamentos',
+  'otras_obligaciones': '/otras-obligaciones',
+  'padron_licencias': '/padron-licencias'
+}
+
+// Watcher para actualizar el sistema cuando cambie la ruta
+watch(() => route.path, () => {
+  currentSystem.value = sessionService.getSistema()
+}, { immediate: true })
+const searchQuery = ref('')
+
+// Redimensionamiento del sidebar
+const MIN_WIDTH = 200
+const MAX_WIDTH = 500
+const DEFAULT_WIDTH = 280
+
+const isResizing = ref(false)
+const mutationObserver = ref(null)
+
+// Cargar ancho guardado desde localStorage y configurar observador
+onMounted(() => {
+  const savedWidth = localStorage.getItem('sidebarWidth')
+  if (savedWidth) {
+    const width = parseInt(savedWidth)
+    if (width >= MIN_WIDTH && width <= MAX_WIDTH) {
+      setSidebarWidth(width)
+    }
+  }
+
+  // Auto-ajustar después de montar (dar tiempo al DOM para renderizar)
+  setTimeout(() => {
+    autoAdjustWidth()
+    setupMutationObserver()
+  }, 500)
+})
+
+// Auto-ajustar cuando cambie el contenido visible por búsqueda
+watch(searchQuery, () => {
+  setTimeout(() => {
+    autoAdjustWidth()
+  }, 300)
+})
+
+// Configurar observador de mutaciones para detectar expansión/colapso de nodos
+const setupMutationObserver = () => {
+  const sidebar = document.querySelector('.app-sidebar')
+  if (!sidebar) return
+
+  // Crear observador que detecte cambios en clases y atributos
+  mutationObserver.value = new MutationObserver((mutations) => {
+    let shouldAdjust = false
+
+    mutations.forEach((mutation) => {
+      // Detectar cambios en clases (expanded/collapsed)
+      if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+        const target = mutation.target
+        // Verificar si es un nav-item que cambió su estado de expansión
+        if (target.classList.contains('nav-item') ||
+            target.classList.contains('nav-parent-link') ||
+            target.classList.contains('expanded')) {
+          shouldAdjust = true
+        }
+      }
+
+      // Detectar cambios en estructura (elementos añadidos/removidos)
+      if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+        shouldAdjust = true
+      }
+    })
+
+    // Auto-ajustar si detectamos cambios relevantes
+    if (shouldAdjust && !isResizing.value) {
+      setTimeout(() => {
+        autoAdjustWidth()
+      }, 150)
+    }
+  })
+
+  // Observar cambios en todo el sidebar
+  mutationObserver.value.observe(sidebar, {
+    attributes: true,
+    attributeFilter: ['class', 'style'],
+    childList: true,
+    subtree: true
+  })
+}
+
+// Verificar si un elemento es realmente visible (considerando nodos padre colapsados)
+const isElementTrulyVisible = (element) => {
+  // Verificar si el elemento está dentro de un ul.nav-submenu oculto
+  let current = element
+  while (current && current !== document.body) {
+    // Si es un ul.nav-submenu, verificar su display
+    if (current.tagName === 'UL' && current.classList.contains('nav-submenu')) {
+      const styles = window.getComputedStyle(current)
+      // Si tiene display:none, el elemento NO es visible
+      if (styles.display === 'none') {
+        return false
+      }
+    }
+
+    current = current.parentElement
+  }
+
+  // Verificar offsetParent como último recurso
+  return element.offsetParent !== null
+}
+
+// Medir el ancho real del texto usando un elemento temporal
+const measureTextWidth = (text, element) => {
+  // Crear un span temporal para medir el texto
+  const tempSpan = document.createElement('span')
+  tempSpan.style.visibility = 'hidden'
+  tempSpan.style.position = 'absolute'
+  tempSpan.style.whiteSpace = 'nowrap'
+  tempSpan.style.fontSize = window.getComputedStyle(element).fontSize
+  tempSpan.style.fontFamily = window.getComputedStyle(element).fontFamily
+  tempSpan.style.fontWeight = window.getComputedStyle(element).fontWeight
+  tempSpan.textContent = text
+
+  document.body.appendChild(tempSpan)
+  const width = tempSpan.offsetWidth
+  document.body.removeChild(tempSpan)
+
+  return width
+}
+
+// Función para auto-ajustar el ancho al contenido más largo VISIBLE
+const autoAdjustWidth = () => {
+  // No ajustar si el usuario está redimensionando manualmente
+  if (isResizing.value) return
+
+  // Esperar siguiente tick para que el DOM esté actualizado
+  setTimeout(() => {
+    const sidebar = document.querySelector('.app-sidebar')
+    if (!sidebar) return
+
+    // Encontrar todos los elementos de texto en el menú
+    const navLinks = sidebar.querySelectorAll('.nav-link')
+    let maxWidth = MIN_WIDTH
+    let visibleCount = 0
+    let longestText = ''
+
+    navLinks.forEach(link => {
+      // Solo considerar elementos REALMENTE visibles
+      if (!isElementTrulyVisible(link)) return
+
+      visibleCount++
+      const textElement = link.querySelector('.nav-text')
+      if (!textElement) return
+
+      // Obtener el texto limpio (sin HTML)
+      const text = textElement.textContent.trim()
+
+      // Medir el ancho REAL del texto usando elemento temporal
+      const textWidth = measureTextWidth(text, textElement)
+
+      // Calcular nivel de indentación
+      let indentLevel = 0
+      let parent = link.closest('.nav-item')
+      while (parent) {
+        const parentItem = parent.parentElement?.closest('.nav-item')
+        if (parentItem) {
+          indentLevel++
+          parent = parentItem
+        } else {
+          break
+        }
+      }
+
+      // Calcular ancho total necesario:
+      // - Padding base: 24px (0.75rem × 2)
+      // - Icono: 24px
+      // - Gap: 12px
+      // - Texto: medido independientemente
+      // - Chevron (si tiene hijos): 24px
+      // - Indentación: nivel × 20px
+      const basePadding = 24
+      const iconWidth = 24
+      const gapWidth = 12
+      const chevronWidth = link.querySelector('.nav-chevron') ? 24 : 0
+      const indentWidth = indentLevel * 20
+
+      const totalWidth = basePadding + iconWidth + gapWidth + textWidth + chevronWidth + indentWidth
+
+      if (totalWidth > maxWidth) {
+        maxWidth = totalWidth
+        longestText = text
+      }
+    })
+
+    // Agregar margen de seguridad de 60px (suficiente para scrollbar y padding extra)
+    maxWidth += 60
+
+    // Respetar límites
+    if (maxWidth < MIN_WIDTH) maxWidth = MIN_WIDTH
+    if (maxWidth > MAX_WIDTH) maxWidth = MAX_WIDTH
+
+    // IMPORTANTE: Aplicar el ancho calculado SIEMPRE (permitir crecer Y decrecer)
+    const newWidth = Math.round(maxWidth)
+
+    // Solo actualizar si hay diferencia significativa (más de 5px) para evitar ajustes constantes
+    if (Math.abs(sidebarWidth.value - newWidth) > 5) {
+      setSidebarWidth(newWidth)
+      localStorage.setItem('sidebarWidth', newWidth.toString())
+    }
+  }, 100)
+}
+
+// Iniciar redimensionamiento
+const startResize = (e) => {
+  isResizing.value = true
+  document.body.style.cursor = 'ew-resize'
+  document.body.style.userSelect = 'none'
+
+  document.addEventListener('mousemove', handleResize)
+  document.addEventListener('mouseup', stopResize)
+}
+
+// Manejar redimensionamiento
+const handleResize = (e) => {
+  if (!isResizing.value) return
+
+  const newWidth = e.clientX
+
+  if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
+    setSidebarWidth(newWidth)
+  }
+}
+
+// Detener redimensionamiento
+const stopResize = () => {
+  if (isResizing.value) {
+    isResizing.value = false
+    document.body.style.cursor = ''
+    document.body.style.userSelect = ''
+
+    // Guardar ancho en localStorage
+    localStorage.setItem('sidebarWidth', sidebarWidth.value.toString())
+
+    document.removeEventListener('mousemove', handleResize)
+    document.removeEventListener('mouseup', stopResize)
+  }
+}
+
+// Limpiar listeners y observer al desmontar
+onUnmounted(() => {
+  document.removeEventListener('mousemove', handleResize)
+  document.removeEventListener('mouseup', stopResize)
+
+  // Desconectar mutation observer
+  if (mutationObserver.value) {
+    mutationObserver.value.disconnect()
+  }
+})
+
+const menuItems = [
+  {
+    path: '/',
+    label: 'Dashboard',
+    icon: 'home'
+  },
+  {
+    label: 'Módulos Administrativos',
+    icon: 'folder',
+    children: [
+      {
+        label: 'Estacionamientos',
+        icon: 'square-parking',
+        children: [
+          {
+            label: 'Publicos',
+            icon: 'car-side',
+            children: [
+              { path: '/estacionamiento-publico', label: 'Menu', icon: 'home' },
+              { path: '/estacionamiento-publico/consulta', label: 'Consulta', icon: 'search' },
+              { path: '/estacionamiento-publico/transacciones', label: 'Transacciones', icon: 'exchange-alt' },
+              { path: '/estacionamiento-publico/actualizacion', label: 'Actualizacion', icon: 'edit' },
+              { path: '/estacionamiento-publico/nuevo', label: 'Nuevo', icon: 'plus' },
+              { path: '/estacionamiento-publico/reportes', label: 'Reportes', icon: 'file-alt' },
+              { path: '/estacionamiento-publico/accesos', label: 'Accesos', icon: 'key' },
+              { path: '/estacionamiento-publico/bajas', label: 'Bajas', icon: 'trash-alt' },
+              { path: '/estacionamiento-publico/generar', label: 'Generar', icon: 'cog' },
+              { path: '/estacionamiento-publico/pagos', label: 'Pagos', icon: 'credit-card' },
+              { path: '/estacionamiento-publico/info', label: 'Informacion', icon: 'info-circle' },
+              { path: '/estacionamiento-publico/listados', label: 'Listados', icon: 'list' },
+              { path: '/estacionamiento-publico/estadisticas', label: 'Estadisticas', icon: 'chart-bar' },
+              { path: '/estacionamiento-publico/conciliacion', label: 'Conciliacion Banorte', icon: 'university' },
+              { path: '/estacionamiento-publico/edocta', label: 'Estado de Cuenta', icon: 'file-invoice-dollar' },
+              { path: '/estacionamiento-publico/reporte-lista', label: 'Listado (opc)', icon: 'list-alt' },
+              { path: '/estacionamiento-publico/reporte-pagos', label: 'Reporte de Pagos', icon: 'file-invoice' },
+              { path: '/estacionamiento-publico/reporte-folios', label: 'Reporte de Folios', icon: 'file' },
+              { path: '/estacionamiento-publico/estado-mpio', label: 'Estado Municipal', icon: 'building' },
+              { path: '/estacionamiento-publico/trans-folios', label: 'Transferencia Folios', icon: 'share' },
+              { path: '/estacionamiento-publico/up-pagos', label: 'Actualizar Pagos', icon: 'sync' },
+              { path: '/estacionamiento-publico/valet-paso', label: 'Valet Paso', icon: 'car' },
+              { path: '/estacionamiento-publico/passwords', label: 'Usuarios/Passwords', icon: 'users-cog' },
+              { path: '/estacionamiento-publico/gen-arc-altas', label: 'Gen. Remesa Altas', icon: 'file-upload' },
+              { path: '/estacionamiento-publico/gen-arc-diario', label: 'Gen. Diario', icon: 'calendar-day' },
+              { path: '/estacionamiento-publico/gen-individual', label: 'Gen. Individual', icon: 'user' },
+              { path: '/estacionamiento-publico/gen-pgos-banorte', label: 'Gen. Pagos Banorte', icon: 'university' },
+              { path: '/estacionamiento-publico/reactiva-folios', label: 'Reactivar Folios', icon: 'redo' },
+              { path: '/estacionamiento-publico/cons-gral', label: 'Consulta General', icon: 'search-plus' },
+              { path: '/estacionamiento-publico/cons-remesas', label: 'Consulta Remesas', icon: 'inbox' },
+              { path: '/estacionamiento-publico/aplica-pago-divadmin', label: 'Aplicar Pago (DivAdmin)', icon: 'check-circle' },
+              { path: '/estacionamiento-publico/relacion-folios', label: 'Relacion de Folios', icon: 'link' },
+              { path: '/estacionamiento-publico/imp-padron', label: 'Imprimir Padron', icon: 'print' },
+              { path: '/estacionamiento-publico/metrometers', label: 'Metrometers', icon: 'tachometer-alt' },
+              { path: '/estacionamiento-publico/aspecto', label: 'Aspecto', icon: 'palette' },
+              { path: '/estacionamiento-publico/autoriz-descto', label: 'Autoriz. Descuento', icon: 'percent' },
+              { path: '/estacionamiento-publico/contrarecibos', label: 'Contrarecibos', icon: 'receipt' },
+              { path: '/estacionamiento-publico/mensaje', label: 'Mensaje', icon: 'envelope' },
+              { path: '/estacionamiento-publico/folios-alta', label: 'Alta de Folios', icon: 'plus-circle' },
+              { path: '/estacionamiento-publico/carga-edoex', label: 'Carga Estado/Externos', icon: 'upload' },
+              { path: '/estacionamiento-publico/predio-carto', label: 'Predio Carto', icon: 'map-marker-alt' },
+              { path: '/estacionamiento-publico/reportes-calco', label: 'Reportes Calco', icon: 'copy' },
+              { path: '/estacionamiento-publico/solic-rep-folios', label: 'Solic. Rep. Folios', icon: 'clipboard-list' },
+              { path: '/estacionamiento-publico/seguridad-login', label: 'Seguridad (Login)', icon: 'shield-alt' },
+              { path: '/estacionamiento-publico/inspectores', label: 'Inspectores', icon: 'user-tie' },
+              { path: '/estacionamiento-publico/baja-multiple', label: 'Baja Multiple', icon: 'trash' }
+            ]
+          },
+          {
+            label: 'Exclusivos',
+            icon: 'car-alt',
+            children: [
+              { path: '/estacionamiento-exclusivo', label: 'Menu', icon: 'home' },
+              { path: '/estacionamiento-exclusivo/acceso', label: 'Acceso', icon: 'key' },
+              { path: '/estacionamiento-exclusivo/individual', label: 'Individual', icon: 'user' },
+              { path: '/estacionamiento-exclusivo/individual-folio', label: 'Individual por Folio', icon: 'hashtag' },
+              { path: '/estacionamiento-exclusivo/consulta-reg', label: 'Consulta por Registro', icon: 'search' },
+              { path: '/estacionamiento-exclusivo/cons-his', label: 'Consulta Historica', icon: 'history' },
+              { path: '/estacionamiento-exclusivo/listados', label: 'Listados', icon: 'list' },
+              { path: '/estacionamiento-exclusivo/listados-ade', label: 'Listados con Adeudos', icon: 'list-alt' },
+              { path: '/estacionamiento-exclusivo/listados-sin-adereq', label: 'Listados sin Adeudos/Req', icon: 'list-ul' },
+              { path: '/estacionamiento-exclusivo/listx-reg', label: 'Lista por Registro', icon: 'clipboard-list' },
+              { path: '/estacionamiento-exclusivo/listx-fec', label: 'Lista por Fecha', icon: 'calendar-alt' },
+              { path: '/estacionamiento-exclusivo/estdx-folio', label: 'Estado por Folio', icon: 'file-alt' },
+              { path: '/estacionamiento-exclusivo/modificar', label: 'Modificar', icon: 'edit' },
+              { path: '/estacionamiento-exclusivo/modificar-bien', label: 'Modificar Bien', icon: 'edit' },
+              { path: '/estacionamiento-exclusivo/modif-masiva', label: 'Modificacion Masiva', icon: 'edit' },
+              { path: '/estacionamiento-exclusivo/facturacion', label: 'Facturacion', icon: 'file-invoice' },
+              { path: '/estacionamiento-exclusivo/requerimientos', label: 'Requerimientos', icon: 'file-alt' },
+              { path: '/estacionamiento-exclusivo/recuperacion', label: 'Recuperacion', icon: 'redo' },
+              { path: '/estacionamiento-exclusivo/notificaciones', label: 'Notificaciones', icon: 'bell' },
+              { path: '/estacionamiento-exclusivo/notificaciones-mes', label: 'Notificaciones por Mes', icon: 'calendar' },
+              { path: '/estacionamiento-exclusivo/prenomina', label: 'Prenomina', icon: 'money-bill' },
+              { path: '/estacionamiento-exclusivo/reasignacion', label: 'Reasignacion', icon: 'exchange-alt' },
+              { path: '/estacionamiento-exclusivo/ejecutores', label: 'Ejecutores', icon: 'user-shield' },
+              { path: '/estacionamiento-exclusivo/abc-ejec', label: 'ABC Ejecutores', icon: 'users-cog' },
+              { path: '/estacionamiento-exclusivo/lista-ejec', label: 'Lista de Ejecutores', icon: 'users' },
+              { path: '/estacionamiento-exclusivo/list-eje', label: 'Listado Ejecutores', icon: 'list' },
+              { path: '/estacionamiento-exclusivo/lista-gastos-cob', label: 'Lista Gastos de Cobranza', icon: 'coins' },
+              { path: '/estacionamiento-exclusivo/autoriza-des', label: 'Autorizar Descuento', icon: 'percent' },
+              { path: '/estacionamiento-exclusivo/carta-invitacion', label: 'Carta Invitacion', icon: 'envelope' },
+              { path: '/estacionamiento-exclusivo/cmult-emision', label: 'Emision Multiple', icon: 'copy' },
+              { path: '/estacionamiento-exclusivo/cmult-folio', label: 'Multiple por Folio', icon: 'clone' },
+              { path: '/estacionamiento-exclusivo/exportar-excel', label: 'Exportar a Excel', icon: 'file-excel' },
+              { path: '/estacionamiento-exclusivo/firma-electronica', label: 'Firma Electronica', icon: 'signature' },
+              { path: '/estacionamiento-exclusivo/apremios-svn-expedientes', label: 'Apremios SVN - Expedientes', icon: 'folder-open' },
+              { path: '/estacionamiento-exclusivo/apremios-svn-fases', label: 'Apremios SVN - Fases', icon: 'tasks' },
+              { path: '/estacionamiento-exclusivo/apremios-svn-actuaciones', label: 'Apremios SVN - Actuaciones', icon: 'gavel' },
+              { path: '/estacionamiento-exclusivo/apremios-svn-notificaciones', label: 'Apremios SVN - Notificaciones', icon: 'bell' },
+              { path: '/estacionamiento-exclusivo/apremios-svn-pagos', label: 'Apremios SVN - Pagos', icon: 'credit-card' },
+              { path: '/estacionamiento-exclusivo/apremios-svn-reportes', label: 'Apremios SVN - Reportes', icon: 'chart-bar' },
+              { path: '/estacionamiento-exclusivo/sfrm-chgpass', label: 'Cambio de Contrasena', icon: 'key' }
+            ]
+          }
+        ]
+      },
+      {
+        label: 'Aseo Contratado',
+        icon: 'broom',
+        children: [
+          {
+            path: '/aseo-contratado/empresas',
+            label: 'ABC Empresas',
+            icon: 'building'
+          },
+          {
+            path: '/aseo-contratado/tipos-aseo',
+            label: 'ABC Tipos de Aseo',
+            icon: 'list-check'
+          },
+          {
+            path: '/aseo-contratado/zonas',
+            label: 'ABC Zonas',
+            icon: 'map-marked-alt'
+          },
+          {
+            path: '/aseo-contratado/unidades-recoleccion',
+            label: 'ABC Unidades de Recolección',
+            icon: 'truck'
+          },
+          {
+            path: '/aseo-contratado/recaudadoras',
+            label: 'ABC Recaudadoras',
+            icon: 'money-check-alt'
+          },
+          {
+            path: '/aseo-contratado/claves-operacion',
+            label: 'ABC Claves de Operación',
+            icon: 'key'
+          },
+          {
+            path: '/aseo-contratado/gastos',
+            label: 'ABC Gastos',
+            icon: 'receipt'
+          },
+          {
+            path: '/aseo-contratado/recargos',
+            label: 'ABC Recargos',
+            icon: 'percent'
+          },
+          {
+            path: '/aseo-contratado/tipos-empresa',
+            label: 'ABC Tipos de Empresa',
+            icon: 'building-user'
+          },
+          {
+            path: '/aseo-contratado/adeudos',
+            label: 'Gestión de Adeudos',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/aseo-contratado/adeudos-carga',
+            label: 'Carga Masiva de Adeudos',
+            icon: 'upload'
+          },
+          {
+            path: '/aseo-contratado/adeudos-nvo',
+            label: 'Generar Adeudos',
+            icon: 'file-invoice'
+          },
+          {
+            path: '/aseo-contratado/adeudos-ins',
+            label: 'Insertar Adeudos',
+            icon: 'plus-circle'
+          },
+          {
+            path: '/aseo-contratado/adeudos-pag',
+            label: 'Registro de Pagos',
+            icon: 'dollar-sign'
+          },
+          {
+            path: '/aseo-contratado/adeudos-edocta',
+            label: 'Estado de Cuenta',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/aseo-contratado/contratos-consulta',
+            label: 'Consulta de Contratos',
+            icon: 'file-contract'
+          },
+          {
+            path: '/aseo-contratado/contratos-alta',
+            label: 'Alta de Contratos',
+            icon: 'file-circle-plus'
+          },
+          {
+            path: '/aseo-contratado/contratos-mod',
+            label: 'Modificación de Contratos',
+            icon: 'file-pen'
+          },
+          {
+            path: '/aseo-contratado/contratos-baja',
+            label: 'Baja de Contratos',
+            icon: 'file-excel'
+          },
+          {
+            path: '/aseo-contratado/actcont-cr',
+            label: 'Actualización Masiva',
+            icon: 'sync-alt'
+          },
+          {
+            path: '/aseo-contratado/rpt-adeudos',
+            label: 'Reporte de Adeudos',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/aseo-contratado/rpt-pagos',
+            label: 'Reporte de Pagos',
+            icon: 'money-check-dollar'
+          },
+          {
+            path: '/aseo-contratado/rpt-estado-cuenta',
+            label: 'Estado de Cuenta',
+            icon: 'file-invoice'
+          },
+          {
+            path: '/aseo-contratado/rpt-contratos',
+            label: 'Reporte de Contratos',
+            icon: 'file-contract'
+          },
+          {
+            path: '/aseo-contratado/rpt-empresas',
+            label: 'Reporte de Empresas',
+            icon: 'building'
+          },
+          {
+            path: '/aseo-contratado/adeudos-est',
+            label: 'Consulta de Estatus',
+            icon: 'chart-line'
+          },
+          {
+            path: '/aseo-contratado/adeudos-mult-ins',
+            label: 'Inserción Masiva',
+            icon: 'layer-group'
+          },
+          {
+            path: '/aseo-contratado/adeudos-exe-del',
+            label: 'Eliminación por Ejecución',
+            icon: 'trash-can'
+          },
+          {
+            path: '/aseo-contratado/adeudos-cn-cond',
+            label: 'Adeudos Condonados',
+            icon: 'hand-holding-dollar'
+          },
+          {
+            path: '/aseo-contratado/adeudos-opc-mult',
+            label: 'Opciones Múltiples',
+            icon: 'sliders'
+          },
+          // LOTE 7: Operaciones Especiales y Convenios
+          {
+            path: '/aseo-contratado/aplica-multas',
+            label: 'Aplicación de Multas',
+            icon: 'gavel'
+          },
+          {
+            path: '/aseo-contratado/datos-convenio',
+            label: 'Convenios de Pago',
+            icon: 'file-contract'
+          },
+          {
+            path: '/aseo-contratado/descuentos-pago',
+            label: 'Descuentos por Pago',
+            icon: 'percent'
+          },
+          {
+            path: '/aseo-contratado/ejercicios-gestion',
+            label: 'Ejercicios Fiscales',
+            icon: 'calendar-days'
+          },
+          {
+            path: '/aseo-contratado/relacion-contratos',
+            label: 'Relación de Contratos',
+            icon: 'link'
+          },
+          // LOTE 8: Pagos y Consultas Avanzadas
+          {
+            path: '/aseo-contratado/adeudos-pag-mult',
+            label: 'Pago Múltiple de Adeudos',
+            icon: 'money-bill-wave'
+          },
+          {
+            path: '/aseo-contratado/adeudos-venc',
+            label: 'Adeudos Vencidos',
+            icon: 'calendar-xmark'
+          },
+          {
+            path: '/aseo-contratado/contratos-adeudos',
+            label: 'Adeudos por Contrato',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/aseo-contratado/pagos-cons-cont',
+            label: 'Consulta de Pagos',
+            icon: 'receipt'
+          },
+          {
+            path: '/aseo-contratado/empresas-contratos',
+            label: 'Contratos por Empresa',
+            icon: 'building'
+          },
+          // LOTE 9: Adeudos y Pagos Adicionales
+          {
+            path: '/aseo-contratado/adeudos-pag-upd-per',
+            label: 'Actualizar Periodos de Pagos',
+            icon: 'calendar-check'
+          },
+          {
+            path: '/aseo-contratado/adeudos-upd-exed',
+            label: 'Adeudos Exentos',
+            icon: 'shield-halved'
+          },
+          {
+            path: '/aseo-contratado/pagos-con-fpgo',
+            label: 'Pagos por Forma de Pago',
+            icon: 'credit-card'
+          },
+          {
+            path: '/aseo-contratado/pagos-cons-cont-asc',
+            label: 'Consulta Ascendente de Pagos',
+            icon: 'arrow-up-wide-short'
+          },
+          {
+            path: '/aseo-contratado/contratos-cancela',
+            label: 'Cancelación de Contratos',
+            icon: 'ban'
+          },
+          // LOTE 10: Consultas y Reportes Adicionales
+          {
+            path: '/aseo-contratado/contratos-cons-admin',
+            label: 'Consulta Administrativa',
+            icon: 'clipboard-list'
+          },
+          {
+            path: '/aseo-contratado/contratos-cons-dom',
+            label: 'Contratos Domésticos',
+            icon: 'home'
+          },
+          {
+            path: '/aseo-contratado/rep-padron-contratos',
+            label: 'Padrón de Contratos',
+            icon: 'file-lines'
+          },
+          {
+            path: '/aseo-contratado/rep-recaudadoras',
+            label: 'Reporte de Recaudadoras',
+            icon: 'building-columns'
+          },
+          {
+            path: '/aseo-contratado/rep-tipos-aseo',
+            label: 'Reporte por Tipos de Aseo',
+            icon: 'chart-pie'
+          },
+          // LOTE 11: Actualizaciones y Estadísticas
+          {
+            path: '/aseo-contratado/contratos-upd-periodo',
+            label: 'Actualizar Periodos',
+            icon: 'calendar-days'
+          },
+          {
+            path: '/aseo-contratado/contratos-upd-und',
+            label: 'Actualizar Unidades',
+            icon: 'truck'
+          },
+          {
+            path: '/aseo-contratado/contratos-est',
+            label: 'Estadísticas de Contratos',
+            icon: 'chart-line'
+          },
+          {
+            path: '/aseo-contratado/contratos-estgral',
+            label: 'Estadísticas Generales',
+            icon: 'chart-pie'
+          },
+          {
+            path: '/aseo-contratado/rep-adeud-cond',
+            label: 'Adeudos Condonados',
+            icon: 'hand-holding-dollar'
+          },
+          // LOTE 12: Consultas y Actualizaciones Adicionales
+          {
+            path: '/aseo-contratado/cons-cont',
+            label: 'Consulta de Contratos',
+            icon: 'search'
+          },
+          {
+            path: '/aseo-contratado/cons-cont-asc',
+            label: 'Consulta Ordenada',
+            icon: 'arrows-up-down'
+          },
+          {
+            path: '/aseo-contratado/upd-01',
+            label: 'Actualización General',
+            icon: 'wrench'
+          },
+          {
+            path: '/aseo-contratado/upd-ini-obl',
+            label: 'Inicialización de Obligaciones',
+            icon: 'calendar-check'
+          },
+          {
+            path: '/aseo-contratado/rep-zonas',
+            label: 'Reporte por Zonas',
+            icon: 'map-marked-alt'
+          },
+          // LOTE 13 FINAL: Componentes Finales del Módulo
+          {
+            path: '/aseo-contratado/contratos',
+            label: 'ABM Contratos',
+            icon: 'file-contract'
+          },
+          {
+            path: '/aseo-contratado/ins-b',
+            label: 'Inscripción Rápida',
+            icon: 'file-import'
+          },
+          {
+            path: '/aseo-contratado/updxcont',
+            label: 'Actualización Individual',
+            icon: 'edit'
+          },
+          {
+            path: '/aseo-contratado/upd-undc',
+            label: 'Actualizar por Colonia',
+            icon: 'truck-moving'
+          },
+          {
+            path: '/aseo-contratado/estgral2',
+            label: 'Estadísticas Avanzadas',
+            icon: 'chart-bar'
+          },
+          {
+            path: '/aseo-contratado/ctrol-imp-cat',
+            label: 'Control Importación Catastral',
+            icon: 'file-import'
+          }
+        ]
+      },
+      {
+        label: 'Cementerios',
+        icon: 'cross',
+        children: [
+          {
+            path: '/cementerios/abcementer',
+            label: 'Catálogo de Cementerios',
+            icon: 'cross'
+          },
+          {
+            path: '/cementerios/titulos',
+            label: 'Gestión de Títulos',
+            icon: 'file-contract'
+          },
+          {
+            path: '/cementerios/consultafol',
+            label: 'Consulta de Folio',
+            icon: 'search'
+          },
+          {
+            path: '/cementerios/abcpagos',
+            label: 'Registro de Pagos',
+            icon: 'money-bill-wave'
+          },
+          {
+            path: '/cementerios/liquidaciones',
+            label: 'Liquidaciones',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/cementerios/abcfolio',
+            label: 'ABC de Folios',
+            icon: 'folder-open'
+          },
+          {
+            path: '/cementerios/bonificaciones',
+            label: 'Bonificaciones',
+            icon: 'hand-holding-usd'
+          },
+          {
+            path: '/cementerios/descuentos',
+            label: 'Descuentos',
+            icon: 'percentage'
+          },
+          {
+            path: '/cementerios/abcrecargos',
+            label: 'ABC de Recargos',
+            icon: 'percent'
+          },
+          {
+            path: '/cementerios/trasladofol',
+            label: 'Traslado de Folios',
+            icon: 'exchange-alt'
+          },
+          {
+            path: '/cementerios/traslados',
+            label: 'Traslados por Ubicación',
+            icon: 'map-marked-alt'
+          },
+          {
+            path: '/cementerios/duplicados',
+            label: 'Registros Duplicados',
+            icon: 'copy'
+          },
+          {
+            path: '/cementerios/multiplefecha',
+            label: 'Consulta por Fecha',
+            icon: 'calendar-check'
+          },
+          {
+            path: '/cementerios/multiplenombre',
+            label: 'Consulta por Nombre',
+            icon: 'user-tag'
+          },
+          {
+            path: '/cementerios/multiplercm',
+            label: 'Consulta por Ubicación',
+            icon: 'map-marker-alt'
+          },
+          {
+            path: '/cementerios/conindividual',
+            label: 'Consulta Individual',
+            icon: 'file-alt'
+          },
+          {
+            path: '/cementerios/consultaguad',
+            label: 'Cementerio Guadalajara',
+            icon: 'monument'
+          },
+          {
+            path: '/cementerios/consultajardin',
+            label: 'Cementerio Jardín',
+            icon: 'leaf'
+          },
+          {
+            path: '/cementerios/consultamezq',
+            label: 'Cementerio Mezquitán',
+            icon: 'cross'
+          },
+          {
+            path: '/cementerios/consultasandres',
+            label: 'Cementerio San Andrés',
+            icon: 'church'
+          },
+          {
+            path: '/cementerios/estad-adeudo',
+            label: 'Estadísticas de Adeudos',
+            icon: 'chart-bar'
+          },
+          {
+            path: '/cementerios/list-mov',
+            label: 'Listado de Movimientos',
+            icon: 'list-alt'
+          },
+          {
+            path: '/cementerios/rep-a-cobrar',
+            label: 'Reporte Cuentas por Cobrar',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/cementerios/rep-bon',
+            label: 'Reporte de Bonificaciones',
+            icon: 'percentage'
+          },
+          {
+            path: '/cementerios/abcpagosxfol',
+            label: 'Gestión de Pagos',
+            icon: 'money-check-alt'
+          },
+          {
+            path: '/cementerios/consultarcm',
+            label: 'Consulta RCM',
+            icon: 'search-location'
+          },
+          {
+            path: '/cementerios/consulta400',
+            label: 'Consulta Especial 400',
+            icon: 'search-plus'
+          },
+          {
+            path: '/cementerios/bonificacion1',
+            label: 'Bonificaciones con Oficio',
+            icon: 'file-signature'
+          },
+          {
+            path: '/cementerios/consultanombre',
+            label: 'Consulta por Nombre',
+            icon: 'user'
+          },
+          {
+            path: '/cementerios/rpttitulos',
+            label: 'Reporte de Títulos',
+            icon: 'certificate'
+          },
+          {
+            path: '/cementerios/titulossin',
+            label: 'Generar Títulos',
+            icon: 'file-contract'
+          },
+          {
+            path: '/cementerios/trasladofolsin',
+            label: 'Traslado de Folios',
+            icon: 'exchange-alt'
+          }
+        ]
+      },
+      
+      {
+        label: 'Mercados',
+        icon: 'store',
+        children: [
+          {
+            path: '/mercados/padron-locales',
+            label: 'Padrón de Locales',
+            icon: 'list'
+          },
+          {
+            path: '/mercados/locales-mtto',
+            label: 'Mantenimiento de Locales',
+            icon: 'store-alt'
+          },
+          {
+            path: '/mercados/adeudos-locales',
+            label: 'Adeudos de Locales',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/mercados/alta-pagos',
+            label: 'Alta de Pagos',
+            icon: 'cash-register'
+          },
+          {
+            path: '/mercados/emision-locales',
+            label: 'Emisión de Recibos',
+            icon: 'receipt'
+          },
+          {
+            path: '/mercados/estad-pagos-adeudos',
+            label: 'Estadística Pagos/Adeudos',
+            icon: 'chart-bar'
+          },
+          {
+            path: '/mercados/carga-pag-locales',
+            label: 'Carga de Pagos',
+            icon: 'file-import'
+          },
+          {
+            path: '/mercados/listados-locales',
+            label: 'Listados de Locales',
+            icon: 'table'
+          },
+          {
+            path: '/mercados/rpt-pagos-locales',
+            label: 'Reporte de Pagos de Locales',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/mercados/padron-energia',
+            label: 'Padrón de Energía Eléctrica',
+            icon: 'bolt'
+          },
+          {
+            path: '/mercados/energia-mtto',
+            label: 'Alta de Energía Eléctrica',
+            icon: 'plus-circle'
+          },
+          {
+            path: '/mercados/adeudos-energia',
+            label: 'Adeudos de Energía Eléctrica',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/mercados/catalogo-mercados',
+            label: 'Catálogo de Mercados',
+            icon: 'building'
+          },
+          {
+            path: '/mercados/consulta-datos-locales',
+            label: 'Consulta de Datos de Locales',
+            icon: 'search'
+          },
+          {
+            path: '/mercados/consulta-datos-energia',
+            label: 'Consulta de Datos de Energía',
+            icon: 'bolt'
+          },
+          {
+            path: '/mercados/cuotas-mdo',
+            label: 'Cuotas de Mercados',
+            icon: 'dollar-sign'
+          },
+          {
+            path: '/mercados/categoria',
+            label: 'Catálogo de Categorías',
+            icon: 'tags'
+          },
+          {
+            path: '/mercados/giros',
+            label: 'Giros Comerciales',
+            icon: 'store'
+          },
+          {
+            path: '/mercados/secciones',
+            label: 'Secciones de Mercados',
+            icon: 'th-large'
+          },
+          {
+            path: '/mercados/recaudadoras-mercados',
+            label: 'Administración de Recaudadoras',
+            icon: 'building-columns'
+          },
+          {
+            path: '/mercados/zonas-mercados',
+            label: 'Zonas Geográficas',
+            icon: 'map-marked-alt'
+          },
+          {
+            path: '/mercados/reporte-general-mercados',
+            label: 'Reporte General y Estadísticas',
+            icon: 'chart-pie'
+          },
+          {
+            path: '/mercados/padron-global',
+            label: 'Padrón Global de Locales',
+            icon: 'table'
+          },
+          {
+            path: '/mercados/alta-pagos-energia',
+            label: 'Alta de Pagos de Energía',
+            icon: 'bolt'
+          },
+          {
+            path: '/mercados/cons-pagos',
+            label: 'Consulta de Pagos',
+            icon: 'money-bill-wave'
+          },
+          {
+            path: '/mercados/pagos-individual',
+            label: 'Consulta Individual de Pagos',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/mercados/cuotas-energia',
+            label: 'Cuotas de Energía',
+            icon: 'plug'
+          },
+          {
+            path: '/mercados/emision-energia',
+            label: 'Emisión de Recibos de Energía',
+            icon: 'bolt'
+          },
+          {
+            path: '/mercados/cuotas-energia-mntto',
+            label: 'Mantenimiento de Cuotas de Energía',
+            icon: 'wrench'
+          },
+          {
+            path: '/mercados/datos-convenio',
+            label: 'Datos de Convenio',
+            icon: 'handshake'
+          },
+          {
+            path: '/mercados/datos-individuales',
+            label: 'Datos Individuales del Local',
+            icon: 'file-alt'
+          },
+          {
+            path: '/mercados/estadisticas',
+            label: 'Estadísticas de Adeudos',
+            icon: 'chart-bar'
+          },
+          // LOTE 11: Acceso y Gestión de Requerimientos
+          {
+            path: '/mercados/acceso',
+            label: 'Acceso al Sistema',
+            icon: 'sign-in-alt'
+          },
+          {
+            path: '/mercados/catalogo-mntto',
+            label: 'Catálogo de Mercados',
+            icon: 'edit'
+          },
+          {
+            path: '/mercados/cons-requerimientos',
+            label: 'Consulta de Requerimientos',
+            icon: 'exclamation-triangle'
+          },
+          {
+            path: '/mercados/condonacion',
+            label: 'Condonación de Adeudos',
+            icon: 'hand-holding-usd'
+          },
+          {
+            path: '/mercados/ade-global-locales',
+            label: 'Adeudo Global de Locales',
+            icon: 'file-invoice-dollar'
+          },
+          // LOTE 12: Reportes de Adeudos Generales y Autorización
+          {
+            path: '/mercados/ade-energia-grl',
+            label: 'Adeudos Generales de Energía',
+            icon: 'bolt'
+          },
+          {
+            path: '/mercados/adeudos-loc-grl',
+            label: 'Adeudos Generales del Mercado',
+            icon: 'exclamation-circle'
+          },
+          {
+            path: '/mercados/aut-carga-pagos',
+            label: 'Autorizar Carga de Pagos',
+            icon: 'lock'
+          },
+          {
+            path: '/mercados/aut-carga-pagos-mtto',
+            label: 'Autorizar Fecha de Ingreso',
+            icon: 'calendar-check'
+          },
+          {
+            path: '/mercados/carga-diversos-esp',
+            label: 'Carga Especial Pagos Diversos',
+            icon: 'upload'
+          },
+          // LOTE 13: Carga de Pagos y Importación
+          {
+            path: '/mercados/carga-pag-energia',
+            label: 'Carga Pagos de Energía',
+            icon: 'bolt'
+          },
+          {
+            path: '/mercados/carga-pag-energia-elec',
+            label: 'Carga Pagos Energía (Rango)',
+            icon: 'bolt'
+          },
+          {
+            path: '/mercados/carga-pag-especial',
+            label: 'Carga Especial Años Anteriores',
+            icon: 'calendar-alt'
+          },
+          {
+            path: '/mercados/carga-pag-mercado',
+            label: 'Carga Pagos por Mercado',
+            icon: 'store'
+          },
+          {
+            path: '/mercados/carga-pagos-texto',
+            label: 'Importar Pagos desde Archivo',
+            icon: 'file-import'
+          },
+          // LOTE 14: Componentes de Consulta y Captura
+          {
+            path: '/mercados/categoria-mntto',
+            label: 'Mantenimiento de Categorías',
+            icon: 'tags'
+          },
+          {
+            path: '/mercados/cons-captura-energia',
+            label: 'Consulta Captura Energía',
+            icon: 'bolt'
+          },
+          {
+            path: '/mercados/cons-captura-fecha',
+            label: 'Consulta Captura por Fecha',
+            icon: 'calendar-check'
+          },
+          {
+            path: '/mercados/cons-captura-fecha-energia',
+            label: 'Consulta Energía por Fecha',
+            icon: 'calendar-days'
+          },
+          {
+            path: '/mercados/cons-captura-merc',
+            label: 'Consulta por Mercado',
+            icon: 'shopping-cart'
+          },
+          // LOTE 15: Consultas y Condonaciones
+          {
+            path: '/mercados/cons-pagos-energia',
+            label: 'Consulta Pagos Energía',
+            icon: 'bolt'
+          },
+          {
+            path: '/mercados/cons-pagos-locales',
+            label: 'Consulta Pagos Locales',
+            icon: 'store'
+          },
+          {
+            path: '/mercados/consulta-general',
+            label: 'Consulta General',
+            icon: 'search'
+          },
+          {
+            path: '/mercados/cons-condonacion',
+            label: 'Condonaciones Locales',
+            icon: 'hand-holding-usd'
+          },
+          {
+            path: '/mercados/cons-condonacion-energia',
+            label: 'Condonaciones Energía',
+            icon: 'bolt'
+          },
+          // LOTE 16: Configuración y Cuotas Adicionales
+          {
+            path: '/mercados/cuotas-mdo-mntto',
+            label: 'Mantenimiento Cuotas Mercado',
+            icon: 'edit'
+          },
+          {
+            path: '/mercados/cve-cuota',
+            label: 'Claves de Cuota',
+            icon: 'key'
+          },
+          {
+            path: '/mercados/cve-diferencias',
+            label: 'Claves de Diferencias',
+            icon: 'balance-scale'
+          },
+          {
+            path: '/mercados/fecha-descuento',
+            label: 'Fechas de Descuento',
+            icon: 'calendar-check'
+          },
+          {
+            path: '/mercados/fechas-descuento-mntto',
+            label: 'Mantenimiento Fechas Descuento',
+            icon: 'calendar-days'
+          },
+          {
+            path: '/mercados/recargos',
+            label: 'Configuración de Recargos',
+            icon: 'percent'
+          },
+          // LOTE 17: Datos de Locales y Energía
+          {
+            path: '/mercados/datos-movimientos',
+            label: 'Datos de Movimientos',
+            icon: 'exchange-alt'
+          },
+          {
+            path: '/mercados/datos-requerimientos',
+            label: 'Datos de Requerimientos',
+            icon: 'file-invoice'
+          },
+          {
+            path: '/mercados/locales-modif',
+            label: 'Modificar Locales',
+            icon: 'pen'
+          },
+          {
+            path: '/mercados/energia-modif',
+            label: 'Modificar Energía',
+            icon: 'plug'
+          },
+          // LOTE 18: Emisión y Consultas de Pagos
+          {
+            path: '/mercados/emision-libertad',
+            label: 'Emisión Libertad',
+            icon: 'dove'
+          },
+          {
+            path: '/mercados/pagos-ene-cons',
+            label: 'Consulta Pagos Energía',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/mercados/pagos-loc-grl',
+            label: 'Pagos Locales General',
+            icon: 'chart-bar'
+          },
+          // LOTE 19: Condonaciones y Prescripción
+          {
+            path: '/mercados/prescripcion',
+            label: 'Prescripción de Adeudos',
+            icon: 'hourglass-end'
+          },
+          {
+            path: '/mercados/rep-adeud-cond',
+            label: 'Reporte Adeudos Condonados',
+            icon: 'list-ul'
+          },
+          // LOTE 20: Reportes de Adeudos
+          {
+            path: '/mercados/rpt-ade-energia-grl',
+            label: 'Reporte Adeudos Energía',
+            icon: 'bolt'
+          },
+          {
+            path: '/mercados/rpt-adeudos-locales',
+            label: 'Reporte Adeudos Locales',
+            icon: 'store-slash'
+          },
+          {
+            path: '/mercados/rpt-adeudos-energia',
+            label: 'Reporte Adeudos Energía Detalle',
+            icon: 'plug'
+          },
+          {
+            path: '/mercados/rpt-adeudos-anteriores',
+            label: 'Reporte Adeudos Anteriores',
+            icon: 'history'
+          },
+          {
+            path: '/mercados/rpt-adeudos-abastos1998',
+            label: 'Reporte Abastos 1998',
+            icon: 'calendar-times'
+          },
+          {
+            path: '/mercados/rpt-desgloce-ade-porimporte',
+            label: 'Desglose Adeudos por Año',
+            icon: 'layer-group'
+          },
+          // LOTE 21: Reportes de Emisión
+          {
+            path: '/mercados/rpt-emision-locales',
+            label: 'Reporte Emisión con Multas',
+            icon: 'file-invoice'
+          },
+          {
+            path: '/mercados/rpt-emision-rbos-abastos',
+            label: 'Reporte Emisión Abastos',
+            icon: 'shopping-basket'
+          },
+          {
+            path: '/mercados/rpt-emision-laser',
+            label: 'Reporte Emisión Laser',
+            icon: 'barcode'
+          },
+          {
+            path: '/mercados/rpt-emision-energia',
+            label: 'Reporte Recibos Energía',
+            icon: 'bolt'
+          },
+          // LOTE 22: Reportes de Facturación
+          {
+            path: '/mercados/rpt-factura-emision',
+            label: 'Reporte Factura Emisión',
+            icon: 'file-pdf'
+          },
+          {
+            path: '/mercados/rpt-factura-energia',
+            label: 'Reporte Factura Energía',
+            icon: 'file-contract'
+          },
+          {
+            path: '/mercados/rpt-factura-glunes',
+            label: 'Reporte Facturación Global',
+            icon: 'file-signature'
+          },
+          // LOTE 23: Reportes de Padrones e Ingresos
+          {
+            path: '/mercados/rpt-padron-locales',
+            label: 'Reporte Padrón Locales',
+            icon: 'building'
+          },
+          {
+            path: '/mercados/rpt-padron-energia',
+            label: 'Reporte Padrón Energía',
+            icon: 'bolt'
+          },
+          {
+            path: '/mercados/rpt-locales-giro',
+            label: 'Reporte Locales por Giro',
+            icon: 'store'
+          },
+          {
+            path: '/mercados/rpt-mercados',
+            label: 'Reporte Catálogo Mercados',
+            icon: 'map'
+          },
+          {
+            path: '/mercados/rpt-zonificacion',
+            label: 'Reporte Zonificación',
+            icon: 'map-marker-alt'
+          },
+          {
+            path: '/mercados/rpt-movimientos',
+            label: 'Reporte Movimientos',
+            icon: 'exchange-alt'
+          },
+          {
+            path: '/mercados/ingreso-captura',
+            label: 'Ingreso Captura',
+            icon: 'keyboard'
+          },
+          {
+            path: '/mercados/ingreso-lib',
+            label: 'Ingresos Libertad',
+            icon: 'book-open'
+          },
+          {
+            path: '/mercados/rpt-ingreso-zonificado',
+            label: 'Reporte Ingresos por Zona',
+            icon: 'map-marked-alt'
+          },
+          // LOTE 24: Reportes de Ingresos
+          {
+            path: '/mercados/rpt-ingresos',
+            label: 'Reporte Ingresos Locales',
+            icon: 'money-bill-wave'
+          },
+          {
+            path: '/mercados/rpt-ingresos-energia',
+            label: 'Reporte Ingresos Energía',
+            icon: 'lightbulb'
+          },
+          // LOTE 25: Reportes de Pagos
+          {
+            path: '/mercados/rpt-pagos-ano',
+            label: 'Reporte Pagos por Año',
+            icon: 'calendar-alt'
+          },
+          {
+            path: '/mercados/rpt-pagos-caja',
+            label: 'Reporte Pagos por Caja',
+            icon: 'cash-register'
+          },
+          {
+            path: '/mercados/rpt-pagos-detalle',
+            label: 'Reporte Detalle de Pagos',
+            icon: 'file-alt'
+          },
+          {
+            path: '/mercados/rpt-pagos-grl',
+            label: 'Reporte Pagos Generales',
+            icon: 'chart-bar'
+          },
+          // LOTE 26: Estadísticas y Reportes Finales
+          {
+            path: '/mercados/rpt-estad-pagos-y-adeudos',
+            label: 'Estadística Pagos y Adeudos',
+            icon: 'chart-area'
+          },
+          {
+            path: '/mercados/rpt-estadistica-adeudos',
+            label: 'Estadística de Adeudos',
+            icon: 'chart-line'
+          },
+          {
+            path: '/mercados/cuenta-publica',
+            label: 'Cuenta Pública',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/mercados/rpt-cuenta-publica',
+            label: 'Reporte Cuenta Pública',
+            icon: 'receipt'
+          },
+          {
+            path: '/mercados/pagos-dif-ingresos',
+            label: 'Diferencias en Ingresos',
+            icon: 'exclamation-circle'
+          },
+          // LOTE 27: Reportes Finales y Configuración
+          {
+            path: '/mercados/rpt-resumen-pagos',
+            label: 'Resumen de Pagos',
+            icon: 'file-signature'
+          },
+          {
+            path: '/mercados/rpt-saldos-locales',
+            label: 'Saldos de Locales',
+            icon: 'balance-scale'
+          },
+          {
+            path: '/mercados/rpt-fechas-vencimiento',
+            label: 'Fechas de Vencimiento',
+            icon: 'calendar-times'
+          },
+          {
+            path: '/mercados/rpt-catalogo-merc',
+            label: 'Catálogo de Mercados (Reporte)',
+            icon: 'building'
+          },
+          // Paso de Datos
+          {
+            path: '/mercados/paso-adeudos',
+            label: 'Paso de Adeudos',
+            icon: 'arrow-circle-right'
+          },
+          {
+            path: '/mercados/paso-ene',
+            label: 'Importar Energía',
+            icon: 'file-import'
+          },
+          {
+            path: '/mercados/paso-mdos',
+            label: 'Paso Tianguis',
+            icon: 'database'
+          },
+          // Menú Principal
+          {
+            path: '/mercados/menu',
+            label: 'Menú de Mercados',
+            icon: 'th'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    label: 'Regulaciones',
+    icon: 'gavel',
+    children: [
+      {
+        label: 'Multas y Reglamentos',
+        icon: 'file-contract',
+        children: [
+          { path: '/multas-reglamentos', label: 'Menu Principal', icon: 'home' },
+          { path: '/multas-reglamentos/actualiza-fecha-empresas', label: 'Actualiza Fecha Empresas', icon: 'calendar-alt' },
+          { path: '/multas-reglamentos/aplica-sdos-favor', label: 'Aplica Saldos a Favor', icon: 'balance-scale' },
+          { path: '/multas-reglamentos/bloqueo-multa', label: 'Bloqueo de Multas', icon: 'ban' },
+          { path: '/multas-reglamentos/captura-dif', label: 'Captura Diferencias', icon: 'keyboard' },
+          { path: '/multas-reglamentos/carta-invitacion', label: 'Carta Invitacion', icon: 'envelope' },
+          { path: '/multas-reglamentos/catastro-dm', label: 'Catastro DM', icon: 'map' },
+          { path: '/multas-reglamentos/consreq400', label: 'Consulta Req. 400', icon: 'file-invoice' },
+          { path: '/multas-reglamentos/desc-derechos-merc', label: 'Desc. Derechos Mercado', icon: 'store' },
+          { path: '/multas-reglamentos/drecgo-fosa', label: 'Desc. Recargos Fosa', icon: 'cross' },
+          { path: '/multas-reglamentos/drecgo-trans', label: 'Desc. Recargos Trans.', icon: 'exchange-alt' },
+          { path: '/multas-reglamentos/ejecutores', label: 'Ejecutores', icon: 'user-shield' },
+          { path: '/multas-reglamentos/empresas', label: 'Empresas', icon: 'building' },
+          { path: '/multas-reglamentos/exclusivos-upd', label: 'Actualizar Exclusivos', icon: 'parking' },
+          { path: '/multas-reglamentos/extractos-rpt', label: 'Reporte Extractos', icon: 'file-alt' },
+          { path: '/multas-reglamentos/firma-electronica', label: 'Firma Electronica', icon: 'signature' },
+          { path: '/multas-reglamentos/fol-multa', label: 'Folio Multa', icon: 'hashtag' },
+          { path: '/multas-reglamentos/frmeje', label: 'Formulario Ejecutor', icon: 'user-tie' },
+          { path: '/multas-reglamentos/gastos-transmision', label: 'Gastos Transmision', icon: 'money-bill' },
+          { path: '/multas-reglamentos/hastafrm', label: 'Validacion Hasta', icon: 'calendar-check' },
+          { path: '/multas-reglamentos/impresion-nva', label: 'Impresion Nueva', icon: 'print' },
+          { path: '/multas-reglamentos/imprime-desctos', label: 'Imprime Descuentos', icon: 'print' },
+          { path: '/multas-reglamentos/licencia-microgenerador', label: 'Lic. Microgenerador', icon: 'solar-panel' },
+          { path: '/multas-reglamentos/licencia-microgenerador-ecologia', label: 'Lic. Microgen. Ecologia', icon: 'leaf' },
+          { path: '/multas-reglamentos/list-ana', label: 'Listado Analitico', icon: 'list-alt' },
+          { path: '/multas-reglamentos/lista-diferencias', label: 'Lista Diferencias', icon: 'list' },
+          { path: '/multas-reglamentos/listado-multiple', label: 'Listado Multiple', icon: 'th-list' },
+          { path: '/multas-reglamentos/modif-masiva', label: 'Modificacion Masiva', icon: 'edit' },
+          { path: '/multas-reglamentos/multas-dm', label: 'Multas DM', icon: 'gavel' },
+          { path: '/multas-reglamentos/otorgadescto', label: 'Otorgar Descuento', icon: 'percent' },
+          { path: '/multas-reglamentos/pagos-espe', label: 'Pagos Especiales', icon: 'credit-card' },
+          { path: '/multas-reglamentos/periodo-inicial', label: 'Periodo Inicial', icon: 'calendar' },
+          { path: '/multas-reglamentos/propuestatab', label: 'Propuesta Tab', icon: 'table' },
+          { path: '/multas-reglamentos/publicos-upd', label: 'Actualizar Publicos', icon: 'parking' },
+          { path: '/multas-reglamentos/regsecy-mas', label: 'Registro Sec. y Mas', icon: 'clipboard' },
+          { path: '/multas-reglamentos/rep-desc-impto', label: 'Rep. Desc. Impuesto', icon: 'file-invoice-dollar' },
+          { path: '/multas-reglamentos/rep-oper', label: 'Reporte Operaciones', icon: 'chart-bar' },
+          { path: '/multas-reglamentos/req', label: 'Requerimientos', icon: 'file-alt' },
+          { path: '/multas-reglamentos/req-frm', label: 'Form. Requerimientos', icon: 'clipboard-list' },
+          { path: '/multas-reglamentos/req-promocion', label: 'Req. Promocion', icon: 'bullhorn' },
+          { path: '/multas-reglamentos/reqtrans', label: 'Req. Transmision', icon: 'car' },
+          { path: '/multas-reglamentos/requerimientos-dm', label: 'Requerimientos DM', icon: 'folder-open' },
+          { path: '/multas-reglamentos/requerx-cvecat', label: 'Req. por Cve. Catastral', icon: 'search' },
+          { path: '/multas-reglamentos/resolucion-juez', label: 'Resolucion Juez', icon: 'balance-scale-right' },
+          { path: '/multas-reglamentos/sdosfavor-dm', label: 'Saldos Favor DM', icon: 'coins' },
+          { path: '/multas-reglamentos/sdosfavor-ctrlexp', label: 'Saldos Favor Ctrl Exp.', icon: 'folder' },
+          { path: '/multas-reglamentos/sdosfavor-pagos', label: 'Saldos Favor Pagos', icon: 'money-check' },
+          { path: '/multas-reglamentos/sinligarfrm', label: 'Sin Ligar Form.', icon: 'unlink' },
+          { path: '/multas-reglamentos/sol-sdos-favor', label: 'Solicitud Saldos Favor', icon: 'hand-holding-usd' },
+          { path: '/multas-reglamentos/tdm-conection', label: 'Conexion TDM', icon: 'plug' },
+          { path: '/multas-reglamentos/ubicodifica', label: 'Ubicodifica', icon: 'map-marker-alt' },
+          { path: '/multas-reglamentos/autdescto', label: 'Autorizacion Descuento', icon: 'certificate' },
+          { path: '/multas-reglamentos/bloqctasreqfrm', label: 'Bloqueo Ctas. Req.', icon: 'lock' },
+          { path: '/multas-reglamentos/busque', label: 'Busqueda', icon: 'search' },
+          { path: '/multas-reglamentos/canc', label: 'Cancelaciones', icon: 'times-circle' },
+          { path: '/multas-reglamentos/centrosfrm', label: 'Centros Form.', icon: 'building' },
+          { path: '/multas-reglamentos/codificafrm', label: 'Codificacion Form.', icon: 'barcode' },
+          { path: '/multas-reglamentos/conscentrosfrm', label: 'Consulta Centros', icon: 'search-location' },
+          { path: '/multas-reglamentos/consdesc', label: 'Consulta Descuentos', icon: 'search-dollar' },
+          { path: '/multas-reglamentos/consescrit400', label: 'Consulta Escritura 400', icon: 'file-signature' },
+          { path: '/multas-reglamentos/consmulpagos', label: 'Consulta Multas Pagos', icon: 'receipt' },
+          { path: '/multas-reglamentos/consobsmulfrm', label: 'Consulta Obs. Multas', icon: 'comment-alt' },
+          { path: '/multas-reglamentos/consultapredial', label: 'Consulta Predial', icon: 'home' },
+          { path: '/multas-reglamentos/dderechoslic', label: 'Desc. Derechos Lic.', icon: 'id-card' },
+          { path: '/multas-reglamentos/descmultampalfrm', label: 'Desc. Multa Mpal.', icon: 'percent' },
+          { path: '/multas-reglamentos/descpredfrm', label: 'Descuento Predial', icon: 'home' },
+          { path: '/multas-reglamentos/desctorec', label: 'Descuento Recargos', icon: 'percentage' },
+          { path: '/multas-reglamentos/drecgolic', label: 'Desc. Recargos Lic.', icon: 'id-card' },
+          { path: '/multas-reglamentos/drecgo-otras-obligaciones', label: 'Desc. Otras Oblig.', icon: 'file-invoice-dollar' },
+          { path: '/multas-reglamentos/entregafrm', label: 'Entrega Form.', icon: 'clipboard-check' },
+          { path: '/multas-reglamentos/estadreq', label: 'Estado Requerimientos', icon: 'tasks' },
+          { path: '/multas-reglamentos/frmpol', label: 'Form. Policia', icon: 'shield-alt' },
+          { path: '/multas-reglamentos/impreqCvecat', label: 'Imp. Req. Cve. Cat.', icon: 'print' },
+          { path: '/multas-reglamentos/ipor', label: 'IPOR', icon: 'calculator' },
+          { path: '/multas-reglamentos/leyesfrm', label: 'Leyes Form.', icon: 'book' },
+          { path: '/multas-reglamentos/ligapago', label: 'Liga Pago', icon: 'link' },
+          { path: '/multas-reglamentos/ligapago-tra', label: 'Liga Pago Trans.', icon: 'link' },
+          { path: '/multas-reglamentos/listanotificacionesfrm', label: 'Lista Notificaciones', icon: 'bell' },
+          { path: '/multas-reglamentos/listareq', label: 'Lista Requerimientos', icon: 'list' },
+          { path: '/multas-reglamentos/listchq', label: 'Lista Cheques', icon: 'money-check-alt' },
+          { path: '/multas-reglamentos/listdesctomultafrm', label: 'Lista Desc. Multas', icon: 'list-alt' },
+          { path: '/multas-reglamentos/multas400frm', label: 'Multas 400 Form.', icon: 'gavel' },
+          { path: '/multas-reglamentos/multasfrm', label: 'Multas Form.', icon: 'gavel' },
+          { path: '/multas-reglamentos/multasfrmcalif', label: 'Multas Calif.', icon: 'gavel' },
+          { path: '/multas-reglamentos/newsfrm', label: 'Noticias Form.', icon: 'newspaper' },
+          { path: '/multas-reglamentos/pagalicfrm', label: 'Pago Licencias', icon: 'credit-card' },
+          { path: '/multas-reglamentos/pagosdivfrm', label: 'Pagos Diversos', icon: 'credit-card' },
+          { path: '/multas-reglamentos/pagosmultfrm', label: 'Pagos Multas', icon: 'credit-card' },
+          { path: '/multas-reglamentos/polcon', label: 'Policia Consulta', icon: 'shield-alt' },
+          { path: '/multas-reglamentos/prepagofrm', label: 'Prepago Form.', icon: 'wallet' },
+          { path: '/multas-reglamentos/pres', label: 'Prescripcion', icon: 'clock' },
+          { path: '/multas-reglamentos/proyecfrm', label: 'Proyeccion Form.', icon: 'chart-line' },
+          { path: '/multas-reglamentos/pruebacalcas', label: 'Prueba Calculos', icon: 'calculator' },
+          { path: '/multas-reglamentos/psplash', label: 'Splash', icon: 'window-maximize' },
+          { path: '/multas-reglamentos/reg', label: 'Registro', icon: 'clipboard' },
+          { path: '/multas-reglamentos/regHfrm', label: 'Registro Historico', icon: 'history' },
+          { path: '/multas-reglamentos/reimpfrm', label: 'Reimpresion', icon: 'redo' },
+          { path: '/multas-reglamentos/relmes', label: 'Relacion Mensual', icon: 'calendar-alt' },
+          { path: '/multas-reglamentos/repavance', label: 'Reporte Avance', icon: 'chart-bar' },
+          { path: '/multas-reglamentos/repmultampalfrm', label: 'Rep. Multas Mpal.', icon: 'file-alt' },
+          { path: '/multas-reglamentos/reqctascanfrm', label: 'Req. Ctas. Cancel.', icon: 'file-excel' },
+          { path: '/multas-reglamentos/reqmultas400frm', label: 'Req. Multas 400', icon: 'file-alt' },
+          { path: '/multas-reglamentos/sfrm_calificacionQR', label: 'Calificacion QR', icon: 'qrcode' },
+          { path: '/multas-reglamentos/sfrm_chgpass', label: 'Cambiar Contrasena', icon: 'key' },
+          { path: '/multas-reglamentos/sfrm_prescrip_sec01', label: 'Prescripcion Sec. 01', icon: 'clock' },
+          { path: '/multas-reglamentos/sgcv2', label: 'SGC v2', icon: 'cogs' },
+          { path: '/multas-reglamentos/trasladosfrm', label: 'Traslados', icon: 'exchange-alt' }
+        ]
+      },
+      {
+        label: 'Otras Obligaciones',
+        icon: 'file-lines',
+        children: [
+          {
+            path: '/otras-obligaciones/menu',
+            label: 'Menú Principal',
+            icon: 'home'
+          },
+          {
+            path: '/otras-obligaciones/apremios',
+            label: 'Apremios',
+            icon: 'gavel'
+          },
+          {
+            path: '/otras-obligaciones/aux-rep',
+            label: 'Padron de Concesionarios',
+            icon: 'users'
+          },
+          {
+            path: '/otras-obligaciones/carga-cartera',
+            label: 'Carga de Cartera',
+            icon: 'upload'
+          },
+          {
+            path: '/otras-obligaciones/carga-valores',
+            label: 'Carga de Valores',
+            icon: 'dollar-sign'
+          },
+          {
+            path: '/otras-obligaciones/etiquetas',
+            label: 'Catalogo de Etiquetas',
+            icon: 'tags'
+          },
+          {
+            path: '/otras-obligaciones/gactualiza',
+            label: 'Actualizacion de Datos',
+            icon: 'edit'
+          },
+          {
+            path: '/otras-obligaciones/gadeudos',
+            label: 'Adeudos',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/otras-obligaciones/gadeudos-gral',
+            label: 'Adeudos Generales',
+            icon: 'list-alt'
+          },
+          {
+            path: '/otras-obligaciones/gadeudos-opc-mult',
+            label: 'Opciones Multiples',
+            icon: 'tasks'
+          },
+          {
+            path: '/otras-obligaciones/gadeudos-opc-mult-ra',
+            label: 'Reactivacion',
+            icon: 'redo'
+          },
+          {
+            path: '/otras-obligaciones/gbaja',
+            label: 'Baja de Registros',
+            icon: 'trash-alt'
+          },
+          {
+            path: '/otras-obligaciones/gconsulta',
+            label: 'Consulta',
+            icon: 'search'
+          },
+          {
+            path: '/otras-obligaciones/gconsulta2',
+            label: 'Consulta Avanzada',
+            icon: 'search-plus'
+          },
+          {
+            path: '/otras-obligaciones/gfacturacion',
+            label: 'Facturacion',
+            icon: 'file-invoice'
+          },
+          {
+            path: '/otras-obligaciones/gnuevos',
+            label: 'Nuevos Registros',
+            icon: 'plus-circle'
+          },
+          {
+            path: '/otras-obligaciones/grep-padron',
+            label: 'Reporte Padron',
+            icon: 'file-alt'
+          },
+          {
+            path: '/otras-obligaciones/ractualiza',
+            label: 'R. Actualizaciones',
+            icon: 'chart-line'
+          },
+          {
+            path: '/otras-obligaciones/radeudos',
+            label: 'R. Adeudos',
+            icon: 'file-invoice'
+          },
+          {
+            path: '/otras-obligaciones/radeudos-opc-mult',
+            label: 'R. Opciones Multiples',
+            icon: 'clipboard-list'
+          },
+          {
+            path: '/otras-obligaciones/rbaja',
+            label: 'R. Bajas',
+            icon: 'ban'
+          },
+          {
+            path: '/otras-obligaciones/rconsulta',
+            label: 'R. Consulta',
+            icon: 'magnifying-glass'
+          },
+          {
+            path: '/otras-obligaciones/rfacturacion',
+            label: 'R. Facturacion',
+            icon: 'file-invoice-dollar'
+          },
+          {
+            path: '/otras-obligaciones/rnuevos',
+            label: 'R. Nuevos',
+            icon: 'file-circle-plus'
+          },
+          {
+            path: '/otras-obligaciones/rpagados',
+            label: 'R. Pagados',
+            icon: 'file-circle-check'
+          },
+          {
+            path: '/otras-obligaciones/rrep-padron',
+            label: 'R. Rep. Padron',
+            icon: 'file-export'
+          },
+          {
+            path: '/otras-obligaciones/rubros',
+            label: 'Rubros',
+            icon: 'list'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    label: 'Licencias',
+    icon: 'id-badge',
+    children: [
+      {
+        label: 'Padron de Licencias',
+        icon: 'id-card',
+        children: [
+          {
+            label: 'Catálogos Adicionales',
+            icon: 'folder-tree',
+            children: [
+              {
+                path: '/padron-licencias/grupos-anuncios',
+                label: 'Grupos de Anuncios',
+                icon: 'bullhorn'
+              },
+              {
+                path: '/padron-licencias/grupos-anuncios-abc',
+                label: 'Grupos de Anuncios ABC',
+                icon: 'bullhorn'
+              },
+              {
+                path: '/padron-licencias/zona-licencia',
+                label: 'Zonas de Licencias',
+                icon: 'map-marked-alt'
+              },
+              {
+                path: '/padron-licencias/privilegios',
+                label: 'Privilegios de Usuario',
+                icon: 'user-shield'
+              },
+              {
+                path: '/padron-licencias/unidad-img',
+                label: 'Configuración de Imágenes',
+                icon: 'folder-open'
+              }
+            ]
+          },
+          {
+            label: 'Consultas Históricas y Especiales',
+            icon: 'history',
+            children: [
+              {
+                path: '/padron-licencias/dependencias',
+                label: 'Gestión de Dependencias',
+                icon: 'clipboard-check'
+              },
+              {
+                path: '/padron-licencias/estatus',
+                label: 'Cambio de Estatus de Revisión',
+                icon: 'exchange-alt'
+              },
+              {
+                path: '/padron-licencias/giros-vigentes-cte-xgiro',
+                label: 'Giros Vigentes por Contribuyente',
+                icon: 'chart-line'
+              },
+              {
+                path: '/padron-licencias/consulta-licencias-400',
+                label: 'Consulta Licencias AS/400',
+                icon: 'database'
+              },
+              {
+                path: '/padron-licencias/consulta-anuncios-400',
+                label: 'Consulta Anuncios AS/400',
+                icon: 'database'
+              }
+            ]
+          },
+          {
+            label: 'Herramientas Auxiliares',
+            icon: 'tools',
+            children: [
+              {
+                path: '/padron-licencias/formabuscalle',
+                label: 'Búsqueda de Calles',
+                icon: 'road'
+              },
+              {
+                path: '/padron-licencias/formabuscolonia',
+                label: 'Búsqueda de Colonias',
+                icon: 'map-marked-alt'
+              },
+              {
+                path: '/padron-licencias/frmselcalle',
+                label: 'Selector de Calles',
+                icon: 'map-signs'
+              },
+              {
+                path: '/padron-licencias/sfrm-chgfirma',
+                label: 'Cambio de Firma',
+                icon: 'key'
+              },
+              {
+                path: '/padron-licencias/tipobloqueo',
+                label: 'Tipos de Bloqueo',
+                icon: 'ban'
+              }
+            ]
+          },
+          {
+            label: 'Herramientas del Sistema',
+            icon: 'tools',
+            children: [
+              {
+                path: '/padron-licencias/bienvenida',
+                label: 'Pantalla de Bienvenida',
+                icon: 'rocket'
+              },
+              {
+                path: '/padron-licencias/registro-historico',
+                label: 'Registro Histórico',
+                icon: 'history'
+              },
+              {
+                path: '/padron-licencias/sgc-v2',
+                label: 'Sistema de Gestión de Calidad',
+                icon: 'chart-line'
+              },
+              {
+                path: '/padron-licencias/tdm-conexion',
+                label: 'Conexión TDM',
+                icon: 'sync-alt'
+              },
+              {
+                path: '/padron-licencias/navegador-web',
+                label: 'Navegador Web',
+                icon: 'globe'
+              },
+              {
+                path: '/padron-licencias/dialogo-giros',
+                label: 'Selector de Giros',
+                icon: 'list-ul'
+              },
+              {
+                path: '/padron-licencias/imp-licencia-reglamentada',
+                label: 'Imprimir Licencia Reglamentada',
+                icon: 'print'
+              }
+            ]
+          },
+          {
+            label: 'Impresión y Digitalización',
+            icon: 'print',
+            children: [
+              {
+                path: '/padron-licencias/historial-bloqueo-domicilios',
+                label: 'Historial Bloqueo Domicilios',
+                icon: 'history'
+              },
+              {
+                path: '/padron-licencias/giros-con-adeudo',
+                label: 'Giros con Adeudo',
+                icon: 'file-invoice-dollar'
+              },
+              {
+                path: '/padron-licencias/impresion-licencias-reglamentadas',
+                label: 'Impresión Licencias Reglamentadas',
+                icon: 'print'
+              },
+              {
+                path: '/padron-licencias/carga-imagenes',
+                label: 'Carga de Imágenes',
+                icon: 'images'
+              },
+              {
+                path: '/padron-licencias/firma-digital',
+                label: 'Firma Digital',
+                icon: 'signature'
+              }
+            ]
+          },
+          {
+            label: 'Reportes',
+            icon: 'chart-bar',
+            children: [
+              {
+                path: '/padron-licencias/reporte-documentos',
+                label: 'Reporte de Documentos',
+                icon: 'file-alt'
+              },
+              {
+                path: '/padron-licencias/reporte-estadisticos',
+                label: 'Reportes Estadísticos',
+                icon: 'chart-line'
+              },
+              {
+                path: '/padron-licencias/reporte-estado',
+                label: 'Estado de Trámites',
+                icon: 'tasks'
+              },
+              {
+                path: '/padron-licencias/reporte-suspendidas',
+                label: 'Licencias Suspendidas',
+                icon: 'ban'
+              },
+              {
+                path: '/padron-licencias/reporte-anuncios-excel',
+                label: 'Reporte de Anuncios',
+                icon: 'file-excel'
+              }
+            ]
+          },
+          {
+            label: 'Trámites',
+            icon: 'file-signature',
+            children: [
+              {
+                path: '/padron-licencias/registro-solicitud',
+                label: 'Registro de Solicitud',
+                icon: 'file-circle-plus'
+              },
+              {
+                path: '/padron-licencias/consulta-tramites',
+                label: 'Consulta de Trámites',
+                icon: 'search'
+              },
+              {
+                path: '/padron-licencias/modificacion-tramites',
+                label: 'Modificación de Trámites',
+                icon: 'edit'
+              },
+              {
+                path: '/padron-licencias/bloquear-tramite',
+                label: 'Bloquear Trámite',
+                icon: 'ban'
+              },
+              {
+                path: '/padron-licencias/cancelacion-tramites',
+                label: 'Cancelación de Trámites',
+                icon: 'times-circle'
+              },
+              {
+                path: '/padron-licencias/reactivar-tramite',
+                label: 'Reactivar Trámite',
+                icon: 'redo'
+              },
+              {
+                path: '/padron-licencias/documentos',
+                label: 'Documentos de Trámites',
+                icon: 'file-alt'
+              },
+              {
+                path: '/padron-licencias/tramite-baja-anuncio',
+                label: 'Trámite Baja de Anuncio',
+                icon: 'ban'
+              },
+              {
+                path: '/padron-licencias/tramite-baja-licencia',
+                label: 'Trámite Baja de Licencia',
+                icon: 'file-excel'
+              }
+            ]
+          },
+          {
+            label: 'Trámites Especializados',
+            icon: 'file-signature',
+            children: [
+              {
+                path: '/padron-licencias/agenda-visitas',
+                label: 'Agenda de Visitas',
+                icon: 'calendar-check'
+              },
+              {
+                path: '/padron-licencias/dictamen-uso-suelo',
+                label: 'Dictamen de Uso de Suelo',
+                icon: 'map'
+              },
+              {
+                path: '/padron-licencias/formatos-ecologia',
+                label: 'Formatos de Ecología',
+                icon: 'leaf'
+              },
+              {
+                path: '/padron-licencias/dictamenes',
+                label: 'Dictámenes',
+                icon: 'file-contract'
+              },
+              {
+                path: '/padron-licencias/certificaciones',
+                label: 'Certificaciones',
+                icon: 'certificate'
+              }
+            ]
+          },
+          {
+            label: 'Trámites y Procesos',
+            icon: 'file-signature',
+            children: [
+              {
+                path: '/padron-licencias/observaciones',
+                label: 'Observaciones',
+                icon: 'comment-alt'
+              },
+              {
+                path: '/padron-licencias/licencias-vigentes',
+                label: 'Licencias Vigentes',
+                icon: 'clipboard-check'
+              },
+              {
+                path: '/padron-licencias/sfrm-chgpass',
+                label: 'Cambio de Contraseña',
+                icon: 'lock'
+              }
+            ]
+          },
+          {
+            label: 'Utilidades',
+            icon: 'tools',
+            children: [
+              {
+                path: '/padron-licencias/catastro-dm',
+                label: 'Catastro DM',
+                icon: 'building'
+              },
+              {
+                path: '/padron-licencias/propuesta-tabulador',
+                label: 'Propuesta de Tabulador',
+                icon: 'table'
+              },
+              {
+                path: '/padron-licencias/empresas',
+                label: 'Empresas',
+                icon: 'industry'
+              },
+              {
+                path: '/padron-licencias/carga-datos',
+                label: 'Carga de Datos',
+                icon: 'upload'
+              },
+              {
+                path: '/padron-licencias/semaforo',
+                label: 'Semáforo',
+                icon: 'traffic-light'
+              }
+            ]
+          },
+          {
+            path: '/padron-licencias/consulta-usuarios',
+            label: 'Consulta de Usuarios',
+            icon: 'users'
+          },
+          {
+            path: '/padron-licencias/consulta-licencias',
+            label: 'Consulta de Licencias',
+            icon: 'file-contract'
+          },
+          {
+            path: '/padron-licencias/consulta-anuncios',
+            label: 'Consulta de Anuncios',
+            icon: 'store'
+          },
+          {
+            path: '/padron-licencias/modificacion-licencias',
+            label: 'Modificación de Licencias y Anuncios',
+            icon: 'edit'
+          },
+          {
+            path: '/padron-licencias/solicitud-numero-oficial',
+            label: 'Solicitud Número Oficial',
+            icon: 'file-contract'
+          },
+          {
+            path: '/padron-licencias/constancias',
+            label: 'Constancias',
+            icon: 'file-alt'
+          },
+          {
+            path: '/padron-licencias/dictamenes',
+            label: 'Dictámenes',
+            icon: 'clipboard-check'
+          },
+          {
+            path: '/padron-licencias/baja-licencia',
+            label: 'Baja de Licencia',
+            icon: 'ban'
+          },
+          {
+            path: '/padron-licencias/bloqueo-domicilios',
+            label: 'Bloqueo de Domicilios',
+            icon: 'lock'
+          },
+          {
+            path: '/padron-licencias/bloqueo-rfc',
+            label: 'Bloqueo de RFC',
+            icon: 'ban'
+          },
+          {
+            path: '/padron-licencias/catalogo-giros',
+            label: 'Catálogo de Giros',
+            icon: 'tags'
+          },
+          {
+            path: '/padron-licencias/busqueda-giros',
+            label: 'Búsqueda de Giros',
+            icon: 'search'
+          },
+          {
+            path: '/padron-licencias/catalogo-actividades',
+            label: 'Catálogo de Actividades',
+            icon: 'list-check'
+          },
+          {
+            path: '/padron-licencias/catalogo-requisitos',
+            label: 'Catálogo de Requisitos',
+            icon: 'clipboard-list'
+          },
+          {
+            path: '/padron-licencias/grupos-licencias',
+            label: 'Grupos de Licencias',
+            icon: 'layer-group'
+          },
+          {
+            path: '/padron-licencias/cruces-calles',
+            label: 'Cruces de Calles',
+            icon: 'road'
+          },
+          {
+            path: '/padron-licencias/grupos-licencias-abc',
+            label: 'Grupos de Licencias ABC',
+            icon: 'layer-group'
+          },
+          {
+            path: '/padron-licencias/zona-anuncio',
+            label: 'Zonas de Anuncios',
+            icon: 'map-marked-alt'
+          },
+          {
+            path: '/padron-licencias/busqueda-actividad',
+            label: 'Búsqueda de Actividad',
+            icon: 'search'
+          },
+          {
+            path: '/padron-licencias/busqueda-scian',
+            label: 'Búsqueda SCIAN',
+            icon: 'search-dollar'
+          },
+          {
+            path: '/padron-licencias/busqueda-general',
+            label: 'Búsqueda General',
+            icon: 'search-location'
+          },
+          {
+            path: '/padron-licencias/bloquear-licencia',
+            label: 'Bloquear Licencia',
+            icon: 'lock'
+          },
+          {
+            path: '/padron-licencias/bloquear-anuncio',
+            label: 'Bloquear Anuncio',
+            icon: 'shield-alt'
+          },
+          {
+            path: '/padron-licencias/baja-anuncio',
+            label: 'Baja de Anuncio',
+            icon: 'minus-circle'
+          },
+          {
+            path: '/padron-licencias/certificaciones',
+            label: 'Certificaciones',
+            icon: 'certificate'
+          },
+          {
+            path: '/padron-licencias/agenda-visitas',
+            label: 'Agenda de Visitas',
+            icon: 'calendar-check'
+          },
+          {
+            path: '/padron-licencias/dictamen-uso-suelo',
+            label: 'Dictamen Uso de Suelo',
+            icon: 'map-marked'
+          },
+          {
+            path: '/padron-licencias/formatos-ecologia',
+            label: 'Formatos de Ecología',
+            icon: 'leaf'
+          },
+          {
+            path: '/padron-licencias/fecha-seguimiento',
+            label: 'Fecha de Seguimiento',
+            icon: 'calendar-alt'
+          },
+          {
+            path: '/padron-licencias/firma-usuario',
+            label: 'Firma de Usuario',
+            icon: 'signature'
+          },
+          {
+            path: '/padron-licencias/liga-anuncio',
+            label: 'Liga de Anuncios',
+            icon: 'link'
+          },
+          {
+            path: '/padron-licencias/liga-requisitos',
+            label: 'Liga de Requisitos',
+            icon: 'link'
+          },
+          {
+            path: '/padron-licencias/modific-adeudo',
+            label: 'Modificación de Adeudos',
+            icon: 'edit'
+          },
+          {
+            path: '/padron-licencias/prepago',
+            label: 'Prepago de Licencias',
+            icon: 'dollar-sign'
+          },
+          {
+            path: '/padron-licencias/propietarios-hologramas',
+            label: 'Propietarios de Hologramas',
+            icon: 'id-card-alt'
+          },
+          {
+            path: '/padron-licencias/responsivas',
+            label: 'Responsivas',
+            icon: 'file-signature'
+          },
+          {
+            path: '/padron-licencias/hasta',
+            label: 'Pagar Hasta',
+            icon: 'calendar-check'
+          },
+          {
+            path: '/padron-licencias/cartografia-catastral',
+            label: 'Cartografía Catastral',
+            icon: 'map'
+          },
+          {
+            path: '/padron-licencias/carga-predios',
+            label: 'Carga de Predios',
+            icon: 'building'
+          },
+          {
+            path: '/padron-licencias/imp-licencia-reglamentada',
+            label: 'Imprimir Licencia Reglamentada',
+            icon: 'print'
+          },
+          {
+            path: '/padron-licencias/imp-oficio',
+            label: 'Imprimir Oficio',
+            icon: 'file-invoice'
+          },
+          {
+            path: '/padron-licencias/imp-recibo',
+            label: 'Imprimir Recibo',
+            icon: 'receipt'
+          }
+        ]
+      }
+    ]
+  }
+]
+
+// Función recursiva para filtrar items manteniendo la jerarquía
+// Función para filtrar items por sistema seleccionado
+const filterBySystem = (items, sistema) => {
+  if (!sistema) return items
+
+  const pathPrefix = SISTEMA_TO_PATH[sistema]
+  if (!pathPrefix) return items
+
+  const filtered = []
+
+  for (const item of items) {
+    // Dashboard siempre visible
+    if (item.path === '/') {
+      filtered.push(item)
+      continue
+    }
+
+    // Si el item tiene path que coincide con el sistema
+    if (item.path && item.path.startsWith(pathPrefix)) {
+      filtered.push(item)
+      continue
+    }
+
+    // Si tiene hijos, filtrar recursivamente
+    if (item.children && item.children.length > 0) {
+      const filteredChildren = filterBySystem(item.children, sistema)
+
+      // Solo incluir si tiene hijos después del filtrado
+      if (filteredChildren.length > 0) {
+        filtered.push({
+          ...item,
+          children: filteredChildren
+        })
+      }
+    }
+  }
+
+  return filtered
+}
+
+const filterMenuItems = (items, query) => {
+  if (!query || query.trim() === '') {
+    return items
+  }
+
+  const searchTerm = query.toLowerCase().trim()
+  const filtered = []
+
+  for (const item of items) {
+    // Verificar si el item actual coincide con la búsqueda
+    const itemMatches = item.label.toLowerCase().includes(searchTerm)
+
+    // Si tiene hijos, filtrar recursivamente
+    if (item.children && item.children.length > 0) {
+      const filteredChildren = filterMenuItems(item.children, query)
+
+      // Si el item actual coincide O tiene hijos que coinciden, incluirlo
+      if (itemMatches || filteredChildren.length > 0) {
+        filtered.push({
+          ...item,
+          children: filteredChildren,
+          _forceExpanded: filteredChildren.length > 0 // Expandir automáticamente si tiene hijos filtrados
+        })
+      }
+    } else {
+      // Es un nodo hoja, incluir solo si coincide
+      if (itemMatches) {
+        filtered.push(item)
+      }
+    }
+  }
+
+  return filtered
+}
+
+// Ordenación alfabética (insensible a acentos y mayúsculas)
+const collator = new Intl.Collator('es', { sensitivity: 'base', numeric: true })
+const sortMenu = (items) => {
+  // Copia y ordena por label; aplica recursivamente en children
+  const mapped = items.map((item) => {
+    if (item.children && item.children.length > 0) {
+      return { ...item, children: sortMenu(item.children) }
+    }
+    return item
+  })
+
+  // Separar Dashboard (siempre primero) del resto
+  const dashboard = mapped.find(item => item.path === '/')
+  const restItems = mapped.filter(item => item.path !== '/')
+
+  // Separar subgrupos (con children) e items sueltos (sin children)
+  const subgroups = restItems.filter(item => item.children && item.children.length > 0)
+  const singleItems = restItems.filter(item => !item.children || item.children.length === 0)
+
+  // Ordenar cada grupo alfabéticamente
+  const sortedSubgroups = subgroups.sort((a, b) => collator.compare(a.label, b.label))
+  const sortedSingleItems = singleItems.sort((a, b) => collator.compare(a.label, b.label))
+
+  // PRIMERO Dashboard, LUEGO los subgrupos, DESPUÉS los items sueltos
+  const result = []
+  if (dashboard) result.push(dashboard)
+  result.push(...sortedSubgroups, ...sortedSingleItems)
+  return result
+}
+
+// Computed para items filtrados y ordenados
+const filteredItems = computed(() => {
+  // Primero filtrar por sistema seleccionado
+  const systemFiltered = filterBySystem(menuItems, currentSystem.value)
+  // Luego aplicar filtro de búsqueda
+  const searchFiltered = filterMenuItems(systemFiltered, searchQuery.value)
+  return sortMenu(searchFiltered)
+})
+
+// Método para limpiar búsqueda
+const clearSearch = () => {
+  searchQuery.value = ''
+}
+
+// Método para manejar cambios en búsqueda
+const handleSearch = () => {
+  // La reactividad se encarga automáticamente del filtrado
+}
+</script>
+
+<style scoped>
+/* Handle de redimensionamiento */
+.sidebar-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+  background: transparent;
+  z-index: 100;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-resize-handle:hover {
+  background: var(--gov-orange);
+  opacity: 0.5;
+}
+
+.sidebar-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 40px;
+  background: var(--slate-300);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-resize-handle:hover::after {
+  opacity: 1;
+}
+
+.sidebar-search {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--slate-200);
+  background: var(--slate-50);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--slate-400);
+  font-size: 0.875rem;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 2.25rem 0.5rem 2.25rem;
+  border: 1px solid var(--slate-300);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-family: var(--font-municipal);
+  transition: all var(--transition-fast);
+  background: white;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--municipal-primary);
+  box-shadow: 0 0 0 3px rgba(234, 130, 21, 0.1);
+}
+
+.search-input::placeholder {
+  color: var(--slate-400);
+}
+
+.search-clear {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--slate-400);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.search-clear:hover {
+  color: var(--municipal-danger);
+  background: var(--slate-100);
+}
+
+.search-no-results {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  background: white;
+  border-radius: var(--radius-md);
+  color: var(--slate-500);
+  font-size: 0.875rem;
+  border: 1px solid var(--slate-200);
+}
+
+.search-no-results svg {
+  color: var(--slate-400);
+}
+</style>

@@ -1,0 +1,7 @@
+﻿# ConsCapturaMerc
+
+## Casos de Prueba
+
+
+
+

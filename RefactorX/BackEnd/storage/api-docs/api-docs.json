@@ -1,0 +1,754 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API de Integración Odoo",
+        "description": "API REST para integración con Odoo - Servicios de consulta, pagos y autenticación JWT",
+        "contact": {
+            "name": "Soporte API Odoo",
+            "email": "soporte@guadalajara.gob.mx"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api",
+            "description": "Servidor Local"
+        },
+        {
+            "url": "https://api.guadalajara.gob.mx/api",
+            "description": "Servidor Producción"
+        }
+    ],
+    "paths": {
+        "/api/generic": {
+            "post": {
+                "tags": [
+                    "Generic API"
+                ],
+                "summary": "Ejecutar stored procedure genérico",
+                "description": "Endpoint genérico para ejecutar stored procedures en diferentes módulos y bases de datos",
+                "operationId": "f358d061b6dcf405a3c171c9b0d28f4c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "eRequest"
+                                ],
+                                "properties": {
+                                    "eRequest": {
+                                        "properties": {
+                                            "Operacion": {
+                                                "type": "string",
+                                                "example": "select"
+                                            },
+                                            "Base": {
+                                                "type": "string",
+                                                "example": "padron_licencias"
+                                            },
+                                            "StoredProcedure": {
+                                                "type": "string",
+                                                "example": "sp_consulta"
+                                            },
+                                            "Parametros": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Operación exitosa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "eResponse": {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "data": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Petición inválida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "eResponse": {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "eResponse": {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/odoo/auth/token": {
+            "post": {
+                "tags": [
+                    "JWT Authentication"
+                ],
+                "summary": "Generar token JWT",
+                "description": "Genera un token JWT para autenticación en el API de Odoo",
+                "operationId": "87319d0d05c9e78c10a44ca16de03e04",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "client_id",
+                                    "client_secret"
+                                ],
+                                "properties": {
+                                    "client_id": {
+                                        "type": "string",
+                                        "example": "odoo-client-001"
+                                    },
+                                    "client_secret": {
+                                        "type": "string",
+                                        "example": "super-secret-password"
+                                    },
+                                    "client_name": {
+                                        "type": "string",
+                                        "example": "Odoo Production"
+                                    },
+                                    "permissions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "consulta",
+                                            "pago"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Token generado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token generado exitosamente"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        },
+                                        "expires_in": {
+                                            "type": "integer",
+                                            "example": 86400
+                                        },
+                                        "expires_at": {
+                                            "type": "string",
+                                            "example": "2025-02-12 10:30:00"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Credenciales inválidas"
+                    },
+                    "500": {
+                        "description": "Error generando token"
+                    }
+                }
+            }
+        },
+        "/api/odoo/auth/validate": {
+            "post": {
+                "tags": [
+                    "JWT Authentication"
+                ],
+                "summary": "Validar token JWT",
+                "description": "Valida un token JWT y retorna su información",
+                "operationId": "d182fc3dc43941923ef0a6aedf75fe93",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "type": "string",
+                                        "example": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Token válido",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token válido"
+                                        },
+                                        "client_id": {
+                                            "type": "string",
+                                            "example": "odoo-client-001"
+                                        },
+                                        "expires_at": {
+                                            "type": "string",
+                                            "example": "2025-02-12 10:30:00"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido o expirado"
+                    }
+                }
+            }
+        },
+        "/api/odoo/auth/refresh": {
+            "post": {
+                "tags": [
+                    "JWT Authentication"
+                ],
+                "summary": "Refrescar token JWT",
+                "description": "Genera un nuevo token JWT basado en uno válido existente. Útil para renovar tokens antes de que expiren sin necesidad de volver a autenticar con credenciales.",
+                "operationId": "6a7353c1222e2dfefea305cd8b0f192a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "description": "Token JWT actual (aún válido)",
+                                        "type": "string",
+                                        "example": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Token refrescado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token refrescado exitosamente"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "eyJ0eXAiOiJKV1QiLCJhbGc... (nuevo token)"
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        },
+                                        "expires_in": {
+                                            "description": "Tiempo de expiración en segundos",
+                                            "type": "integer",
+                                            "example": 86400
+                                        },
+                                        "expires_at": {
+                                            "description": "Fecha/hora de expiración",
+                                            "type": "string",
+                                            "example": "2025-02-12 10:30:00"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Token no proporcionado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token no proporcionado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido o expirado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token inválido, no se puede refrescar"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/odoo/auth/info": {
+            "get": {
+                "tags": [
+                    "JWT Authentication"
+                ],
+                "summary": "Información de autenticación JWT",
+                "description": "Retorna información sobre la configuración JWT y endpoints disponibles. No requiere autenticación.",
+                "operationId": "fd4ebd424dc8518e99a19918d555db12",
+                "responses": {
+                    "200": {
+                        "description": "Información de JWT",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "jwt_info": {
+                                            "properties": {
+                                                "algorithm": {
+                                                    "description": "Algoritmo de firma JWT",
+                                                    "type": "string",
+                                                    "example": "HS256"
+                                                },
+                                                "expiration_hours": {
+                                                    "description": "Horas de expiración",
+                                                    "type": "integer",
+                                                    "example": 24
+                                                },
+                                                "expiration_seconds": {
+                                                    "description": "Segundos de expiración",
+                                                    "type": "integer",
+                                                    "example": 86400
+                                                },
+                                                "issuer": {
+                                                    "description": "Emisor del token",
+                                                    "type": "string",
+                                                    "example": "http://localhost:8000"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "endpoints": {
+                                            "properties": {
+                                                "generate_token": {
+                                                    "type": "string",
+                                                    "example": "http://localhost:8000/api/odoo/auth/token"
+                                                },
+                                                "validate_token": {
+                                                    "type": "string",
+                                                    "example": "http://localhost:8000/api/odoo/auth/validate"
+                                                },
+                                                "refresh_token": {
+                                                    "type": "string",
+                                                    "example": "http://localhost:8000/api/odoo/auth/refresh"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "usage": {
+                                            "properties": {
+                                                "step_1": {
+                                                    "type": "string",
+                                                    "example": "POST /api/odoo/auth/token con client_id y client_secret"
+                                                },
+                                                "step_2": {
+                                                    "type": "string",
+                                                    "example": "Usar el token en Authorization: Bearer {token}"
+                                                },
+                                                "step_3": {
+                                                    "type": "string",
+                                                    "example": "Refrescar antes de que expire con /api/odoo/auth/refresh"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/odoo": {
+            "post": {
+                "tags": [
+                    "Odoo Integration"
+                ],
+                "summary": "Endpoint único para servicios de Odoo",
+                "description": "Endpoint unificado que maneja todos los servicios de integración con Odoo. Funciones disponibles: Consulta, DatosVarios, AdeudoDetalle, Pago, Cancelacion, ConsCuenta, CatDescuentos, ListDescuentos, AltaDescuentos, CancelDescuentos, y más. Interfaces soportadas: 8-15, 18-19, 22-23, 25, 30 (Informix), 16 (Movilidad), 17 (Obras), 32 (Infracciones), 88 (SICAM). Autenticación: Header Authorization Bearer o campo Token en eRequest.",
+                "operationId": "88daa3039458dbe47c6877c10007abf1",
+                "requestBody": {
+                    "description": "Request con estructura eRequest que contiene Funcion, Token y Parametros.",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "eRequest"
+                                ],
+                                "properties": {
+                                    "eRequest": {
+                                        "required": [
+                                            "Funcion",
+                                            "Token"
+                                        ],
+                                        "properties": {
+                                            "Funcion": {
+                                                "description": "Nombre de la función a ejecutar",
+                                                "type": "string",
+                                                "example": "Consulta"
+                                            },
+                                            "Token": {
+                                                "description": "Token JWT",
+                                                "type": "string",
+                                                "example": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+                                            },
+                                            "Parametros": {
+                                                "description": "Parámetros específicos de cada función",
+                                                "properties": {
+                                                    "Idinterfaz": {
+                                                        "type": "integer",
+                                                        "example": 8
+                                                    },
+                                                    "cta_01": {
+                                                        "type": "string",
+                                                        "example": "12345678"
+                                                    },
+                                                    "referencia_pago": {
+                                                        "type": "string",
+                                                        "example": "REF123"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Operación exitosa - Consulta",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "eResponse": {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Operación completada exitosamente"
+                                                },
+                                                "data": {
+                                                    "properties": {
+                                                        "nombre": {
+                                                            "type": "string",
+                                                            "example": "JUAN PEREZ GARCIA"
+                                                        },
+                                                        "domicilio": {
+                                                            "type": "string",
+                                                            "example": "AV REVOLUCION 123"
+                                                        },
+                                                        "colonia": {
+                                                            "type": "string",
+                                                            "example": "CENTRO"
+                                                        },
+                                                        "municipio": {
+                                                            "type": "string",
+                                                            "example": "GUADALAJARA"
+                                                        },
+                                                        "estado": {
+                                                            "type": "string",
+                                                            "example": "JALISCO"
+                                                        },
+                                                        "rfc": {
+                                                            "type": "string",
+                                                            "example": "PEGJ800101XXX"
+                                                        },
+                                                        "estatus": {
+                                                            "type": "integer",
+                                                            "example": 0
+                                                        },
+                                                        "mensaje_est": {
+                                                            "type": "string",
+                                                            "example": "OK"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "timestamp": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2025-02-11T10:30:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Petición inválida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "eResponse": {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Validación fallida: El campo Funcion es requerido"
+                                                },
+                                                "data": {
+                                                    "type": "null"
+                                                },
+                                                "timestamp": {
+                                                    "type": "string",
+                                                    "example": "2025-02-11T10:30:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido o expirado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "eResponse": {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Token inválido o expirado"
+                                                },
+                                                "data": {
+                                                    "type": "null"
+                                                },
+                                                "timestamp": {
+                                                    "type": "string",
+                                                    "example": "2025-02-11T10:30:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "eResponse": {
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Error en la base de datos: Connection refused"
+                                                },
+                                                "data": {
+                                                    "type": "null"
+                                                },
+                                                "timestamp": {
+                                                    "type": "string",
+                                                    "example": "2025-02-11T10:30:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Ingrese el token JWT generado desde /odoo/auth/token",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "JWT Authentication",
+            "description": "Autenticación JWT para API de Odoo"
+        },
+        {
+            "name": "Odoo Integration",
+            "description": "API de integración con Odoo - Servicios de consulta y pagos"
+        },
+        {
+            "name": "Generic API",
+            "description": "Generic API"
+        }
+    ]
+}

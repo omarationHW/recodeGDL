@@ -1,0 +1,442 @@
+<template>
+  <div class="module-view">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="bolt" />
+      </div>
+      <div class="module-view-info">
+        <h1>Emisión de Recibos de Energía Eléctrica</h1>
+        <p>Inicio > Operaciones > Emisión Energía</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book-open" />
+          <span>Documentacion</span>
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          <span>Ayuda</span>
+        </button>
+        
+        <button class="btn-municipal-primary" @click="ejecutarEmision" :disabled="loading || !canExecute">
+          <font-awesome-icon icon="play" /> Ejecutar Emisión
+        </button>
+        <button class="btn-municipal-primary" @click="grabarEmision" :disabled="loading || emision.length === 0">
+          <font-awesome-icon icon="save" /> Grabar
+        </button>
+        
+      </div>
+    </div>
+
+    <div class="module-view-content">
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="sliders-h" /> Parámetros de Emisión</h5>
+        </div>
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Recaudadora <span class="required">*</span></label>
+              <select class="municipal-form-control" v-model="selectedRecaudadora" @change="onRecaudadoraChange" :disabled="loading">
+                <option value="">Seleccione...</option>
+                <option v-for="rec in recaudadoras" :key="rec.id_rec" :value="rec.id_rec">
+                 {{ rec.id_rec }} - {{ rec.recaudadora }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Mercado <span class="required">*</span></label>
+              <select class="municipal-form-control" v-model="selectedMercado" :disabled="loading || !selectedRecaudadora">
+                <option value="">Seleccione...</option>
+                <option v-for="merc in mercados" :key="merc.num_mercado_nvo" :value="merc.num_mercado_nvo">
+                  {{ merc.num_mercado_nvo }} - {{ merc.descripcion }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Año <span class="required">*</span></label>
+              <input type="number" class="municipal-form-control" v-model.number="axo" min="2003" max="2999" :disabled="loading" />
+            </div>
+            <div class="form-group">
+              <label class="municipal-form-label">Periodo (Mes) <span class="required">*</span></label>
+              <input type="number" class="municipal-form-control" v-model.number="periodo" min="1" max="12" :disabled="loading" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="municipal-card" v-if="emision.length > 0">
+        <div class="municipal-card-header header-with-badge">
+          <h5><font-awesome-icon icon="list" /> Detalle de Emisión</h5>
+          <div class="header-right">
+            <span class="badge-purple">{{ emision.length }} locales</span>
+            <span class="badge-success ms-2">Total: {{ formatCurrency(totalEmision) }}</span>
+          </div>
+        </div>
+        <div class="municipal-card-body table-container">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th>Local</th>
+                  <th>Letra</th>
+                  <th>Bloque</th>
+                  <th>Nombre</th>
+                  <th>Consumo</th>
+                  <th>Cantidad</th>
+                  <th class="text-end">Tarifa</th>
+                  <th class="text-end">Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in paginatedEmision" :key="row.id_energia" class="row-hover">
+                  <td><strong class="text-primary">{{ row.local }}</strong></td>
+                  <td>{{ row.letra_local }}</td>
+                  <td>{{ row.bloque }}</td>
+                  <td>{{ row.nombre }}</td>
+                  <td>{{ row.cve_consumo }}</td>
+                  <td class="text-end">{{ formatNumber(row.cantidad) }}</td>
+                  <td class="text-end">{{ formatCurrency(row.importe) }}</td>
+                  <td class="text-end"><strong class="text-success">{{ formatCurrency(row.importe_energia) }}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Controles de paginación -->
+          <div v-if="emision.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ ((currentPage - 1) * itemsPerPage) + 1 }}
+                a {{ Math.min(currentPage * itemsPerPage, emision.length) }}
+                de {{ emision.length }} registros
+              </span>
+            </div>
+
+            <div class="pagination-size">
+              <label class="municipal-form-label me-2">Registros por página:</label>
+              <select
+                class="municipal-form-control form-control-sm"
+                :value="itemsPerPage"
+                @change="changePageSize($event.target.value)"
+                style="width: auto; display: inline-block;"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(1)"
+                :disabled="currentPage === 1"
+                title="Primera página"
+              >
+                <font-awesome-icon icon="angle-double-left" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                title="Página anterior"
+              >
+                <font-awesome-icon icon="angle-left" />
+              </button>
+
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                class="btn-sm"
+                :class="page === currentPage ? 'btn-municipal-primary' : 'btn-municipal-secondary'"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                title="Página siguiente"
+              >
+                <font-awesome-icon icon="angle-right" />
+              </button>
+
+              <button
+                class="btn-municipal-secondary btn-sm"
+                @click="goToPage(totalPages)"
+                :disabled="currentPage === totalPages"
+                title="Última página"
+              >
+                <font-awesome-icon icon="angle-double-right" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-else-if="!loading && searched" class="text-center text-muted py-5">
+        <font-awesome-icon icon="inbox" size="2x" class="empty-icon" />
+        <p>No hay locales con energía para el periodo seleccionado</p>
+      </div>
+    </div>
+
+    <div v-if="toast.show" class="toast-notification" :class="`toast-${toast.type}`">
+      <font-awesome-icon :icon="getToastIcon(toast.type)" class="toast-icon" />
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" @click="hideToast">
+        <font-awesome-icon icon="times" />
+      </button>
+    </div>
+  </div>
+
+  <DocumentationModal :show="showAyuda" :component-name="'EmisionEnergia'" :module-name="'mercados'" :doc-type="'ayuda'" :title="'Mercados - EmisionEnergia'" @close="showAyuda = false" />
+  <DocumentationModal :show="showDocumentacion" :component-name="'EmisionEnergia'" :module-name="'mercados'" :doc-type="'documentacion'" :title="'Mercados - EmisionEnergia'" @close="showDocumentacion = false" />
+</template>
+
+<script setup>
+import apiService from '@/services/apiService';
+import { ref, computed, onMounted, watch } from 'vue'
+import axios from 'axios'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
+
+const { showLoading, hideLoading } = useGlobalLoading()
+
+const recaudadoras = ref([])
+const mercados = ref([])
+const emision = ref([])
+const selectedRecaudadora = ref('')
+const selectedMercado = ref('')
+const axo = ref(new Date().getFullYear())
+const periodo = ref(new Date().getMonth() + 1)
+const loading = ref(false)
+const searched = ref(false)
+const toast = ref({ show: false, type: 'info', message: '' })
+
+// Paginación
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+
+const canExecute = computed(() => selectedRecaudadora.value && selectedMercado.value && axo.value && periodo.value)
+
+const totalEmision = computed(() => {
+  return emision.value.reduce((sum, row) => sum + parseFloat(row.importe_energia || 0), 0)
+})
+
+// Computed para paginación
+const paginatedEmision = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return emision.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(emision.value.length / itemsPerPage.value)
+})
+
+const visiblePages = computed(() => {
+  const pages = []
+  const maxVisible = 5
+  let startPage = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1)
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1)
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// Métodos de paginación
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const changePageSize = (newSize) => {
+  itemsPerPage.value = parseInt(newSize)
+  currentPage.value = 1
+}
+
+// Reset página al cambiar emision
+watch(emision, () => {
+  currentPage.value = 1
+})
+
+const showToast = (message, type) => {
+  toast.value = { show: true, type, message }
+  setTimeout(() => hideToast(), 5000)
+}
+
+const hideToast = () => {
+  toast.value.show = false
+}
+
+const getToastIcon = (type) => {
+  const icons = { success: 'check-circle', error: 'times-circle', warning: 'exclamation-triangle', info: 'info-circle' }
+  return icons[type] || 'info-circle'
+}
+
+const mostrarAyuda = () => {
+  showToast('Seleccione recaudadora, mercado, año y periodo. Luego ejecute la emisión para ver los locales. Finalmente grabe la emisión.', 'info')
+}
+
+const fetchRecaudadoras = async () => {
+  showLoading('Cargando Emisión de Energía', 'Preparando oficinas recaudadoras...')
+  loading.value = true
+  try {
+    const res = await apiService.execute(
+          'sp_get_recaudadoras',
+          'mercados',
+          [],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      recaudadoras.value = res.data.result || []
+    }
+  } catch (err) {
+    showToast('Error al cargar recaudadoras', 'error')
+  } finally {
+    loading.value = false
+    hideLoading()
+  }
+}
+
+const onRecaudadoraChange = async () => {
+  selectedMercado.value = ''
+  mercados.value = []
+  if (!selectedRecaudadora.value) return
+  loading.value = true
+  try {
+    const res = await apiService.execute(
+          'sp_get_mercados',
+          'mercados',
+          [{ nombre: 'p_oficina', valor: parseInt(selectedRecaudadora.value) }],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      mercados.value = res.data.result || []
+    }
+  } catch (err) {
+    showToast('Error al cargar mercados', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+const ejecutarEmision = async () => {
+  if (!canExecute.value) {
+    showToast('Complete todos los campos requeridos', 'warning')
+    return
+  }
+  loading.value = true
+  emision.value = []
+  searched.value = true
+  try {
+    const res = await apiService.execute(
+          'get_emision_energia',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(selectedRecaudadora.value) },
+          { nombre: 'p_mercado', valor: parseInt(selectedMercado.value) },
+          { nombre: 'p_axo', valor: parseInt(axo.value) },
+          { nombre: 'p_periodo', valor: parseInt(periodo.value) }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      emision.value = res.data.result || []
+      if (emision.value.length > 0) {
+        showToast(`Emisión ejecutada: ${emision.value.length} locales encontrados`, 'success')
+      } else {
+        showToast('No hay locales con energía para este periodo', 'info')
+      }
+    } else {
+      showToast(res.message || 'Error al ejecutar emisión', 'error')
+    }
+  } catch (err) {
+    showToast('Error de conexión al ejecutar emisión', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+const grabarEmision = async () => {
+  if (emision.value.length === 0) {
+    showToast('No hay datos para grabar', 'warning')
+    return
+  }
+  if (!confirm('¿Está seguro de grabar la emisión de energía? Esta acción no se puede deshacer.')) {
+    return
+  }
+  loading.value = true
+  try {
+    const res = await apiService.execute(
+          'grabar_emision_energia',
+          'mercados',
+          [
+          { nombre: 'p_oficina', valor: parseInt(selectedRecaudadora.value) },
+          { nombre: 'p_mercado', valor: parseInt(selectedMercado.value) },
+          { nombre: 'p_axo', valor: parseInt(axo.value) },
+          { nombre: 'p_periodo', valor: parseInt(periodo.value) },
+          { nombre: 'p_usuario', valor: 1 }
+        ],
+          '',
+          null,
+          'publico'
+        )
+    if (res.success) {
+      const result = res.data.result[0]
+      if (result.status === 'ok') {
+        showToast(result.message, 'success')
+        emision.value = []
+        searched.value = false
+      } else {
+        showToast(result.message, 'error')
+      }
+    } else {
+      showToast(res.message || 'Error al grabar emisión', 'error')
+    }
+  } catch (err) {
+    showToast('Error de conexión al grabar emisión', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+const formatCurrency = (val) => {
+  if (val === null || val === undefined) return '$0.00'
+  const num = typeof val === 'number' ? val : parseFloat(val)
+  return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const formatNumber = (val) => {
+  if (val === null || val === undefined) return '0'
+  const num = typeof val === 'number' ? val : parseFloat(val)
+  return num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+onMounted(() => {
+  fetchRecaudadoras()
+})
+</script>

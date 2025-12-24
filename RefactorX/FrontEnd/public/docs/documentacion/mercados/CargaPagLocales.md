@@ -1,0 +1,7 @@
+﻿# CargaPagLocales
+
+## Casos de Prueba
+
+
+
+

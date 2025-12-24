@@ -1,0 +1,241 @@
+<template>
+  <div class="module-view module-layout">
+    <div class="module-view-header">
+      <div class="module-view-icon">
+        <font-awesome-icon icon="file-invoice-dollar" />
+      </div>
+      <div class="module-view-info">
+        <h1>Derechos Otras Obligaciones</h1>
+        <p>Consulta y gestión de otras obligaciones fiscales por número de cuenta</p>
+      </div>
+      <div class="button-group ms-auto">
+        <button class="btn-municipal-info" @click="showDocumentacion = true" title="Documentacion">
+          <font-awesome-icon icon="book" />
+          Documentacion
+        </button>
+        <button class="btn-municipal-purple" @click="showAyuda = true" title="Ayuda">
+          <font-awesome-icon icon="question-circle" />
+          Ayuda
+        </button>
+      </div>
+    </div>
+
+    <div class="module-view-content">
+      <!-- Search form -->
+      <div class="municipal-card">
+        <div class="municipal-card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="municipal-form-label">Cuenta</label>
+              <input
+                class="municipal-form-control"
+                v-model="filters.cuenta"
+                @keyup.enter="filters.cuenta.trim() && reload()"
+              />
+            </div>
+          </div>
+          <div class="button-group">
+            <button
+              class="btn-municipal-primary"
+              :disabled="loading || !filters.cuenta.trim()"
+              @click="reload"
+            >
+              <font-awesome-icon icon="search" v-if="!loading" />
+              <font-awesome-icon icon="spinner" spin v-if="loading" />
+              {{ loading ? 'Buscando...' : 'Buscar' }}
+            </button>
+            <button
+              class="btn-municipal-secondary"
+              :disabled="loading"
+              @click="limpiar"
+            >
+              <font-awesome-icon icon="eraser" />
+              Limpiar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results table -->
+      <div class="municipal-card">
+        <div class="municipal-card-header">
+          <h5><font-awesome-icon icon="list" /> Registros ({{ rows.length }} registros)</h5>
+          <div v-if="loading" class="spinner-border" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+        </div>
+        <div class="municipal-card-body table-container" v-if="!loading">
+          <div class="table-responsive">
+            <table class="municipal-table">
+              <thead class="municipal-table-header">
+                <tr>
+                  <th v-for="c in cols" :key="c">{{ c }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(r, i) in paginatedRows" :key="i" class="row-hover">
+                  <td v-for="c in cols" :key="c">{{ r[c] }}</td>
+                </tr>
+                <tr v-if="rows.length === 0">
+                  <td :colspan="cols.length || 1" class="text-center text-muted">
+                    Sin resultados para esta cuenta
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Controls -->
+          <div v-if="rows.length > 0" class="pagination-controls">
+            <div class="pagination-info">
+              <span class="text-muted">
+                Mostrando {{ startIndex + 1 }} - {{ endIndex }} de {{ rows.length }} registros
+              </span>
+            </div>
+            <div class="pagination-buttons">
+              <button
+                class="btn-municipal-secondary"
+                :disabled="currentPage === 1"
+                @click="goToPage(1)">
+                <font-awesome-icon icon="angles-left" />
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                :disabled="currentPage === 1"
+                @click="prevPage">
+                <font-awesome-icon icon="chevron-left" />
+              </button>
+              <span class="pagination-page-indicator">
+                Página {{ currentPage }} de {{ totalPages }}
+              </span>
+              <button
+                class="btn-municipal-secondary"
+                :disabled="currentPage === totalPages"
+                @click="nextPage">
+                <font-awesome-icon icon="chevron-right" />
+              </button>
+              <button
+                class="btn-municipal-secondary"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(totalPages)">
+                <font-awesome-icon icon="angles-right" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Ayuda -->
+    <DocumentationModal
+      :show="showAyuda"
+      :component-name="'drecgoOtrasObligaciones'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'ayuda'"
+      :title="'Derechos Otras Obligaciones'"
+      @close="showAyuda = false"
+    />
+
+    <!-- Modal de Documentacion -->
+    <DocumentationModal
+      :show="showDocumentacion"
+      :component-name="'drecgoOtrasObligaciones'"
+      :module-name="'multas_reglamentos'"
+      :doc-type="'documentacion'"
+      :title="'Derechos Otras Obligaciones'"
+      @close="showDocumentacion = false"
+    />
+
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useGlobalLoading } from '@/composables/useGlobalLoading'
+import DocumentationModal from '@/components/common/DocumentationModal.vue'
+// Estados para modales de documentacion
+const showAyuda = ref(false)
+const showDocumentacion = ref(false)
+
+
+const BASE_DB = 'multas_reglamentos'
+const OP = 'RECAUDADORA_DRECGOOTRASOBLIGACIONES'
+
+const { loading, execute } = useApi()
+const { showLoading, hideLoading } = useGlobalLoading()
+
+const filters = ref({ cuenta: '' })
+const rows = ref([])
+const cols = ref([])
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// Computed properties para paginación
+const totalPages = computed(() => Math.ceil(rows.value.length / pageSize.value))
+
+const startIndex = computed(() => (currentPage.value - 1) * pageSize.value)
+
+const endIndex = computed(() => {
+  const end = startIndex.value + pageSize.value
+  return end > rows.value.length ? rows.value.length : end
+})
+
+const paginatedRows = computed(() => {
+  return rows.value.slice(startIndex.value, endIndex.value)
+})
+
+// Funciones de paginación
+function nextPage() {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+function goToPage(page) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+async function reload() {
+  currentPage.value = 1 // Reset a la primera página al buscar
+  const params = [
+    { nombre: 'p_clave_cuenta', tipo: 'string', valor: String(filters.value.cuenta || '') }
+  ]
+  try {
+    showLoading('Consultando...', 'Por favor espere')
+    const response = await execute(OP, BASE_DB, params, '', null, 'publico')
+    console.log('Respuesta completa:', response)
+
+    // Extraer datos con fallbacks
+    const responseData = response?.eResponse?.data || response?.data || response
+    const arr = Array.isArray(responseData?.result) ? responseData.result :
+                 Array.isArray(responseData?.rows) ? responseData.rows :
+                 Array.isArray(responseData) ? responseData : []
+
+    console.log('Registros extraídos:', arr.length, arr)
+    rows.value = arr
+    cols.value = arr.length ? Object.keys(arr[0]) : []
+  } catch (e) {
+    console.error('Error al consultar otras obligaciones:', e)
+    rows.value = []
+    cols.value = []
+  } finally {
+    hideLoading()
+  }
+}
+
+function limpiar() {
+  filters.value = { cuenta: '' }
+  rows.value = []
+  cols.value = []
+  currentPage.value = 1
+}
+</script>
